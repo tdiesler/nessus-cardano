@@ -30,13 +30,13 @@
   "TraceLocalChainSyncProtocol": false,
   "TraceLocalErrorPolicy": true,
   "TraceLocalHandshake": false,
-  "TraceLocalTxSubmissionProtocol": false,
-  "TraceLocalTxSubmissionServer": false,
+  "TraceLocalTxSubmissionProtocol": true,
+  "TraceLocalTxSubmissionServer": true,
   "TraceMempool": true,
   "TraceMux": false,
-  "TraceTxInbound": false,
-  "TraceTxOutbound": false,
-  "TraceTxSubmissionProtocol": false,
+  "TraceTxInbound": true,
+  "TraceTxOutbound": true,
+  "TraceTxSubmissionProtocol": true,
   "TracingVerbosity": "NormalVerbosity",
   "TurnOnLogMetrics": true,
   "TurnOnLogging": true,
@@ -51,7 +51,7 @@
   ],
   "hasEKG": 12788,
   "hasPrometheus": [
-    "127.0.0.1",
+    "0.0.0.0",
     12798
   ],
   "minSeverity": "Info",
@@ -67,6 +67,9 @@
         "EKGViewBK"
       ],
       "cardano.node.Forge.metrics": [
+        "EKGViewBK"
+      ],
+      "cardano.node.peers": [
         "EKGViewBK"
       ],
       "cardano.node.metrics": [
@@ -142,7 +145,8 @@
     "rpMaxAgeHours": 24
   },
   "setupBackends": [
-    "KatipBK"
+    "KatipBK",
+    "EKGViewBK"
   ],
   "setupScribes": [
     {
@@ -151,5 +155,8 @@
       "scName": "stdout",
       "scRotation": null
     }
-  ]
+  ],
+  "NetworkName": "mainnet",
+  "EnableLogMetrics": false,
+  "EnableLogging": true
 }

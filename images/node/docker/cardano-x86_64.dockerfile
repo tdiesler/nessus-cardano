@@ -5,18 +5,14 @@
 ARG CARDANO=1.24.2
 ARG CABAL=3.2.0.0
 ARG GHC=8.10.2
-ARG GUILD=1.23
 
 ## Install dependencies and libsodium #################################################################################
 
-FROM centos:8 AS builderA
+FROM debian:10 AS builderA
 
 # Install dependencies
-RUN yum install -y git gcc gcc-c++ tmux gmp-devel make tar xz wget zlib-devel libtool autoconf systemd-devel ncurses-devel ncurses-compat-libs
-RUN yum install -y systemd-devel ncurses-devel ncurses-compat-libs
-RUN yum install -y diffutils
-
-RUN mkdir /src
+RUN apt-get update -y
+RUN apt-get install -y automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libtinfo-dev libsystemd-dev zlib1g-dev make g++ tmux git jq wget libncursesw5 libtool autoconf
 
 # Install Libsodium
 
@@ -87,41 +83,51 @@ FROM builderA as builderD
 
 WORKDIR /root
 
+# Install a few diagnostic utils
+# > nc -zvw100 nodeip 3001
+RUN apt-get install -y curl cron netcat jq bc procps tcptraceroute
+
 # Copy the executables from the previous build
 COPY --from=builderC /usr/local/bin/cardano-node /usr/local/bin/cardano-node
 COPY --from=builderC /usr/local/bin/cardano-cli /usr/local/bin/cardano-cli
 
 # Copy config files
-COPY config/mainnet-config.json /var/cardano/config/mainnet-config.json
-COPY config/mainnet-topology.json /var/cardano/config/mainnet-topology.json
-COPY config/mainnet-shelley-genesis.json /var/cardano/config/mainnet-shelley-genesis.json
+COPY config/mainnet-config.json /opt/cardano/config/mainnet-config.json
+COPY config/mainnet-topology.json /opt/cardano/config/mainnet-topology.json
 
 # Fetch the Byron genesis data, which we don't want in SCM
-RUN wget -qO /var/cardano/config/mainnet-byron-genesis.json https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/mainnet-byron-genesis.json
+RUN wget -qO /opt/cardano/config/mainnet-byron-genesis.json https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/mainnet-byron-genesis.json
+RUN wget -qO /opt/cardano/config/mainnet-shelley-genesis.json https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/mainnet-shelley-genesis.json
+
+RUN mkdir -p /opt/cardano/data
+RUN mkdir -p /opt/cardano/logs
 
 ## Install guild-operators  ###########################################################################################
 
 FROM builderD as builderE
 
-ARG GUILD
-
-# Install dependencies
-RUN yum install -y jq bc tcptraceroute 
-
-WORKDIR /src
 RUN git clone https://github.com/cardano-community/guild-operators.git
 WORKDIR guild-operators
-RUN git checkout node-$GUILD
 
-ENV CNODE_PORT=3001
-ENV CCLI="/usr/local/bin/cardano-cli"
-ENV CONFIG="/var/cardano/config/mainnet-config.json"
-ENV TOPOLOGY="/var/cardano/config/mainnet-topology.json"
-ENV SOCKET="/var/cardano/share/socket"
+# Use env vars defined in the entrypoint to configure gLiveView
 
-RUN echo "node-$GUILD" > /usr/local/bin/.env_branch
-RUN ln -s /src/guild-operators/scripts/cnode-helper-scripts/gLiveView.sh /usr/local/bin/gLiveView
+RUN sed -i "s|#CCLI|source /root/env\n\n#CCLI|" scripts/cnode-helper-scripts/env
+RUN sed -i "s|CNODE_PORT=6000|#CNODE_PORT=6000|" scripts/cnode-helper-scripts/env
+
+# Disable interactive script update
+RUN git log -1 --format="%h" > /root/guild-operators/scripts/cnode-helper-scripts/.env_branch
+RUN echo "#!/bin/bash" >> /usr/local/bin/gLiveView; \
+    echo "guild-operators/scripts/cnode-helper-scripts/gLiveView.sh" >> /usr/local/bin/gLiveView; \
+    chmod +x /usr/local/bin/gLiveView
+
+# Configure the topologyUpdater
+RUN sed -i 's|CNODE_HOSTNAME="CHANGE ME"|CNODE_HOSTNAME="$CARDANO_PUBLIC_IP"|' scripts/cnode-helper-scripts/topologyUpdater.sh
+RUN sed -i 's|#CUSTOM_PEERS="None"|CUSTOM_PEERS="$CARDANO_CUSTOM_PEERS"|' scripts/cnode-helper-scripts/topologyUpdater.sh
+RUN echo "#!/bin/bash" >> /usr/local/bin/topologyUpdater; \
+    echo "guild-operators/scripts/cnode-helper-scripts/topologyUpdater.sh" >> /usr/local/bin/topologyUpdater; \
+    chmod +x /usr/local/bin/topologyUpdater
 
 WORKDIR /root
+COPY entrypoint.sh /opt/cardano/entrypoint.sh
 
-ENTRYPOINT ["cardano-node"]
+ENTRYPOINT ["/opt/cardano/entrypoint.sh"]
