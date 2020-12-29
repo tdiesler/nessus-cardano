@@ -44,10 +44,8 @@ echo "CARDANO_CUSTOM_PEERS=$CARDANO_CUSTOM_PEERS"
 # Block Producer
 #
 
-if [ "$CARDANO_BLOCK_PRODUCER" = "true" ]; then
+if [ -n "$CARDANO_SHELLY_KES_KEY" ]; then
 
-  echo "CARDANO_BLOCK_PRODUCER=$CARDANO_BLOCK_PRODUCER"
-  
   if [ -v $CARDANO_SHELLY_KES_KEY ]; then
     CARDANO_SHELLY_KES_KEY="$CARDANO_CONFIG/keys/kes.skey"
   fi
@@ -97,7 +95,7 @@ EOF
 
 if [ "$1" == "run" ]; then
 
-  if [ "$CARDANO_BLOCK_PRODUCER" = "true" ]; then
+  if [ -n "$CARDANO_SHELLY_KES_KEY" ]; then
   
     cardano-node run \
       --config $CARDANO_CONFIG \
