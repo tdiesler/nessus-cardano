@@ -1,11 +1,10 @@
 
 # Nessus Cardano 
 
-Nessus Cardano explores various technical aspects of [Cardano](https://cardano.org). 
-
+With Nessus Cardano we explore, praise, comment, contribute to various technical aspects of [Cardano](https://cardano.org). 
 This is our contribution to "Making The World Work Better For All".
 
-Initially, we'd like to focus on a "container first" approach for Cardano nodes.
+Initially, we focus on a "container first" approach for the Cardano node.
 
 ## Running a Relay Node
 
@@ -220,9 +219,10 @@ docker exec -it relay \
 
 ## Is there a pool that runs this tech?
 
-Yes, we run [[ASTOR](http://astorpool.org)] Pool to explore, praise, comment, contribute to various technical aspects of Cardano. 
+Yes, we run [ASTOR Pool](http://astorpool.org). 
 
-Five percent of all rewads go to charity. With ASTOR, we [plant trees for the world](https://plant-for-the-planet.org).
+ASTOR charges the required minimum to provide a reliable stake pool.
+More than double of what we take for margin goes to [charity](https://plant-for-the-planet.org).
 
 
 Enjoy!

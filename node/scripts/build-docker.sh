@@ -9,7 +9,7 @@ CARDANO_VER=1.24.2
 CABAL_VER=3.4.0.0
 GHC_VER=8.10.2
 
-NESSUS_REV=rev1
+NESSUS_REV=rev2
  
 if [ "$ARCH" == "aarch64" ]; then
 
