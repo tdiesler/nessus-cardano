@@ -47,7 +47,7 @@ docker logs -f relay
 ## Accessing the build-in topology updater
 
 ```
-docker exec -it relay tail -f /opt/cardano/logs/topologyUpdater_lastresult.json
+docker exec -it relay tail -n 12 /opt/cardano/logs/topologyUpdater_lastresult.json
 
 { "resultcode": "204", "datetime":"2020-12-29 10:15:04", "clientIp": "35.239.77.33", "iptype": 4, "msg": "glad you're staying with us" }
 { "resultcode": "204", "datetime":"2020-12-29 11:15:04", "clientIp": "35.239.77.33", "iptype": 4, "msg": "glad you're staying with us" }

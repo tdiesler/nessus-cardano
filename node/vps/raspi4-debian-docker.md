@@ -101,3 +101,39 @@ sudo usermod -aG docker $USER
 # Verify docker access after restart
 docker run --rm centos echo "Hello World"
 ```
+
+### Mount Data Disks
+
+```
+# List block devices
+lsblk
+
+# DISK00 ########################################################################
+
+DISK00=/dev/sda
+MOUNT00=/mnt/disks/data00
+
+# Create new empty filesystem:
+# sudo mkfs.ext4 -m 0 -E lazy_itable_init=0,discard $DISK00
+
+# Mount block storage
+sudo mkdir -p $MOUNT00; sudo mount -o discard,defaults $DISK00 $MOUNT00
+
+# Append to /etc/fstab
+echo "" | sudo tee --append /etc/fstab
+echo "$DISK00  $MOUNT00  ext4   defaults,noatime,nofail 0 0" | sudo tee --append /etc/fstab
+
+# DISK01 ########################################################################
+
+DISK01=/dev/sdb
+MOUNT01=/mnt/disks/data01
+
+# Create new empty filesystem:
+# sudo mkfs.ext4 -m 0 -E lazy_itable_init=0,discard $DISK01
+
+# Mount block storage
+sudo mkdir -p $MOUNT01; sudo mount -o discard,defaults $DISK01 $MOUNT01
+
+# Append to /etc/fstab
+echo "$DISK01  $MOUNT01  ext4   defaults,noatime,nofail 0 0" | sudo tee --append /etc/fstab
+```

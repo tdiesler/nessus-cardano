@@ -33,7 +33,7 @@ For a running container, you can do ...
 docker exec -it relay gLiveView
 ```
 
-<img src="docs/img/relay-glview.png" width="400">
+<img src="node/docs/img/relay-glview.png" width="400">
 
 ## Accessing the build-in topology updater
 
@@ -133,6 +133,7 @@ cat << EOF > cardano/config/mainnet-relay-topology.json
 EOF
 
 # Setup the config volume
+
 docker rm -f relay
 docker volume rm -f cardano-relay-config
 docker run --name=tmp -v cardano-relay-config:/var/cardano/config debian
@@ -157,7 +158,7 @@ docker logs -f relay
 
 ## Running a Block Producer Node
 
-A producer node is configured in the same way as a RElay node, except that it does not have a `CARDANO_PUBLIC_IP` and hence no topology updater job.
+A producer node is configured in the same way as a Relay node, except that it does not have a `CARDANO_PUBLIC_IP` and hence no topology updater job.
 Additionally, it needs to have its keys/certificates configured.
 
 ```
@@ -177,6 +178,7 @@ cat << EOF > cardano/config/mainnet-prod-topology.json
 EOF
 
 # Setup the config volume
+
 docker rm -f prod
 docker volume rm -f cardano-prod-config
 docker run --name=tmp -v cardano-prod-config:/var/cardano/config debian
@@ -184,6 +186,8 @@ docker cp cardano/config/mainnet-prod-topology.json tmp:/var/cardano/config/main
 docker cp cardano/config/keys tmp:/var/cardano/config/keys
 docker run -it --rm -v cardano-prod-config:/var/cardano/config centos find /var/cardano/config -type f | sort
 docker rm -f tmp
+
+# Run the Producer node
 
 docker rm -f prod
 docker run --detach \

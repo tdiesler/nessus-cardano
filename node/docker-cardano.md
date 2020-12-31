@@ -1,4 +1,33 @@
 
+## Build the Image
+
+```
+# Build respective single arch image
+./node/scripts/build-docker.sh
+
+CARDANO=1.24.2
+VERSION="$CARDANO-rev1"
+
+docker manifest create nessusio/cardano:$VERSION \
+  --amend nessusio/cardano:$VERSION-amd64 \
+  --amend nessusio/cardano:$VERSION-arm64
+
+docker manifest push nessusio/cardano:$VERSION
+
+docker manifest create nessusio/cardano:$CARDANO \
+  --amend nessusio/cardano:$CARDANO-amd64 \
+  --amend nessusio/cardano:$CARDANO-arm64
+
+docker manifest push nessusio/cardano:$CARDANO
+
+docker manifest create nessusio/cardano \
+  --amend nessusio/cardano:latest-amd64 \
+  --amend nessusio/cardano:latest-arm64
+
+docker manifest push nessusio/cardano
+```
+
+
 ## Run the Relay Node
 
 ```
@@ -59,6 +88,12 @@ docker exec -it relay gLiveView
 docker exec -it relay topologyUpdater
 docker exec -it relay tail -f /opt/cardano/logs/topologyUpdater_lastresult.json
 docker exec -it relay cat /var/cardano/config/mainnet-topology.json
+
+# Access the EKG metric
+docker exec -it relay curl -H 'Accept: application/json' 127.0.0.1:12788 | jq
+
+# Access the Prometheus metrics
+docker exec -it relay curl 127.0.0.1:12798/metrics | sort
 ```
 
 ## Run the Producer Node
@@ -107,5 +142,11 @@ docker logs -f prod
 
 docker exec -it prod bash
 docker exec -it prod gLiveView
+
+# Access the EKG metric
+docker exec -it prod curl -H 'Accept: application/json' 127.0.0.1:12788 | jq
+
+# Access the Prometheus metrics
+docker exec -it prod curl 127.0.0.1:12798/metrics | sort
 ```
 
