@@ -226,7 +226,7 @@ docker exec -it relay \
 Yes, we run [ASTOR Pool](http://astorpool.org). 
 
 ASTOR charges the required minimum to provide a reliable stake pool.
-More than double of what we take for margin goes to [charity](https://plant-for-the-planet.org).
+Twenty-five percent of our margin goes to [charity](https://plant-for-the-planet.org).
 
 
 Enjoy!
