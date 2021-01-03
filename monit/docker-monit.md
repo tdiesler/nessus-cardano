@@ -64,7 +64,9 @@ docker rm -f tmp
 docker rm -f monit
 docker run --detach \
   --name=monit \
+  --restart=always \
   -v monit-config:/etc/monit.d \
+  --memory=50m --memory-swap=100m \
   nessusio/monit -Iv
 
 docker logs -f monit

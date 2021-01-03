@@ -70,6 +70,7 @@ docker rm -f tmp
 docker rm -f relay
 docker run --detach \
     --name=relay \
+    --restart=always \
     -p 3001:3001 \
     --ip 172.18.0.10 \
     --network cardano \
@@ -126,6 +127,7 @@ docker rm -f tmp
 docker rm -f prod
 docker run --detach \
     --name=prod \
+    --restart=always \
     --ip 172.18.0.11 \
     --network cardano \
     --hostname="cdprod" \

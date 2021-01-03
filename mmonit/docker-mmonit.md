@@ -27,3 +27,19 @@ docker manifest create nessusio/mmonit \
 docker manifest push nessusio/mmonit
 ```
 
+## Run M/Monit
+
+Login: admin/swordfish
+
+```
+docker pull nessusio/mmonit
+
+docker rm -f mmonit
+docker run --detach \
+  --name=mmonit \
+  --restart=always \
+  -p 8080:8080 \
+  nessusio/mmonit -i
+
+docker logs -f mmonit
+```
