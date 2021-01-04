@@ -1,7 +1,7 @@
 {
   "ApplicationName": "cardano-sl",
   "ApplicationVersion": 1,
-  "ByronGenesisFile": "mainnet-byron-genesis.json",
+  "ByronGenesisFile": "/opt/cardano/config/mainnet-byron-genesis.json",
   "ByronGenesisHash": "5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb",
   "LastKnownBlockVersion-Alt": 0,
   "LastKnownBlockVersion-Major": 3,
@@ -9,7 +9,7 @@
   "MaxKnownMajorProtocolVersion": 2,
   "Protocol": "Cardano",
   "RequiresNetworkMagic": "RequiresNoMagic",
-  "ShelleyGenesisFile": "mainnet-shelley-genesis.json",
+  "ShelleyGenesisFile": "/opt/cardano/config/mainnet-shelley-genesis.json",
   "ShelleyGenesisHash": "1a3be38bcbb7911969283716ad7aa550250226b76a61fc51cc9a9a35d9276d81",
   "TraceBlockFetchClient": false,
   "TraceBlockFetchDecisions": false,
@@ -47,6 +47,10 @@
     [
       "StdoutSK",
       "stdout"
+    ],
+    [
+      "FileSK",
+      "/opt/cardano/logs/debug.log"
     ]
   ],
   "hasEKG": 12788,
@@ -67,9 +71,6 @@
         "EKGViewBK"
       ],
       "cardano.node.Forge.metrics": [
-        "EKGViewBK"
-      ],
-      "cardano.node.peers": [
         "EKGViewBK"
       ],
       "cardano.node.metrics": [
@@ -145,18 +146,23 @@
     "rpMaxAgeHours": 24
   },
   "setupBackends": [
-    "KatipBK",
-    "EKGViewBK"
+    "KatipBK"
   ],
   "setupScribes": [
     {
       "scFormat": "ScText",
       "scKind": "StdoutSK",
-      "scName": "stdout",
-      "scRotation": null
+      "scName": "stdout"
+    },
+    {
+      "scFormat": "ScText",
+      "scKind": "FileSK",
+      "scName": "/opt/cardano/logs/debug.log",
+      "scRotation": { 
+        "rpLogLimitBytes": 50000000,
+        "rpKeepFilesNum": 14,
+        "rpMaxAgeHours": 24
+      }
     }
-  ],
-  "NetworkName": "mainnet",
-  "EnableLogMetrics": false,
-  "EnableLogging": true
+  ]
 }
