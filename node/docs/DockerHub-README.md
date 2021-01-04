@@ -18,18 +18,20 @@ Each image comes in multiple arch variant. Current we support `amd64` and `arm64
 
 | ENV Variable                           | Used in cardano-node option       |                                                     |
 |:---------------------------------------|:----------------------------------|:----------------------------------------------------|
-| CARDANO_TOPOLOGY                       | --topology                        | Path to a file describing the topology.             |
-| CARDANO_DATABASE_PATH                  | --database-path                   | Directory where the state is stored                 |
-| CARDANO_SOCKET_PATH                    | --socket-path                     | Path to a cardano-node socket                       |
-| CARDANO_CONFIG                         | --config                          | Path to the node configuration file                 |
-| CARDANO_LOG_DIR                        |                                   | Path to the log directory                           |
 | CARDANO_BIND_ADDR                      | --host-addr                       | Network bind address                                |
+| CARDANO_BLOCK_PRODUCER                 |                                   | Run the node as block producer                      |
+| CARDANO_CONFIG                         | --config                          | Path to the node configuration file                 |
+| CARDANO_CUSTOM_PEERS                   |                                   | List of custom peers added by the topology updater  |
+| CARDANO_DATABASE_PATH                  | --database-path                   | Directory where the state is stored                 |
+| CARDANO_LOG_DIR                        |                                   | Path to the log directory                           |
 | CARDANO_PORT                           | --port                            | The port number                                     |
 | CARDANO_PUBLIC_IP                      |                                   | Public IP used by the topology updater              |
-| CARDANO_CUSTOM_PEERS                   |                                   | List of custom peers added by the topology updater  |
 | CARDANO_SHELLY_KES_KEY                 | --shelley-kes-key                 | Path to the KES key file                            |
 | CARDANO_SHELLY_VRF_KEY                 | --shelley-vrf-key                 | Path to the VRF key file                            |
 | CARDANO_SHELLY_OPERATIONAL_CERTIFICATE | --shelley-operational-certificate | Path to the operational certificate                 |
+| CARDANO_SOCKET_PATH                    | --socket-path                     | Path to a cardano-node socket                       |
+| CARDANO_TOPOLOGY                       | --topology                        | Path to a file describing the topology              |
+| CARDANO_UPDATE_TOPOLOGY                |                                   | Enable the built-in topology updater                |
 
 ## Running a Relay Node
 
@@ -37,7 +39,7 @@ Each image comes in multiple arch variant. Current we support `amd64` and `arm64
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -e CARDANO_PUBLIC_IP="$RELAY_PUBLIC_IP" \
+    -e CARDANO_UPDATE_TOPOLOGY=true \
     -v /mnt/disks/data00:/opt/cardano/data \
     nessusio/cardano run
 

@@ -39,7 +39,7 @@ docker exec -it relay gLiveView
 
 There is currently no P2P module activated in cardano-1.24.2. Your node may call out to well known relay nodes, but you may never have incoming connections.
 According to [this](https://github.com/cardano-community/guild-operators/blob/alpha/docs/Scripts/topologyupdater.md) it is necessary to update your topology 
-every hour - the node does not do this on its own.
+every hour. At the time of writing, cardano-node doesn't do this on its own.
 
 This functionality has been built into nessus/cardano as well. On startup, you should see a log similar to this ...
 
@@ -50,33 +50,35 @@ echo "RELAY_PUBLIC_IP: ${RELAY_PUBLIC_IP}"
 
 docker run --detach \
     --name=relay \
-    --hostname="cdrelay" \
     -p 3001:3001 \
-    -e CARDANO_PUBLIC_IP="$RELAY_PUBLIC_IP" \
+    --hostname="relay" \
+    -e CARDANO_UPDATE_TOPOLOGY=true \
     nessusio/cardano run
 
 docker logs -f relay
 
-CARDANO_CONFIG=/opt/cardano/config/mainnet-config.json
-CARDANO_TOPOLOGY=/opt/cardano/config/mainnet-topology.json
-CARDANO_DATABASE_PATH=/opt/cardano/data
-CARDANO_SOCKET_PATH=/opt/cardano/data/socket
-CARDANO_LOG_DIR=/opt/cardano/logs
 CARDANO_BIND_ADDR=0.0.0.0
-CARDANO_PORT=3001
-CARDANO_PUBLIC_IP=35.239.77.33
+CARDANO_BLOCK_PRODUCER=false
+CARDANO_CONFIG=/opt/cardano/config/mainnet-config.json
 CARDANO_CUSTOM_PEERS=
+CARDANO_DATABASE_PATH=/opt/cardano/data
+CARDANO_LOG_DIR=/opt/cardano/logs
+CARDANO_PORT=3001
+CARDANO_PUBLIC_IP=
+CARDANO_SOCKET_PATH=/opt/cardano/data/socket
+CARDANO_TOPOLOGY=/opt/cardano/config/mainnet-topology.json
+CARDANO_UPDATE_TOPOLOGY=true
 
-Installing 30 * * * *  root  /usr/local/bin/topologyUpdater
-Starting periodic command scheduler: cron.
+Installing 45 * * * *  root  /usr/local/bin/topologyUpdater
+ * Starting periodic command scheduler cron
 
 Listening on http://0.0.0.0:12798
-[cdrelay:cardano.node.networkMagic:Notice:5] [2020-12-28 18:16:09.88 UTC] NetworkMagic 764824073
-[cdrelay:cardano.node.basicInfo.protocol:Notice:5] [2020-12-28 18:16:09.88 UTC] Byron; Shelley
-[cdrelay:cardano.node.basicInfo.version:Notice:5] [2020-12-28 18:16:09.88 UTC] 1.24.2
+[relay:cardano.node.networkMagic:Notice:5] [2021-01-04 16:35:06.61 UTC] NetworkMagic 764824073
+[relay:cardano.node.basicInfo.protocol:Notice:5] [2021-01-04 16:35:06.61 UTC] Byron; Shelley
+[relay:cardano.node.basicInfo.version:Notice:5] [2021-01-04 16:35:06.61 UTC] 1.24.2
 ```
 
-The topologyUpdater is triggered by `CARDANO_PUBLIC_IP`. Without it, the cron job is not installed.
+The topologyUpdater is triggered by `CARDANO_UPDATE_TOPOLOGY`. Without it, the cron job is not installed.
 
 The set of supported config options is documented [here](https://hub.docker.com/repository/docker/nessusio/cardano);
 
@@ -85,15 +87,10 @@ The set of supported config options is documented [here](https://hub.docker.com/
 In this configuration, we map the node's `--database-path` to a mounted directory.
 
 ```
-# The external IP for our Relay node
-RELAY_PUBLIC_IP=`curl -s ipinfo.io/ip`
-echo "RELAY_PUBLIC_IP: ${RELAY_PUBLIC_IP}"
-
 docker rm -f relay
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -e CARDANO_PUBLIC_IP="$RELAY_PUBLIC_IP" \
     -v /mnt/disks/data00:/opt/cardano/data \
     nessusio/cardano run
 
@@ -146,7 +143,7 @@ docker rm -f relay
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -e CARDANO_PUBLIC_IP="$RELAY_PUBLIC_IP" \
+    -e CARDANO_UPDATE_TOPOLOGY=true \
     -e CARDANO_CUSTOM_PEERS="$PRODUCER_IP:3001" \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
     -v cardano-relay-config:/var/cardano/config  \
@@ -169,7 +166,7 @@ cat << EOF > cardano/config/mainnet-prod-topology.json
 {
   "Producers": [
     {
-      "addr": "$RELAY_PUBLIC_IP",
+      "addr": "myrelay.org",
       "port": 3001,
       "valency": 1
     }
@@ -192,7 +189,8 @@ docker rm -f tmp
 docker rm -f prod
 docker run --detach \
     --name=prod \
-    --hostname="cdprod" \
+    --hostname="prod" \
+    -e CARDANO_BLOCK_PRODUCER=true \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
     -e CARDANO_SHELLY_KES_KEY="/var/cardano/config/keys/pool/kes.skey" \
     -e CARDANO_SHELLY_VRF_KEY="/var/cardano/config/keys/pool/vrf.skey" \
