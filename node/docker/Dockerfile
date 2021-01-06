@@ -1,10 +1,11 @@
 #
-# A multistage approach to building a minumum size Cardano Node/CLI image
+# A multistage approach to building a Cardano Node/CLI image
 # 
 
-ARG CARDANO_VER=1.24.2
-ARG CABAL_VER=3.4.0.0
-ARG GHC_VER=8.10.2
+# Some build-arg parameters
+ARG CARDANO_VER
+ARG CABAL_VER
+ARG GHC_VER
 
 ## Install dependencies and libsodium #################################################################################
 
