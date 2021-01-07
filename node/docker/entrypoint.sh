@@ -73,11 +73,6 @@ if [ "$CARDANO_BLOCK_PRODUCER" = true ]; then
   echo "CARDANO_SHELLY_OPERATIONAL_CERTIFICATE=$CARDANO_SHELLY_OPERATIONAL_CERTIFICATE"
 fi
 
-if [ -z $1 ]; then
-  echo "Nothing to do! Perhaps try [run]"
-  exit 1
-fi
-
 cat << EOF > /root/env
 #!/usr/bin/env bash
 
@@ -109,6 +104,8 @@ if [ "$1" == "run" ]; then
 
   if [ "$CARDANO_BLOCK_PRODUCER" = true ]; then
   
+    # Run the node in the background so that we can have its pid 
+    
     cardano-node run \
       --config $CARDANO_CONFIG \
       --topology $CARDANO_TOPOLOGY \
@@ -118,7 +115,7 @@ if [ "$1" == "run" ]; then
       --port $CARDANO_PORT \
       --shelley-kes-key $CARDANO_SHELLY_KES_KEY \
       --shelley-vrf-key $CARDANO_SHELLY_VRF_KEY \
-      --shelley-operational-certificate $CARDANO_SHELLY_OPERATIONAL_CERTIFICATE
+      --shelley-operational-certificate $CARDANO_SHELLY_OPERATIONAL_CERTIFICATE &
       
   else
   
@@ -140,13 +137,34 @@ if [ "$1" == "run" ]; then
       
     fi
     
+    # Run the node in the background so that we can have its pid 
+    
     cardano-node run \
       --config $CARDANO_CONFIG \
       --topology $CARDANO_TOPOLOGY \
       --database-path $CARDANO_DATABASE_PATH \
       --socket-path $CARDANO_SOCKET_PATH \
       --host-addr $CARDANO_BIND_ADDR \
-      --port $CARDANO_PORT
+      --port $CARDANO_PORT &
+    
   fi
+  
+  # Trap the SIGTERM signal sent from `docker stop` and signal the cardano-node with SIGINT for graceful shutdown
+  #
+   
+  PID="$!"
+  trap "echo Signalling for shutdown ...; kill -SIGINT $PID;" SIGTERM
+  
+  wait $PID
+  
+  # The wait may return before the gracefull shutdown is done
+  # Wait a little longer before will kill everything
+  
+  sleep 3
+  
+else
+  
+  echo "Nothing to do! Perhaps try [run]"
+  exit 1
   
 fi

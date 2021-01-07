@@ -124,7 +124,7 @@ docker exec -it prod curl 127.0.0.1:12798/metrics | sort
 ## Run a Relay on MacOS
 
 ```
-VERSION=1.24.2-rev2
+VERSION=dev
 
 # Run the Relay node
 
@@ -134,10 +134,25 @@ docker run --detach \
     -p 3002:3002 \
     --hostname="relay" \
     -e CARDANO_PORT=3002 \
-    -v ~/cardano:/var/cardano/local \
-    -v shelly-data01:/opt/cardano/data \
+    -v ~/cardano/data:/opt/cardano/data \
     nessusio/cardano:${VERSION} run
 
 docker logs -f relay
+
+docker kill --signal=SIGINT relay
+
+docker rm -f relay
+docker run -it \
+    --name=relay \
+    --entrypoint=bash \
+    -v ~/cardano/data:/opt/cardano/data \
+    nessusio/cardano:${VERSION}
+  
+cardano-node run \
+  --config /opt/cardano/config/mainnet-config.json \
+  --topology /opt/cardano/config/mainnet-topology.json \
+  --database-path /opt/cardano/data \
+  --socket-path /opt/cardano/data/socket 
+  --host-addr 0.0.0.0 --port 3002
 ```
 
