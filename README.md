@@ -14,6 +14,8 @@ To get up and running with [Cardano](https://cardano.org), you can spin up a nod
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
+    -e CARDANO_UPDATE_TOPOLOGY=true \
+    -v shelly-data:/opt/cardano/data \
     nessusio/cardano run
 
 docker logs -f relay
@@ -44,15 +46,12 @@ every hour. At the time of writing, cardano-node doesn't do this on its own.
 This functionality has been built into nessus/cardano as well. On startup, you should see a log similar to this ...
 
 ```
-# The external IP for our Relay node
-RELAY_PUBLIC_IP=`curl -s ipinfo.io/ip`
-echo "RELAY_PUBLIC_IP: ${RELAY_PUBLIC_IP}"
-
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
     --hostname="relay" \
     -e CARDANO_UPDATE_TOPOLOGY=true \
+    -v shelly-data:/opt/cardano/data \
     nessusio/cardano run
 
 docker logs -f relay
@@ -87,7 +86,6 @@ The set of supported config options is documented [here](https://hub.docker.com/
 In this configuration, we map the node's `--database-path` to a mounted directory.
 
 ```
-docker rm -f relay
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
@@ -131,7 +129,6 @@ EOF
 
 # Setup the config volume
 
-docker rm -f relay
 docker volume rm -f cardano-relay-config
 docker run --name=tmp -v cardano-relay-config:/var/cardano/config debian
 docker cp cardano/config/mainnet-relay-topology.json tmp:/var/cardano/config/mainnet-topology.json
@@ -139,7 +136,6 @@ docker rm -f tmp
 
 # Run the Relay node
 
-docker rm -f relay
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
@@ -176,7 +172,6 @@ EOF
 
 # Setup the config volume
 
-docker rm -f prod
 docker volume rm -f cardano-prod-config
 docker run --name=tmp -v cardano-prod-config:/var/cardano/config debian
 docker cp cardano/config/mainnet-prod-topology.json tmp:/var/cardano/config/mainnet-topology.json
@@ -186,7 +181,6 @@ docker rm -f tmp
 
 # Run the Producer node
 
-docker rm -f prod
 docker run --detach \
     --name=prod \
     --hostname="prod" \
@@ -209,9 +203,9 @@ docker exec -it prod gLiveView
 We can also use the image above to run Cardano CLI commands.
 
 ```
-docker exec -it relay \
-  cardano-cli query tip --mainnet
+alias cardano-cli="docker exec -it relay cardano-cli"
 
+cardano-cli query tip --mainnet
 {
     "blockNo": 5102089,
     "headerHash": "e5984f27d1d3b5dcc296b33ccd919a28618ff2d77513971bd316cffd35afecda",

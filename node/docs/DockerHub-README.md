@@ -65,9 +65,9 @@ docker exec -it relay gLiveView
 ## Accessing the build-in CLI
 
 ```
-docker exec -it relay \
-  cardano-cli query tip --mainnet
+alias cardano-cli="docker exec -it relay cardano-cli"
 
+cardano-cli query tip --mainnet
 {
     "blockNo": 5102089,
     "headerHash": "e5984f27d1d3b5dcc296b33ccd919a28618ff2d77513971bd316cffd35afecda",
