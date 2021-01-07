@@ -3,8 +3,7 @@
 # 
 # https://docs.cardano.org/projects/cardano-node/en/latest/getting-started/install.html
 
-NESSUS_REV=rev3
-DOCKER_PUSH=true
+NESSUS_REV=rev4-dev
  
 CARDANO_VER=1.24.2
 CABAL_VER=3.4.0.0
@@ -52,7 +51,8 @@ docker build \
   -t nessusio/cardano:${FULL_VERSION} docker
 
 
-if [ "${DOCKER_PUSH}" = true ]; then
+VERSION_SUFFIX="$(echo $NESSUS_REV | cut -d'-' -f 2)"
+if [ "${VERSION_SUFFIX}" != "dev" ]; then
 
   docker tag nessusio/cardano:${FULL_VERSION} nessusio/cardano:${ARCH_VERSION}
   docker tag nessusio/cardano:${FULL_VERSION} nessusio/cardano:${LATEST_VERSION}
@@ -64,12 +64,9 @@ if [ "${DOCKER_PUSH}" = true ]; then
   docker push nessusio/cardano:${ARCH_VERSION}
   docker push nessusio/cardano:${LATEST_VERSION}
 
-elif [ "$(echo $NESSUS_REV | cut -d'-' -f 2)" = "dev" ]; then
+else
 
-  docker tag nessusio/cardano:${FULL_VERSION} nessusio/cardano:${CARDANO_VER}-${NESSUS_REV}
   docker tag nessusio/cardano:${FULL_VERSION} nessusio/cardano:${NESSUS_REV}
-  
-  echo "Successfully tagged nessusio/cardano:${CARDANO_VER}-${NESSUS_REV}"
   echo "Successfully tagged nessusio/cardano:${NESSUS_REV}"
 
 fi
