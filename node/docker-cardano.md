@@ -6,7 +6,7 @@
 ./node/scripts/build-docker.sh
 
 CARDANO=1.24.2
-VERSION="$CARDANO-rev4"
+VERSION="$CARDANO-rev5"
 
 docker manifest create nessusio/cardano:$VERSION \
   --amend nessusio/cardano:$VERSION-amd64 \
