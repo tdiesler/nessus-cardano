@@ -29,9 +29,10 @@ docker manifest push nessusio/monit
 
 ## Run Monit
 
-### Setup the Config Volume
 
 ```
+# Setup the Config Volume
+
 MMONIT_PORT=8080
 MMONIT_ADDR=95.179.129.205
 MMONIT_AUTH='username:changeit'
@@ -51,22 +52,20 @@ EOF
 
 docker rm -f monit
 docker volume rm -f monit-config
-
 docker run --name=tmp -v monit-config:/etc/monit.d/ centos
 docker cp monit/monitrc-extras tmp:/etc/monit.d
 docker run --rm -v monit-config:/etc/monit.d centos find /etc/monit.d -type f | sort
 docker rm -f tmp
-```
 
-### Run the Image
+# Run the Image
 
-```
 docker rm -f monit
 docker run --detach \
   --name=monit \
   --restart=always \
+  --memory=50m \
+  --hostname=ada01 \
   -v monit-config:/etc/monit.d \
-  --memory=50m --memory-swap=100m \
   nessusio/monit -Iv
 
 docker logs -f monit

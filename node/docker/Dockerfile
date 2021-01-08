@@ -136,17 +136,24 @@ RUN sed -i "s|#CCLI|source /root/env\n\n#CCLI|" scripts/cnode-helper-scripts/env
 RUN sed -i "s|CNODE_PORT=6000|#CNODE_PORT=6000|" scripts/cnode-helper-scripts/env
 
 # Disable interactive script update
+# We do this by storing the SHA1 of the last commit in branch marker file 
 RUN git log -1 --format="%h" > /root/guild-operators/scripts/cnode-helper-scripts/.env_branch
-RUN echo "#!/bin/bash" >> /usr/local/bin/gLiveView \
-    && echo "guild-operators/scripts/cnode-helper-scripts/gLiveView.sh" >> /usr/local/bin/gLiveView \
-    && chmod +x /usr/local/bin/gLiveView
+
+# Install gLiveView
+COPY gLiveView.sh /usr/local/bin/gLiveView
+RUN chmod +x /usr/local/bin/gLiveView
+
+# Install topologyUpdater
+COPY topologyUpdater.sh /usr/local/bin/topologyUpdater
+RUN chmod +x /usr/local/bin/topologyUpdater
+
+# Install traptest
+# COPY traptest.sh /usr/local/bin/traptest
+# RUN chmod +x /usr/local/bin/traptest
 
 # Configure the topologyUpdater
 RUN sed -i 's|CNODE_HOSTNAME="CHANGE ME"|CNODE_HOSTNAME="$CARDANO_PUBLIC_IP"|' scripts/cnode-helper-scripts/topologyUpdater.sh
 RUN sed -i 's|#CUSTOM_PEERS="None"|CUSTOM_PEERS="$CARDANO_CUSTOM_PEERS"|' scripts/cnode-helper-scripts/topologyUpdater.sh
-RUN echo "#!/bin/bash" >> /usr/local/bin/topologyUpdater \
-    && echo "guild-operators/scripts/cnode-helper-scripts/topologyUpdater.sh" >> /usr/local/bin/topologyUpdater \
-    && chmod +x /usr/local/bin/topologyUpdater
 
 WORKDIR /root
 COPY entrypoint.sh /opt/cardano/entrypoint.sh

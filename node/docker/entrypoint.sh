@@ -100,11 +100,24 @@ export CARDANO_PUBLIC_IP="$CARDANO_PUBLIC_IP"
 export CARDANO_CUSTOM_PEERS="$CARDANO_CUSTOM_PEERS"
 EOF
 
+# Trap the SIGTERM signal sent from `docker stop` and 
+# signal the cardano-node with SIGINT for graceful shutdown
+#
+# The wait may return before the gracefull shutdown is done
+# Wait a little longer before will kill everything
+
+sigtermHandler () {
+  echo "Signalling for shutdown ..."
+  kill -SIGINT $1
+  wait $1
+  sleep 2
+}
+
 if [ "$1" == "run" ]; then
 
   if [ "$CARDANO_BLOCK_PRODUCER" = true ]; then
   
-    # Run the node in the background so that we can have its pid 
+    # Run the child process in the background so that we can have its pid 
     
     cardano-node run \
       --config $CARDANO_CONFIG \
@@ -137,7 +150,7 @@ if [ "$1" == "run" ]; then
       
     fi
     
-    # Run the node in the background so that we can have its pid 
+    # Run the child process in the background so that we can have its pid 
     
     cardano-node run \
       --config $CARDANO_CONFIG \
@@ -149,19 +162,13 @@ if [ "$1" == "run" ]; then
     
   fi
   
-  # Trap the SIGTERM signal sent from `docker stop` and signal the cardano-node with SIGINT for graceful shutdown
-  #
-   
+  # Trap the SIGTERM signal
   PID="$!"
-  trap "echo Signalling for shutdown ...; kill -SIGINT $PID;" SIGTERM
-  
+  trap "sigtermHandler $PID" SIGTERM
+
+  # Wait for the child process to terminate
   wait $PID
-  
-  # The wait may return before the gracefull shutdown is done
-  # Wait a little longer before will kill everything
-  
-  sleep 3
-  
+
 else
   
   echo "Nothing to do! Perhaps try [run]"

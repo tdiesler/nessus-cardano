@@ -2,8 +2,6 @@
 ## Run a Relay Node
 
 ```
-VERSION=1.24.2-rev2
-
 # Setup a custom subnet
 docker network create --subnet=172.18.0.0/16 cardano
 
@@ -30,13 +28,14 @@ EOF
 
 # Setup the config volume
 
-docker rm -f relay
 docker volume rm -f cardano-relay-config
 docker run --name=tmp -v cardano-relay-config:/var/cardano/config debian
 docker cp cardano/config/mainnet-relay-topology.json tmp:/var/cardano/config/mainnet-topology.json
 docker rm -f tmp
 
-docker rm -f relay
+docker stop relay
+docker rm relay
+
 docker run --detach \
     --name=relay \
     --restart=always \
@@ -49,7 +48,7 @@ docker run --detach \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
     -v cardano-relay-config:/var/cardano/config  \
     -v /mnt/disks/data00:/opt/cardano/data \
-    nessusio/cardano:${VERSION} run
+    nessusio/cardano:dev run
 
 docker logs -f relay
 
@@ -84,7 +83,6 @@ EOF
 
 # Setup the config volume
 
-docker rm -f prod
 docker volume rm -f cardano-prod-config
 docker run --name=tmp -v cardano-prod-config:/var/cardano/config debian
 docker cp cardano/config/mainnet-prod-topology.json tmp:/var/cardano/config/mainnet-topology.json
@@ -94,7 +92,9 @@ docker rm -f tmp
 
 # Run the Producer node
 
-docker rm -f prod
+docker stop prod
+docker rm prod
+
 docker run --detach \
     --name=prod \
     --restart=always \
@@ -108,7 +108,7 @@ docker run --detach \
     -e CARDANO_SHELLY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/pool/node.cert" \
     -v cardano-prod-config:/var/cardano/config  \
     -v /mnt/disks/data01:/opt/cardano/data \
-    nessusio/cardano:${VERSION} run
+    nessusio/cardano:dev run
 
 docker logs -f prod
 
@@ -124,35 +124,19 @@ docker exec -it prod curl 127.0.0.1:12798/metrics | sort
 ## Run a Relay on MacOS
 
 ```
-VERSION=dev
+docker stop relay
+docker rm relay
 
-# Run the Relay node
-
-docker rm -f relay
 docker run --detach \
     --name=relay \
     -p 3002:3002 \
     --hostname="relay" \
     -e CARDANO_PORT=3002 \
     -v ~/cardano/data:/opt/cardano/data \
-    nessusio/cardano:${VERSION} run
+    nessusio/cardano:dev run
 
 docker logs -f relay
 
-docker kill --signal=SIGINT relay
-
-docker rm -f relay
-docker run -it \
-    --name=relay \
-    --entrypoint=bash \
-    -v ~/cardano/data:/opt/cardano/data \
-    nessusio/cardano:${VERSION}
-  
-cardano-node run \
-  --config /opt/cardano/config/mainnet-config.json \
-  --topology /opt/cardano/config/mainnet-topology.json \
-  --database-path /opt/cardano/data \
-  --socket-path /opt/cardano/data/socket 
-  --host-addr 0.0.0.0 --port 3002
+docker exec -it relay gLiveView
 ```
 

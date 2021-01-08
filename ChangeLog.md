@@ -1,15 +1,19 @@
 
 # v1.24.2-rev3
 
+Released: 07-Jan-2021
+
 This is an important bug fix release
 
 * No graceful shutdown on docker stop ([#11][11])
 
 [11]: https://github.com/tdiesler/nessus-cardano/issues/11
 
-For details see [v1.24.2-rev3](https://github.com/tdiesler/nessus-cardano/releases/tag/1.24.2-rev3)
+For details see [v1.24.2-rev3](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev3)
 
 # v1.24.2-rev2
+
+Released: 04-Jan-2021
 
 This is a minor feature update
 
@@ -19,9 +23,11 @@ This is a minor feature update
 [8]: https://github.com/tdiesler/nessus-cardano/issues/8
 [14]: https://github.com/tdiesler/nessus-cardano/issues/14
 
-For details see [v1.24.2-rev2](https://github.com/tdiesler/nessus-cardano/releases/tag/1.24.2-rev2)
+For details see [v1.24.2-rev2](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev2)
 
 # v1.24.2-rev1
+
+Released: 30-Dec-2020
 
 This is our Initial release. It comes with
 
@@ -30,7 +36,7 @@ This is our Initial release. It comes with
 * Built-in topology updater ([#17][17])
 * Built-in gLiveView ([#18][18])
 
-For details see [v1.24.2-rev1](https://github.com/tdiesler/nessus-cardano/releases/tag/1.24.2-rev1)
+For details see [v1.24.2-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev1)
 
 [1]: https://github.com/tdiesler/nessus-cardano/issues/1
 [2]: https://github.com/tdiesler/nessus-cardano/issues/2
