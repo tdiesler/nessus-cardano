@@ -132,7 +132,8 @@ docker run --detach \
     -p 3002:3002 \
     --hostname="relay" \
     -e CARDANO_PORT=3002 \
-    -v ~/cardano/data:/opt/cardano/data \
+    -v ~/cardano:/var/cardano/local \
+    -v shelly-data01:/opt/cardano/data \
     nessusio/cardano:dev run
 
 docker logs -f relay
@@ -140,3 +141,16 @@ docker logs -f relay
 docker exec -it relay gLiveView
 ```
 
+## Get the current protocol parameters
+
+```
+alias cardano-cli="docker exec -it relay cardano-cli"
+mkdir -p ~/cardano/scratch
+
+cardano-cli query protocol-parameters \
+    --out-file /var/cardano/local/scratch/protocol.json \
+    --allegra-era \
+    --mainnet
+
+cat ~/cardano/scratch/protocol.json
+```
