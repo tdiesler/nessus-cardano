@@ -3,7 +3,7 @@
 # 
 # https://docs.cardano.org/projects/cardano-node/en/latest/getting-started/install.html
 
-NESSUS_REV=rev4-dev
+NESSUS_REV=rev4
  
 CARDANO_VER=1.24.2
 CABAL_VER=3.4.0.0

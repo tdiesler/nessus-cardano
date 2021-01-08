@@ -1,4 +1,16 @@
 
+# v1.24.2-rev4
+
+Released: 08-Jan-2021
+
+This is a minor bug fix release
+
+* gLiveView monitor does not respond to SIGHUP ([#19][19])
+
+[19]: https://github.com/tdiesler/nessus-cardano/issues/19
+
+For details see [v1.24.2-rev4](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev4)
+
 # v1.24.2-rev3
 
 Released: 07-Jan-2021
