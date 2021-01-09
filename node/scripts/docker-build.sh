@@ -67,16 +67,15 @@ if [ "${VERSION_SUFFIX}" != "dev" ]; then
 
 else
 
-  docker tag nessusio/cardano:${FULL_VERSION} nessusio/cardano:${NESSUS_REV}
+  docker tag nessusio/cardano:${FULL_VERSION} nessusio/cardano:dev-${ARCH_TAG}
   docker tag nessusio/cardano:${FULL_VERSION} nessusio/cardano:dev
   
-  echo "Successfully tagged nessusio/cardano:${NESSUS_REV}"
+  echo "Successfully tagged nessusio/cardano:dev-${ARCH_TAG}"
   echo "Successfully tagged nessusio/cardano:dev"
   
   if [ ${DOCKER_PUSH} ]; then
   
-    docker push nessusio/cardano:${NESSUS_REV}
-    docker push nessusio/cardano:dev
+    docker push nessusio/cardano:dev-${ARCH_TAG}
   fi
 
 fi
