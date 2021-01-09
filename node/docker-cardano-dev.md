@@ -121,7 +121,7 @@ docker exec -it prod curl -H 'Accept: application/json' 127.0.0.1:12788 | jq
 docker exec -it prod curl 127.0.0.1:12798/metrics | sort
 ```
 
-## Run a Relay on MacOS
+## Run a Test Node
 
 ```
 docker stop relay
@@ -129,9 +129,8 @@ docker rm relay
 
 docker run --detach \
     --name=relay \
-    -p 3002:3002 \
+    -p 3001:3001 \
     --hostname="relay" \
-    -e CARDANO_PORT=3002 \
     -v ~/cardano:/var/cardano/local \
     -v shelly-data01:/opt/cardano/data \
     nessusio/cardano:dev run
@@ -141,16 +140,24 @@ docker logs -f relay
 docker exec -it relay gLiveView
 ```
 
+## Define the cardano-cli alias
+
+```
+alias cardano-cli="docker run -it --rm \
+  -v ~/cardano:/var/cardano/local \
+  -v shelly-data01:/opt/cardano/data \
+  nessusio/cardano:dev cardano-cli"
+```
+
 ## Get the current protocol parameters
 
 ```
-alias cardano-cli="docker exec -it relay cardano-cli"
 mkdir -p ~/cardano/scratch
 
 cardano-cli query protocol-parameters \
-    --out-file /var/cardano/local/scratch/protocol.json \
+    --mainnet \
     --allegra-era \
-    --mainnet
+    --out-file /var/cardano/local/protocol.json
 
 cat ~/cardano/scratch/protocol.json
 ```

@@ -4,6 +4,7 @@
 # https://docs.cardano.org/projects/cardano-node/en/latest/getting-started/install.html
 
 NESSUS_REV=rev5-dev
+DOCKER_PUSH=true
  
 CARDANO_VER=1.24.2
 CABAL_VER=3.4.0.0
@@ -71,5 +72,11 @@ else
   
   echo "Successfully tagged nessusio/cardano:${NESSUS_REV}"
   echo "Successfully tagged nessusio/cardano:dev"
+  
+  if [ ${DOCKER_PUSH} ]; then
+  
+    docker push nessusio/cardano:${NESSUS_REV}
+    docker push nessusio/cardano:dev
+  fi
 
 fi

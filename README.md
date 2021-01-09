@@ -200,10 +200,14 @@ docker exec -it prod gLiveView
 
 ## Running the Cardano CLI
 
-We can also use the image above to run Cardano CLI commands.
+We can also use the image to run Cardano CLI commands.
 
 ```
-alias cardano-cli="docker exec -it relay cardano-cli"
+# Define the cardano-cli alias
+
+alias cardano-cli="docker run -it --rm \
+  -v /mnt/disks/data00:/opt/cardano/data \
+  nessusio/cardano cardano-cli"
 
 cardano-cli query tip --mainnet
 {
@@ -211,6 +215,48 @@ cardano-cli query tip --mainnet
     "headerHash": "e5984f27d1d3b5dcc296b33ccd919a28618ff2d77513971bd316cffd35afecda",
     "slotNo": 16910651
 }
+```
+
+## Generate the Ledger State
+
+```
+docker run -it --rm \
+  -v shelly-data01:/opt/cardano/data \
+  nessusio/cardano ledger-state
+
+Generating /opt/cardano/data/ledger-state.json
+```
+
+## Get Sigma
+
+```
+docker run -it --rm \
+  -v shelly-data01:/opt/cardano/data \
+  nessusio/cardano sigma \
+    --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
+    --ledger /opt/cardano/data/ledger-state.json
+
+building active stake
+Sigma: 0.000233
+```
+
+## Get Slot Leader Schedule
+
+```
+docker run -it --rm \
+  -v ~/cardano:/var/cardano/local \
+  -v shelly-data01:/opt/cardano/data \
+  nessusio/cardano leader-logs \
+    --vrf-skey /var/cardano/local/keys/pool/vrf.skey \
+    --sigma 0.000233 \
+    --d-param 0.32 \
+    --epoch 240
+
+Checking leadership log for Epoch 240 [ d Param: 0.32 ]
+2021-01-06 06:36:13 ==> Leader for 60682, Cumulative epoch blocks: 1
+2021-01-06 09:16:55 ==> Leader for 70324, Cumulative epoch blocks: 2
+2021-01-08 00:15:49 ==> Leader for 210658, Cumulative epoch blocks: 3
+2021-01-09 23:28:40 ==> Leader for 380629, Cumulative epoch blocks: 4
 ```
 
 ## Is there a pool that runs this tech?

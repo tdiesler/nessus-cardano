@@ -95,6 +95,10 @@ RUN cp dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-node-${CARDANO_V
 RUN cp dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-cli-${CARDANO_VER}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/cardano-cli
 
 ## Install Cardano ####################################################################################################
+#
+# Note, this gets rid of the intermediary build steps B & C
+# Instead, it builds on top of A (i.e libsodium)
+#
 
 FROM builderA as builderD
 
@@ -123,9 +127,15 @@ ENV CARDANO_NODE_SOCKET_PATH="/opt/cardano/data/socket"
 RUN mkdir -p /opt/cardano/data
 RUN mkdir -p /opt/cardano/logs
 
-## Install guild-operators  ###########################################################################################
+## Install gLiveView & topologyUpdater ################################################################################
+#
+# Note, that this currently does not use a specific version
+# Instead it uses whatever happens to be in master at the build time of this image
+# The auto update feature of gLiveView is disabled
+#
+# https://github.com/cardano-community/guild-operators
 
-FROM builderD as builderE
+WORKDIR /root
 
 RUN git clone --depth 1 https://github.com/cardano-community/guild-operators.git
 WORKDIR guild-operators
@@ -154,6 +164,24 @@ RUN chmod +x /usr/local/bin/topologyUpdater
 # Configure the topologyUpdater
 RUN sed -i 's|CNODE_HOSTNAME="CHANGE ME"|CNODE_HOSTNAME="$CARDANO_PUBLIC_IP"|' scripts/cnode-helper-scripts/topologyUpdater.sh
 RUN sed -i 's|#CUSTOM_PEERS="None"|CUSTOM_PEERS="$CARDANO_CUSTOM_PEERS"|' scripts/cnode-helper-scripts/topologyUpdater.sh
+
+## Install leaderLogs  ###############################################################################################
+#
+# Note, that this currently does not use a specific version
+# Instead it uses whatever happens to be in master at the build time of this image
+#
+# https://github.com/papacarp/pooltool.io
+
+WORKDIR /root
+
+# Install Phython with Timezone Extension
+RUN apt-get install -y python3-pip \
+  && python3 -m pip install pytz \
+  && python3 --version
+
+RUN git clone --depth 1 https://github.com/papacarp/pooltool.io.git
+
+## Install the entrypoint  ############################################################################################
 
 WORKDIR /root
 COPY entrypoint.sh /opt/cardano/entrypoint.sh
