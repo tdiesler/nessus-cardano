@@ -3,7 +3,7 @@
 # 
 # https://docs.cardano.org/projects/cardano-node/en/latest/getting-started/install.html
 
-NESSUS_REV=rev5-dev
+NESSUS_REV=rev5
 DOCKER_PUSH=true
  
 CARDANO_VER=1.24.2

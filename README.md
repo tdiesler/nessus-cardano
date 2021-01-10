@@ -53,9 +53,9 @@ docker run --detach \
     nessusio/cardano run
 
 $ docker exec -it relay tail /opt/cardano/logs/topologyUpdater_lastresult.json
-{ "resultcode": "204", "datetime":"2021-01-10 05:15:03", "clientIp": "95.179.132.170", "iptype": 4, "msg": "glad you're staying with us" }
-{ "resultcode": "204", "datetime":"2021-01-10 06:15:05", "clientIp": "95.179.132.170", "iptype": 4, "msg": "glad you're staying with us" }
-{ "resultcode": "204", "datetime":"2021-01-10 07:15:04", "clientIp": "95.179.132.170", "iptype": 4, "msg": "glad you're staying with us" }
+{ "resultcode": "201", "datetime":"2021-01-10 18:30:06", "clientIp": "209.250.233.200", "iptype": 4, "msg": "nice to meet you" }
+{ "resultcode": "203", "datetime":"2021-01-10 19:30:03", "clientIp": "209.250.233.200", "iptype": 4, "msg": "welcome to the topology" }
+{ "resultcode": "204", "datetime":"2021-01-10 20:30:04", "clientIp": "209.250.233.200", "iptype": 4, "msg": "glad you're staying with us" }
 ```
 
 The topologyUpdater is triggered by `CARDANO_UPDATE_TOPOLOGY`. Without it, the cron job is not installed.

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CARDANO=1.24.2
-NESSUS_REV=rev5-dev
+NESSUS_REV=rev5
 
 VERSION_SUFFIX="$(echo $NESSUS_REV | cut -d'-' -f 2)"
 if [ "${VERSION_SUFFIX}" != "dev" ]; then
