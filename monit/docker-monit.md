@@ -34,7 +34,7 @@ docker manifest push nessusio/monit
 # Setup the Config Volume
 
 MMONIT_PORT=8080
-MMONIT_ADDR=95.179.129.205
+MMONIT_ADDR=astorpool.net
 MMONIT_AUTH='username:changeit'
 
 MONIT_AUTH=$MMONIT_AUTH
