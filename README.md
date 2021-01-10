@@ -14,16 +14,15 @@ To get up and running with [Cardano](https://cardano.org), you can spin up a nod
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -e CARDANO_UPDATE_TOPOLOGY=true \
     -v shelly-data:/opt/cardano/data \
     nessusio/cardano run
 
 docker logs -f relay
 ```
 
-This works on [x86_64 and arm64](https://hub.docker.com/r/nessusio/cardano).
+This works on [x86_64](https://hub.docker.com/r/nessusio/cardano/tags?name=amd64) and [arm64](https://hub.docker.com/r/nessusio/cardano/tags?name=arm64).
 
-The [image](https://hub.docker.com/r/nessusio/cardano) above is built from source in a multiple stages like [this](node/docker/Dockerfile).
+The [nessusio/cardano](https://hub.docker.com/r/nessusio/cardano) image is built from source in a multiple stages like [this](node/docker/Dockerfile).
 
 ## Accessing the build-in gLiveView
 
@@ -49,37 +48,17 @@ This functionality has been built into nessus/cardano as well. On startup, you s
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    --hostname="relay" \
     -e CARDANO_UPDATE_TOPOLOGY=true \
     -v shelly-data:/opt/cardano/data \
     nessusio/cardano run
 
-docker logs -f relay
-
-CARDANO_BIND_ADDR=0.0.0.0
-CARDANO_BLOCK_PRODUCER=false
-CARDANO_CONFIG=/opt/cardano/config/mainnet-config.json
-CARDANO_CUSTOM_PEERS=
-CARDANO_DATABASE_PATH=/opt/cardano/data
-CARDANO_LOG_DIR=/opt/cardano/logs
-CARDANO_PORT=3001
-CARDANO_PUBLIC_IP=
-CARDANO_SOCKET_PATH=/opt/cardano/data/socket
-CARDANO_TOPOLOGY=/opt/cardano/config/mainnet-topology.json
-CARDANO_UPDATE_TOPOLOGY=true
-
-Installing 45 * * * *  root  /usr/local/bin/topologyUpdater
- * Starting periodic command scheduler cron
-
-Listening on http://0.0.0.0:12798
-[relay:cardano.node.networkMagic:Notice:5] [2021-01-04 16:35:06.61 UTC] NetworkMagic 764824073
-[relay:cardano.node.basicInfo.protocol:Notice:5] [2021-01-04 16:35:06.61 UTC] Byron; Shelley
-[relay:cardano.node.basicInfo.version:Notice:5] [2021-01-04 16:35:06.61 UTC] 1.24.2
+$ docker exec -it relay tail /opt/cardano/logs/topologyUpdater_lastresult.json
+{ "resultcode": "204", "datetime":"2021-01-10 05:15:03", "clientIp": "95.179.132.170", "iptype": 4, "msg": "glad you're staying with us" }
+{ "resultcode": "204", "datetime":"2021-01-10 06:15:05", "clientIp": "95.179.132.170", "iptype": 4, "msg": "glad you're staying with us" }
+{ "resultcode": "204", "datetime":"2021-01-10 07:15:04", "clientIp": "95.179.132.170", "iptype": 4, "msg": "glad you're staying with us" }
 ```
 
 The topologyUpdater is triggered by `CARDANO_UPDATE_TOPOLOGY`. Without it, the cron job is not installed.
-
-The set of supported config options is documented [here](https://hub.docker.com/repository/docker/nessusio/cardano);
 
 ## External storage for block data
 
@@ -98,44 +77,9 @@ docker logs -f relay
 ## Using custom configurations
 
 Here we define a config volume called `cardano-relay-config`. It holds the `mainnet-topology.json` file that we setup externally.
-Please note, that our custom config lives in `/var/cardano/config` 
+Note, that our custom config lives in `/var/cardano/config` and not in the default location `/opt/cardano/config`.
 
 ```
-# The IP for our Block Producer node
-# This can be on an internal network
-PRODUCER_IP=35.18.0.11
-
-# Setup the Relay topology
-# The Relay connects to the World + Block Producer
-# Valency is a boolean - 0 disables the address
-
-mkdir -p cardano/config
-cat << EOF > cardano/config/mainnet-relay-topology.json
-{
-  "Producers": [
-    {
-      "addr": "relays-new.cardano-mainnet.iohk.io",
-      "port": 3001,
-      "valency": 1
-    },
-    {
-      "addr": "$PRODUCER_IP",
-      "port": 3001,
-      "valency": 1
-    }
-  ]
-}
-EOF
-
-# Setup the config volume
-
-docker volume rm -f cardano-relay-config
-docker run --name=tmp -v cardano-relay-config:/var/cardano/config debian
-docker cp cardano/config/mainnet-relay-topology.json tmp:/var/cardano/config/mainnet-topology.json
-docker rm -f tmp
-
-# Run the Relay node
-
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
@@ -151,39 +95,12 @@ docker logs -f relay
 
 ## Running a Block Producer Node
 
-A producer node is configured in the same way as a Relay node, except that it does not have a `CARDANO_PUBLIC_IP` and hence no topology updater job.
-Additionally, it needs to have its keys/certificates configured.
+A producer node is configured in the same way as a Relay node, except that it has some additional key/cert files configured and does not need to update its topology.
 
 ```
-# Setup the Producer topology
-# The Producer connects to the Relay (only)
-
-cat << EOF > cardano/config/mainnet-prod-topology.json
-{
-  "Producers": [
-    {
-      "addr": "myrelay.org",
-      "port": 3001,
-      "valency": 1
-    }
-  ]
-}
-EOF
-
-# Setup the config volume
-
-docker volume rm -f cardano-prod-config
-docker run --name=tmp -v cardano-prod-config:/var/cardano/config debian
-docker cp cardano/config/mainnet-prod-topology.json tmp:/var/cardano/config/mainnet-topology.json
-docker cp cardano/config/keys tmp:/var/cardano/config/keys
-docker run -it --rm -v cardano-prod-config:/var/cardano/config centos find /var/cardano/config -type f | sort
-docker rm -f tmp
-
-# Run the Producer node
-
 docker run --detach \
     --name=prod \
-    --hostname="prod" \
+    -p 3001:3001 \
     -e CARDANO_BLOCK_PRODUCER=true \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
     -e CARDANO_SHELLY_KES_KEY="/var/cardano/config/keys/pool/kes.skey" \
@@ -219,28 +136,39 @@ cardano-cli query tip --mainnet
 
 ## Generate the Ledger State
 
+To determine the block producer's leader schedule (see below), we first need to obtain the current `ledger-state.json`
+
 ```
 docker run -it --rm \
-  -v shelly-data01:/opt/cardano/data \
+  -v /mnt/disks/data00:/opt/cardano/data \
   nessusio/cardano ledger-state
 
 Generating /opt/cardano/data/ledger-state.json
 ```
 
-## Get Sigma
+## Getting the Sigma value
+
+Sigma represents your pool's share of the active stake. 
+It is the ratio of active stake for a given epoch divided by the total stake.
+
+Details on how to get sigma are [here](https://github.com/papacarp/pooltool.io/tree/master/leaderLogs#getsigmapy-details)
 
 ```
 docker run -it --rm \
   -v shelly-data01:/opt/cardano/data \
   nessusio/cardano sigma \
-    --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
+    --pool-id 9e8009b... \
     --ledger /opt/cardano/data/ledger-state.json
 
 building active stake
 Sigma: 0.000233
 ```
 
-## Get Slot Leader Schedule
+## Getting Slot Leader Schedule
+
+We can now obtain the leader schedule for our pool.
+
+Details on how to do this are [here](https://github.com/papacarp/pooltool.io/tree/master/leaderLogs#leaderlogspy-details)
 
 ```
 docker run -it --rm \
@@ -261,7 +189,7 @@ Checking leadership log for Epoch 240 [ d Param: 0.32 ]
 
 ## Is there a pool that runs this tech?
 
-Yes, we run [ASTOR Pool](http://astorpool.org). 
+Yes, we run [ASTOR Pool](http://astorpool.net). 
 
 ASTOR charges the required minimum to provide a reliable stake pool.
 Twenty-five percent of our margin goes to [charity](https://plant-for-the-planet.org).

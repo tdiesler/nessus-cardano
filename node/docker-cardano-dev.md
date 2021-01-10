@@ -53,7 +53,7 @@ docker run --detach \
 docker logs -f relay
 
 docker exec -it relay gLiveView
-docker exec -it relay tail -n 12 /opt/cardano/logs/topologyUpdater_lastresult.json
+docker exec -it relay tail /opt/cardano/logs/topologyUpdater_lastresult.json
 docker exec -it relay cat /opt/cardano/config/mainnet-topology.json
 
 # Access the EKG metric
