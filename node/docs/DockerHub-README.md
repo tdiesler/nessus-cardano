@@ -40,7 +40,7 @@ docker run --detach \
     --name=relay \
     -p 3001:3001 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
-    -v /mnt/disks/data00:/opt/cardano/data \
+    -v shelly-data:/opt/cardano/data \
     nessusio/cardano run
 
 docker logs -f relay
@@ -49,11 +49,11 @@ docker logs -f relay
 ## Accessing the build-in topology updater
 
 ```
-docker exec -it relay tail -n 12 /opt/cardano/logs/topologyUpdater_lastresult.json
+docker exec -it relay tail /opt/cardano/logs/topologyUpdater_lastresult.json
 
-{ "resultcode": "204", "datetime":"2020-12-29 10:15:04", "clientIp": "35.239.77.33", "iptype": 4, "msg": "glad you're staying with us" }
-{ "resultcode": "204", "datetime":"2020-12-29 11:15:04", "clientIp": "35.239.77.33", "iptype": 4, "msg": "glad you're staying with us" }
-{ "resultcode": "204", "datetime":"2020-12-29 12:15:04", "clientIp": "35.239.77.33", "iptype": 4, "msg": "glad you're staying with us" }
+{ "resultcode": "201", "datetime":"2021-01-10 18:30:06", "clientIp": "209.250.233.200", "iptype": 4, "msg": "nice to meet you" }
+{ "resultcode": "203", "datetime":"2021-01-10 19:30:03", "clientIp": "209.250.233.200", "iptype": 4, "msg": "welcome to the topology" }
+{ "resultcode": "204", "datetime":"2021-01-10 20:30:04", "clientIp": "209.250.233.200", "iptype": 4, "msg": "glad you're staying with us" }
 ```
 
 ## Accessing the build-in gLiveView
@@ -73,4 +73,57 @@ cardano-cli query tip --mainnet
     "headerHash": "e5984f27d1d3b5dcc296b33ccd919a28618ff2d77513971bd316cffd35afecda",
     "slotNo": 16910651
 }
+```
+
+## Generate the Ledger State
+
+To determine the block producer's leader schedule (see below), we first need to obtain the current `ledger-state.json`
+
+```
+docker run -it --rm \
+  -v shelly-data:/opt/cardano/data \
+  nessusio/cardano ledger-state
+
+Generating /opt/cardano/data/ledger-state.json
+```
+
+## Getting the Sigma value
+
+Sigma represents your pool's share of the active stake. 
+It is the ratio of active stake for a given epoch divided by the total stake.
+
+Details on how to get sigma are [here](https://github.com/papacarp/pooltool.io/tree/master/leaderLogs#getsigmapy-details)
+
+```
+docker run -it --rm \
+  -v shelly-data:/opt/cardano/data \
+  nessusio/cardano sigma \
+    --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
+    --ledger /opt/cardano/data/ledger-state.json
+
+building active stake
+Sigma: 0.000233
+```
+
+## Getting Slot Leader Schedule
+
+We can now obtain the leader schedule for our pool.
+
+Details on how to do this are [here](https://github.com/papacarp/pooltool.io/tree/master/leaderLogs#leaderlogspy-details)
+
+```
+docker run -it --rm \
+  -v ~/cardano:/var/cardano/local \
+  -v shelly-data:/opt/cardano/data \
+  nessusio/cardano leader-logs \
+    --vrf-skey /var/cardano/local/keys/pool/vrf.skey \
+    --sigma 0.000233 \
+    --d-param 0.32 \
+    --epoch 240
+
+Checking leadership log for Epoch 240 [ d Param: 0.32 ]
+2021-01-06 06:36:13 ==> Leader for 60682, Cumulative epoch blocks: 1
+2021-01-06 09:16:55 ==> Leader for 70324, Cumulative epoch blocks: 2
+2021-01-08 00:15:49 ==> Leader for 210658, Cumulative epoch blocks: 3
+2021-01-09 23:28:40 ==> Leader for 380629, Cumulative epoch blocks: 4
 ```

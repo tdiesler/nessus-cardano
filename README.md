@@ -140,7 +140,7 @@ To determine the block producer's leader schedule (see below), we first need to 
 
 ```
 docker run -it --rm \
-  -v shelly-data01:/opt/cardano/data \
+  -v shelly-data00:/opt/cardano/data \
   nessusio/cardano ledger-state
 
 Generating /opt/cardano/data/ledger-state.json
@@ -155,7 +155,7 @@ Details on how to get sigma are [here](https://github.com/papacarp/pooltool.io/t
 
 ```
 docker run -it --rm \
-  -v shelly-data01:/opt/cardano/data \
+  -v shelly-data00:/opt/cardano/data \
   nessusio/cardano sigma \
     --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
     --ledger /opt/cardano/data/ledger-state.json
@@ -173,7 +173,7 @@ Details on how to do this are [here](https://github.com/papacarp/pooltool.io/tre
 ```
 docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
-  -v shelly-data01:/opt/cardano/data \
+  -v shelly-data00:/opt/cardano/data \
   nessusio/cardano leader-logs \
     --vrf-skey /var/cardano/local/keys/pool/vrf.skey \
     --sigma 0.000233 \
