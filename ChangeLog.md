@@ -1,4 +1,16 @@
 
+# v1.24.2-rev6
+
+Released: 12-Jan-2021
+
+This is a minor bug fix release. However, it changes the naming of config parameers in an incompatible way.
+
+* Shelley misspelled in various places as Shelly ([#22][22])
+
+[22]: https://github.com/tdiesler/nessus-cardano/issues/22
+
+For details see [v1.24.2-rev5](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev5)
+
 # v1.24.2-rev5
 
 Released: 10-Jan-2021
@@ -10,7 +22,6 @@ This is a feature update release
 [21]: https://github.com/tdiesler/nessus-cardano/issues/21
 
 For details see [v1.24.2-rev5](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev5)
-
 
 # v1.24.2-rev4
 

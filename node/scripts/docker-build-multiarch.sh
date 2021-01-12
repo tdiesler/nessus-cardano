@@ -1,7 +1,8 @@
 #!/bin/bash
 
 CARDANO=1.24.2
-NESSUS_REV=rev6-dev
+
+NESSUS_REV=rev6
 
 VERSION="$CARDANO-$NESSUS_REV"
 
