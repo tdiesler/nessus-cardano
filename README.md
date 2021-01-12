@@ -14,7 +14,7 @@ To get up and running with [Cardano](https://cardano.org), you can spin up a nod
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -v shelly-data:/opt/cardano/data \
+    -v shelley-data:/opt/cardano/data \
     nessusio/cardano run
 
 docker logs -f relay
@@ -49,7 +49,7 @@ docker run --detach \
     --name=relay \
     -p 3001:3001 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
-    -v shelly-data:/opt/cardano/data \
+    -v shelley-data:/opt/cardano/data \
     nessusio/cardano run
 
 $ docker exec -it relay tail /opt/cardano/logs/topologyUpdater_lastresult.json
@@ -103,9 +103,9 @@ docker run --detach \
     -p 3001:3001 \
     -e CARDANO_BLOCK_PRODUCER=true \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
-    -e CARDANO_SHELLY_KES_KEY="/var/cardano/config/keys/pool/kes.skey" \
-    -e CARDANO_SHELLY_VRF_KEY="/var/cardano/config/keys/pool/vrf.skey" \
-    -e CARDANO_SHELLY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/pool/node.cert" \
+    -e CARDANO_SHELLEY_KES_KEY="/var/cardano/config/keys/pool/kes.skey" \
+    -e CARDANO_SHELLEY_VRF_KEY="/var/cardano/config/keys/pool/vrf.skey" \
+    -e CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/pool/node.cert" \
     -v cardano-prod-config:/var/cardano/config  \
     -v /mnt/disks/data01:/opt/cardano/data \
     nessusio/cardano run
@@ -140,7 +140,7 @@ To determine the block producer's leader schedule (see below), we first need to 
 
 ```
 docker run -it --rm \
-  -v shelly-data00:/opt/cardano/data \
+  -v shelley-data:/opt/cardano/data \
   nessusio/cardano ledger-state
 
 Generating /opt/cardano/data/ledger-state.json
@@ -155,7 +155,7 @@ Details on how to get sigma are [here](https://github.com/papacarp/pooltool.io/t
 
 ```
 docker run -it --rm \
-  -v shelly-data00:/opt/cardano/data \
+  -v shelley-data:/opt/cardano/data \
   nessusio/cardano sigma \
     --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
     --ledger /opt/cardano/data/ledger-state.json
@@ -173,7 +173,7 @@ Details on how to do this are [here](https://github.com/papacarp/pooltool.io/tre
 ```
 docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
-  -v shelly-data00:/opt/cardano/data \
+  -v shelley-data:/opt/cardano/data \
   nessusio/cardano leader-logs \
     --vrf-skey /var/cardano/local/keys/pool/vrf.skey \
     --sigma 0.000233 \

@@ -116,7 +116,7 @@ COPY --from=builderC /usr/local/bin/cardano-cli /usr/local/bin/cardano-cli
 COPY config/mainnet-config.json /opt/cardano/config/mainnet-config.json
 COPY config/mainnet-topology.json /opt/cardano/config/mainnet-topology.json
 
-# Fetch the Byron/Shelly genesis data, which we don't want in SCM
+# Fetch the Byron/Shelley genesis data, which we don't want in SCM
 # RUN wget -qO /opt/cardano/config/mainnet-config.json https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/mainnet-config.json
 # RUN wget -qO /opt/cardano/config/mainnet-topology.json https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/mainnet-topology.json
 RUN wget -qO /opt/cardano/config/mainnet-byron-genesis.json https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/mainnet-byron-genesis.json

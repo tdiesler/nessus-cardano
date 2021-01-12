@@ -16,22 +16,22 @@ Each image comes in multiple arch variant. Current we support `amd64` and `arm64
 ## Environment variables
 
 
-| ENV Variable                           | Used in cardano-node option       |                                                     |
-|:---------------------------------------|:----------------------------------|:----------------------------------------------------|
-| CARDANO_BIND_ADDR                      | --host-addr                       | Network bind address                                |
-| CARDANO_BLOCK_PRODUCER                 |                                   | Run the node as block producer                      |
-| CARDANO_CONFIG                         | --config                          | Path to the node configuration file                 |
-| CARDANO_CUSTOM_PEERS                   |                                   | List of custom peers added by the topology updater  |
-| CARDANO_DATABASE_PATH                  | --database-path                   | Directory where the state is stored                 |
-| CARDANO_LOG_DIR                        |                                   | Path to the log directory                           |
-| CARDANO_PORT                           | --port                            | The port number                                     |
-| CARDANO_PUBLIC_IP                      |                                   | Public IP used by the topology updater              |
-| CARDANO_SHELLY_KES_KEY                 | --shelley-kes-key                 | Path to the KES key file                            |
-| CARDANO_SHELLY_VRF_KEY                 | --shelley-vrf-key                 | Path to the VRF key file                            |
-| CARDANO_SHELLY_OPERATIONAL_CERTIFICATE | --shelley-operational-certificate | Path to the operational certificate                 |
-| CARDANO_SOCKET_PATH                    | --socket-path                     | Path to a cardano-node socket                       |
-| CARDANO_TOPOLOGY                       | --topology                        | Path to a file describing the topology              |
-| CARDANO_UPDATE_TOPOLOGY                |                                   | Enable the built-in topology updater                |
+| ENV Variable                            | Used in cardano-node option       |                                                     |
+|:----------------------------------------|:----------------------------------|:----------------------------------------------------|
+| CARDANO_BIND_ADDR                       | --host-addr                       | Network bind address                                |
+| CARDANO_BLOCK_PRODUCER                  |                                   | Run the node as block producer                      |
+| CARDANO_CONFIG                          | --config                          | Path to the node configuration file                 |
+| CARDANO_CUSTOM_PEERS                    |                                   | List of custom peers added by the topology updater  |
+| CARDANO_DATABASE_PATH                   | --database-path                   | Directory where the state is stored                 |
+| CARDANO_LOG_DIR                         |                                   | Path to the log directory                           |
+| CARDANO_PORT                            | --port                            | The port number                                     |
+| CARDANO_PUBLIC_IP                       |                                   | Public IP used by the topology updater              |
+| CARDANO_SHELLEY_KES_KEY                 | --shelley-kes-key                 | Path to the KES key file                            |
+| CARDANO_SHELLEY_VRF_KEY                 | --shelley-vrf-key                 | Path to the VRF key file                            |
+| CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE | --shelley-operational-certificate | Path to the operational certificate                 |
+| CARDANO_SOCKET_PATH                     | --socket-path                     | Path to a cardano-node socket                       |
+| CARDANO_TOPOLOGY                        | --topology                        | Path to a file describing the topology              |
+| CARDANO_UPDATE_TOPOLOGY                 |                                   | Enable the built-in topology updater                |
 
 ## Running a Relay Node
 
@@ -40,7 +40,7 @@ docker run --detach \
     --name=relay \
     -p 3001:3001 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
-    -v shelly-data:/opt/cardano/data \
+    -v shelley-data:/opt/cardano/data \
     nessusio/cardano run
 
 docker logs -f relay
@@ -81,7 +81,7 @@ To determine the block producer's leader schedule (see below), we first need to 
 
 ```
 docker run -it --rm \
-  -v shelly-data:/opt/cardano/data \
+  -v shelley-data:/opt/cardano/data \
   nessusio/cardano ledger-state
 
 Generating /opt/cardano/data/ledger-state.json
@@ -96,7 +96,7 @@ Details on how to get sigma are [here](https://github.com/papacarp/pooltool.io/t
 
 ```
 docker run -it --rm \
-  -v shelly-data:/opt/cardano/data \
+  -v shelley-data:/opt/cardano/data \
   nessusio/cardano sigma \
     --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
     --ledger /opt/cardano/data/ledger-state.json
@@ -114,7 +114,7 @@ Details on how to do this are [here](https://github.com/papacarp/pooltool.io/tre
 ```
 docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
-  -v shelly-data:/opt/cardano/data \
+  -v shelley-data:/opt/cardano/data \
   nessusio/cardano leader-logs \
     --vrf-skey /var/cardano/local/keys/pool/vrf.skey \
     --sigma 0.000233 \

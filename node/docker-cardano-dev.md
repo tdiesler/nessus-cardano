@@ -105,9 +105,9 @@ docker run --detach \
     --hostname="prod" \
     -e CARDANO_BLOCK_PRODUCER=false \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
-    -e CARDANO_SHELLY_KES_KEY="/var/cardano/config/keys/pool/kes.skey" \
-    -e CARDANO_SHELLY_VRF_KEY="/var/cardano/config/keys/pool/vrf.skey" \
-    -e CARDANO_SHELLY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/pool/node.cert" \
+    -e CARDANO_SHELLEY_KES_KEY="/var/cardano/config/keys/pool/kes.skey" \
+    -e CARDANO_SHELLEY_VRF_KEY="/var/cardano/config/keys/pool/vrf.skey" \
+    -e CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/pool/node.cert" \
     -v cardano-prod-config:/var/cardano/config  \
     -v /mnt/disks/data01:/opt/cardano/data \
     nessusio/cardano:$VERSION run
@@ -134,7 +134,7 @@ docker run --detach \
     -p 3001:3001 \
     --hostname="relay" \
     -v ~/cardano:/var/cardano/local \
-    -v shelly-data:/opt/cardano/data \
+    -v shelley-data:/opt/cardano/data \
     nessusio/cardano:$VERSION run
 
 docker logs -f relay
@@ -147,7 +147,7 @@ docker exec -it relay gLiveView
 ```
 alias cardano-cli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
-  -v shelly-data:/opt/cardano/data \
+  -v shelley-data:/opt/cardano/data \
   nessusio/cardano:$VERSION cardano-cli"
 ```
 
