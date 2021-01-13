@@ -57,6 +57,14 @@ source .profile
 sudo apt-get update
 sudo apt-get full-upgrade -y
 
+# Setup System Time synchronization
+https://www.digitalocean.com/community/tutorials/how-to-set-up-time-synchronization-on-debian-10
+sudo apt-get remove -y ntp ntpdate
+sudo systemctl start systemd-timesyncd
+sudo systemctl status systemd-timesyncd
+sudo timedatectl set-timezone Europe/Berlin
+sudo timedatectl status
+
 # Enable memory accounting
 # https://github.com/raspberrypi/Raspberry-Pi-OS-64bit/issues/124
 CMDLINE=`cat /boot/cmdline.txt`
@@ -85,7 +93,7 @@ sudo apt-get install -y apt-transport-https ca-certificates gnupg-agent software
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 
 sudo add-apt-repository \
-   "deb [arch=arm64] https://download.docker.com/linux/debian \
+   "deb https://download.docker.com/linux/debian \
    $(lsb_release -cs) \
    stable"
 
