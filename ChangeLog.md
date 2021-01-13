@@ -9,7 +9,7 @@ This is a minor bug fix release. However, it changes the naming of config parame
 
 [22]: https://github.com/tdiesler/nessus-cardano/issues/22
 
-For details see [v1.24.2-rev5](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev5)
+For details see [v1.24.2-rev6](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev6)
 
 # v1.24.2-rev5
 
