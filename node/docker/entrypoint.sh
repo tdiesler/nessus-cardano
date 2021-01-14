@@ -54,6 +54,10 @@ sigtermHandler () {
   sleep 2
 }
 
+#####################################################################
+#
+# Print run environment
+#
 printRunEnv () {
 
   echo "CARDANO_BIND_ADDR=$CARDANO_BIND_ADDR"
@@ -88,6 +92,10 @@ printRunEnv () {
   fi
 }
 
+#####################################################################
+#
+# Write root env file
+#
 writeRootEnv () {
 cat << EOF > /root/env
 #!/usr/bin/env bash
@@ -117,30 +125,45 @@ export CARDANO_CUSTOM_PEERS="$CARDANO_CUSTOM_PEERS"
 EOF
 }
 
+#####################################################################
+#
+# Install the topology updater cron job
+#
 topologyUpdaterCron () {
 
-  # Install the topology updater cron job
   
-  TARGET="/etc/cron.d/topologyUpdater"
-  if [ "$CARDANO_UPDATE_TOPOLOGY" = true ] && [ ! -f "$TARGET" ]; then
+  if [ "$CARDANO_UPDATE_TOPOLOGY" = true ]; then
           
-    MIN=`date +"%M"`
-    MIN=$(($(($(($MIN + 15)) / 15)) * 15))
-    if [ $MIN = 60 ]; then MIN=0; fi
+    TARGET="/etc/cron.d/topologyUpdater"
+    if [ ! -f "$TARGET" ]; then
+      
+      MIN=`date +"%M"`
+      MOD=$(($MIN % 5))
+      MIN=$(($(($MIN - $MOD)) + 10))
+      if (( $MIN > 59 )); then MIN=$(($MIN - 60)); fi
     
-    CRONJOB="$MIN * * * *  root  /usr/local/bin/topologyUpdater"
-    echo "Installing $CRONJOB"
+      CRONJOB="$MIN * * * *  root  /usr/local/bin/topologyUpdater"
+      echo "Installing cron: $CRONJOB"
+      
+      echo "$CRONJOB" > $TARGET
+      
+    else
     
-    echo "$CRONJOB" > $TARGET
-    
+      CRONJOB="`cat /etc/cron.d/topologyUpdater`"
+      echo "Running cron: $CRONJOB"
+      
+    fi
+
     service cron start
   fi
 }
 
+#####################################################################
+#
+# Run the relay node in the background
+#
 runRelayNode () {
 
-  # Run the child process in the background so that we can have its pid
-   
   cardano-node run \
     --config $CARDANO_CONFIG \
     --topology $CARDANO_TOPOLOGY \
@@ -150,10 +173,12 @@ runRelayNode () {
     --port $CARDANO_PORT &
 }
 
+#####################################################################
+#
+# Run the block producer in the background
+#
 runBlockProducerNode () {
 
-  # Run the child process in the background so that we can have its pid
-   
   cardano-node run \
     --config $CARDANO_CONFIG \
     --topology $CARDANO_TOPOLOGY \
@@ -166,9 +191,12 @@ runBlockProducerNode () {
     --shelley-operational-certificate $CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE &
 }
 
+#####################################################################
+#
+# Trap the SIGTERM signal
+#
 trapSIGTERM () {
 
-  # Trap the SIGTERM signal
   PID="$!"
   trap "sigtermHandler $PID" SIGTERM
 
@@ -176,8 +204,10 @@ trapSIGTERM () {
   wait $PID
 }
 
-# Command Switch ######################################################################################################
-
+#######################################################################################################################
+#
+# Command Switch
+#
 if [ "$1" == "run" ]; then
 
   printRunEnv

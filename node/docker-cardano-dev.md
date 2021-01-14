@@ -126,15 +126,19 @@ docker exec -it prod curl 127.0.0.1:12798/metrics | sort
 ## Run a Test Node
 
 ```
+VERSION=dev
+
 docker stop relay
 docker rm relay
 
 docker run --detach \
     --name=relay \
+    --restart=always \
     -p 3001:3001 \
     --hostname="relay" \
+    -e CARDANO_UPDATE_TOPOLOGY=true \
     -v ~/cardano:/var/cardano/local \
-    -v shelley-data:/opt/cardano/data \
+    -v /mnt/disks/data00:/opt/cardano/data \
     nessusio/cardano:$VERSION run
 
 docker logs -f relay

@@ -144,4 +144,13 @@ sudo mkdir -p $MOUNT01; sudo mount -o discard,defaults $DISK01 $MOUNT01
 
 # Append to /etc/fstab
 echo "$DISK01  $MOUNT01  ext4   defaults,noatime,nofail 0 0" | sudo tee --append /etc/fstab
+
+# DISK02 ########################################################################
+
+FSTYPE=vfat
+DISK02=/dev/sdb2
+MOUNT02=/mnt/disks/data02
+
+# Mount block storage
+sudo mkdir -p $MOUNT01; sudo mount -t $FSTYPE -o discard,defaults $DISK02 $MOUNT02
 ```
