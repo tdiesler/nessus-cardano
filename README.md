@@ -176,6 +176,7 @@ docker run -it --rm \
   -v shelley-data:/opt/cardano/data \
   nessusio/cardano leader-logs \
     --vrf-skey /var/cardano/local/keys/pool/vrf.skey \
+    --tz Europe/Berlin \
     --sigma 0.000233 \
     --d-param 0.32 \
     --epoch 240

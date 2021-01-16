@@ -31,7 +31,7 @@ EOF
 # Setup the config volume
 
 docker volume rm -f cardano-relay-config
-docker run --name=tmp -v cardano-relay-config:/var/cardano/config debian
+docker run --name=tmp -v cardano-relay-config:/var/cardano/config centos
 docker cp cardano/config/mainnet-relay-topology.json tmp:/var/cardano/config/mainnet-topology.json
 docker rm -f tmp
 
@@ -86,10 +86,10 @@ EOF
 # Setup the config volume
 
 docker volume rm -f cardano-prod-config
-docker run --name=tmp -v cardano-prod-config:/var/cardano/config debian
+docker run --name=tmp -v cardano-prod-config:/var/cardano/config centos
 docker cp cardano/config/mainnet-prod-topology.json tmp:/var/cardano/config/mainnet-topology.json
 docker cp cardano/config/keys tmp:/var/cardano/config/keys
-docker run -it --rm -v cardano-prod-config:/var/cardano/config debian find /var/cardano/config -type f | sort
+docker run -it --rm -v cardano-prod-config:/var/cardano/config centos find /var/cardano/config -type f | sort
 docker rm -f tmp
 
 # Run the Producer node
@@ -137,8 +137,8 @@ docker run --detach \
     -p 3001:3001 \
     --hostname="relay" \
     -e CARDANO_UPDATE_TOPOLOGY=true \
+    -v shelley-data:/opt/cardano/data \
     -v ~/cardano:/var/cardano/local \
-    -v /mnt/disks/data00:/opt/cardano/data \
     nessusio/cardano:$VERSION run
 
 docker logs -f relay
