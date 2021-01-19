@@ -1,4 +1,18 @@
 
+# v1.24.2-rev7
+
+Released: 19-Jan-2021
+
+This is a minor bug fix release. 
+
+* Docker restart may leave topology cron unstarted ([#23][23])
+* Prevent outgoing update connections to guild-operators ([#24][24])
+
+[23]: https://github.com/tdiesler/nessus-cardano/issues/23
+[24]: https://github.com/tdiesler/nessus-cardano/issues/24
+
+For details see [v1.24.2-rev7](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.24.2-rev7)
+
 # v1.24.2-rev6
 
 Released: 12-Jan-2021
