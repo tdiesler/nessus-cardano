@@ -16,9 +16,8 @@ Password: raspberry
 # Enable SSH on boot
 touch /Volumes/boot/SSH
 
-HOSTIP=192.168.0.5
+HOSTIP=192.168.0.55
 
-ssh pi@$HOSTIP mkdir .ssh
 scp ~/.ssh/id_rsa.pub pi@$HOSTIP:.ssh/authorized_keys
 ```
 
@@ -45,7 +44,6 @@ cat /etc/locale.gen | grep en_
 sudo locale-gen en_US.UTF-8
 
 cat << EOF >> $HOME/.profile
-
 # Locale and Language
 export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8
@@ -58,12 +56,12 @@ sudo apt-get update
 sudo apt-get full-upgrade -y
 
 # Setup System Time synchronization
-https://www.digitalocean.com/community/tutorials/how-to-set-up-time-synchronization-on-debian-10
-sudo apt-get remove -y ntp ntpdate
-sudo systemctl start systemd-timesyncd
-sudo systemctl status systemd-timesyncd
-sudo timedatectl set-timezone Europe/Berlin
-sudo timedatectl status
+# https://www.digitalocean.com/community/tutorials/how-to-set-up-time-synchronization-on-debian-10
+# sudo apt-get remove -y ntp ntpdate
+# sudo systemctl start systemd-timesyncd
+# sudo systemctl status systemd-timesyncd
+# sudo timedatectl set-timezone Europe/Berlin
+timedatectl
 
 # Enable memory accounting
 # https://github.com/raspberrypi/Raspberry-Pi-OS-64bit/issues/124
@@ -100,8 +98,6 @@ sudo add-apt-repository \
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-sudo systemctl enable docker
-sudo systemctl start docker
 sudo systemctl status docker
 
 sudo usermod -aG docker $USER
@@ -148,9 +144,9 @@ echo "$DISK01  $MOUNT01  ext4   defaults,noatime,nofail 0 0" | sudo tee --append
 # DISK02 ########################################################################
 
 FSTYPE=vfat
-DISK02=/dev/sdb2
+DISK02=/dev/sdc2
 MOUNT02=/mnt/disks/data02
 
 # Mount block storage
-sudo mkdir -p $MOUNT01; sudo mount -t $FSTYPE -o discard,defaults $DISK02 $MOUNT02
+sudo mkdir -p $MOUNT02; sudo mount -t $FSTYPE -o discard,defaults $DISK02 $MOUNT02
 ```
