@@ -2,8 +2,6 @@
 ## Run a Relay Node
 
 ```
-VERSION=dev
-
 # Setup a custom subnet
 docker network create --subnet=172.18.0.0/16 cardano
 
@@ -50,7 +48,7 @@ docker run --detach \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
     -v cardano-relay-config:/var/cardano/config  \
     -v /mnt/disks/data00:/opt/cardano/data \
-    nessusio/cardano:$VERSION run
+    nessusio/cardano:dev run
 
 docker logs -f relay
 
@@ -110,7 +108,7 @@ docker run --detach \
     -e CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/pool/node.cert" \
     -v cardano-prod-config:/var/cardano/config  \
     -v /mnt/disks/data01:/opt/cardano/data \
-    nessusio/cardano:$VERSION run
+    nessusio/cardano:dev run
 
 docker logs -f prod
 
@@ -126,8 +124,6 @@ docker exec -it prod curl 127.0.0.1:12798/metrics | sort
 ## Run a Test Node
 
 ```
-VERSION=dev
-
 docker stop relay
 docker rm relay
 
@@ -136,10 +132,8 @@ docker run --detach \
     --restart=always \
     -p 3001:3001 \
     --hostname="relay" \
-    -e CARDANO_UPDATE_TOPOLOGY=true \
     -v shelley-data:/opt/cardano/data \
-    -v ~/cardano:/var/cardano/local \
-    nessusio/cardano:$VERSION run
+    nessusio/cardano:dev run
 
 docker logs -f relay
 
@@ -152,7 +146,7 @@ docker exec -it relay gLiveView
 alias cardano-cli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
   -v shelley-data:/opt/cardano/data \
-  nessusio/cardano:$VERSION cardano-cli"
+  nessusio/cardano:dev cardano-cli"
 ```
 
 ## Get the current protocol parameters

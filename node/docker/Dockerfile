@@ -137,17 +137,14 @@ RUN mkdir -p /opt/cardano/logs
 
 WORKDIR /root
 
-RUN git clone --depth 1 https://github.com/cardano-community/guild-operators.git
+RUN git clone --depth 1 -b master https://github.com/cardano-community/guild-operators.git
 WORKDIR guild-operators
 
 # Use env vars defined in the entrypoint to configure gLiveView
 
 RUN sed -i "s|#CCLI|source /root/env\n\n#CCLI|" scripts/cnode-helper-scripts/env
 RUN sed -i "s|CNODE_PORT=6000|#CNODE_PORT=6000|" scripts/cnode-helper-scripts/env
-
-# Disable interactive script update
-# We do this by storing the SHA1 of the last commit in branch marker file 
-RUN git log -1 --format="%h" > /root/guild-operators/scripts/cnode-helper-scripts/.env_branch
+RUN sed -i "s|NO_INTERNET_MODE=\"N\"|NO_INTERNET_MODE=\"Y\"|" scripts/cnode-helper-scripts/gLiveView.sh
 
 # Install gLiveView
 COPY gLiveView.sh /usr/local/bin/gLiveView
@@ -179,7 +176,7 @@ RUN apt-get install -y python3-pip \
   && python3 -m pip install pytz \
   && python3 --version
 
-RUN git clone --depth 1 https://github.com/papacarp/pooltool.io.git
+RUN git clone --depth 1 -b master https://github.com/papacarp/pooltool.io.git
 
 ## Install the entrypoint  ############################################################################################
 

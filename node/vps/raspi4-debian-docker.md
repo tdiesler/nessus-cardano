@@ -117,7 +117,7 @@ lsblk
 DISK00=/dev/sda
 MOUNT00=/mnt/disks/data00
 
-# Create new empty filesystem:
+# Create new empty filesystem
 # sudo mkfs.ext4 -m 0 -E lazy_itable_init=0,discard $DISK00
 
 # Mount block storage
@@ -132,7 +132,7 @@ echo "$DISK00  $MOUNT00  ext4   defaults,noatime,nofail 0 0" | sudo tee --append
 DISK01=/dev/sdb
 MOUNT01=/mnt/disks/data01
 
-# Create new empty filesystem:
+# Create new empty filesystem
 # sudo mkfs.ext4 -m 0 -E lazy_itable_init=0,discard $DISK01
 
 # Mount block storage
@@ -145,8 +145,8 @@ echo "$DISK01  $MOUNT01  ext4   defaults,noatime,nofail 0 0" | sudo tee --append
 
 FSTYPE=vfat
 DISK02=/dev/sdc2
-MOUNT02=/mnt/disks/data02
+MOUNT02=/mnt/disks/vfat
 
 # Mount block storage
-sudo mkdir -p $MOUNT02; sudo mount -t $FSTYPE -o discard,defaults $DISK02 $MOUNT02
+sudo mkdir -p $MOUNT02; sudo mount -t $FSTYPE -o rw,uid=$(id -u),gid=$(id -g) $DISK02 $MOUNT02
 ```
