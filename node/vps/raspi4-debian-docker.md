@@ -29,13 +29,6 @@ sudo sed -i "s/^#PasswordAuthentication yes$/PasswordAuthentication no/" /etc/ss
 sudo cat /etc/ssh/sshd_config | grep PasswordAuthentication
 sudo systemctl restart sshd
 
-# Change default password
-PASSWORD=`echo "changeme" | sha256sum | cut -d ' ' -f 1`
-PASSWORD=${PASSWORD:0:12}
-echo $PASSWORD
-
-passwd 
-
 # Set the locale
 sudo sed -i "s/^en_GB.UTF-8 UTF-8$/# en_GB.UTF-8 UTF-8/" /etc/locale.gen
 sudo sed -i "s/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/" /etc/locale.gen
@@ -67,6 +60,9 @@ timedatectl
 # https://github.com/raspberrypi/Raspberry-Pi-OS-64bit/issues/124
 CMDLINE=`cat /boot/cmdline.txt`
 echo "$CMDLINE cgroup_memory=1 cgroup_enable=memory" | sudo tee /boot/cmdline.txt
+
+# Restart after boot cmd changes
+shutdown -r now
 ```
 
 ### Swap setup
