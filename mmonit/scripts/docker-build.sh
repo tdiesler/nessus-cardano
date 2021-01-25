@@ -7,7 +7,8 @@ ARCH=`uname -m`
 
 MMONIT_VER=3.7.6
 
-NESSUS_REV=rev1
+NESSUS_REV=rev2
+DOCKER_PUSH=true
  
 if [ "$ARCH" == "aarch64" ]; then
 
@@ -40,13 +41,16 @@ HOMEDIR=`dirname $PRG`/..
 cd ${HOMEDIR}
 
 docker build \
-  --build-arg MMONIT_VER=${MMONIT_VER} \
   --build-arg ARCH=${ARCH} \
+  --build-arg MMONIT_VER=${MMONIT_VER} \
   -t nessusio/mmonit:${FULL_VERSION} docker
 
 docker tag nessusio/mmonit:${FULL_VERSION} nessusio/mmonit:${ARCH_VERSION}
 docker tag nessusio/mmonit:${FULL_VERSION} nessusio/mmonit:${LATEST_VERSION}
 
-docker push nessusio/mmonit:${FULL_VERSION}
-docker push nessusio/mmonit:${ARCH_VERSION}
-docker push nessusio/mmonit:${LATEST_VERSION}
+if [ ${DOCKER_PUSH} = true ]; then
+
+  docker push nessusio/mmonit:${FULL_VERSION}
+  docker push nessusio/mmonit:${ARCH_VERSION}
+  docker push nessusio/mmonit:${LATEST_VERSION}
+fi

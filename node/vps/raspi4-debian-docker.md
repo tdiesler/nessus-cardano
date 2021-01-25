@@ -62,7 +62,7 @@ CMDLINE=`cat /boot/cmdline.txt`
 echo "$CMDLINE cgroup_memory=1 cgroup_enable=memory" | sudo tee /boot/cmdline.txt
 
 # Restart after boot cmd changes
-shutdown -r now
+sudo shutdown -r now
 ```
 
 ### Swap setup
