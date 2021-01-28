@@ -2,7 +2,7 @@
 
 CARDANO=1.25.1
 
-NESSUS_REV=rev8-dev
+NESSUS_REV=rev1
 
 VERSION="$CARDANO-$NESSUS_REV"
 
@@ -39,7 +39,16 @@ if [ "${VERSION_SUFFIX}" != "dev" ]; then
   
 else
 
+  docker manifest rm nessusio/cardano:$CARDANO-dev
   docker manifest rm nessusio/cardano:dev
+
+  docker manifest create nessusio/cardano:$CARDANO-dev \
+    --amend nessusio/cardano:$CARDANO-dev-amd64 \
+    --amend nessusio/cardano:$CARDANO-dev-arm64
+  
+  docker manifest inspect nessusio/cardano:$CARDANO-dev
+  
+  docker manifest push nessusio/cardano:$CARDANO-dev
   
   docker manifest create nessusio/cardano:dev \
     --amend nessusio/cardano:dev-amd64 \
@@ -48,5 +57,4 @@ else
   docker manifest inspect nessusio/cardano:dev
   
   docker manifest push nessusio/cardano:dev
-
 fi

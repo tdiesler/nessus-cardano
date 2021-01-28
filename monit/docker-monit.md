@@ -59,12 +59,14 @@ docker rm -f tmp
 
 # Run the Image
 
+HOSTNAME=ada02
+
 docker rm -f monit
 docker run --detach \
   --name=monit \
   --restart=always \
   --memory=50m \
-  --hostname=ada01 \
+  --hostname=$HOSTNAME \
   -v monit-config:/etc/monit.d \
   nessusio/monit -Iv
 

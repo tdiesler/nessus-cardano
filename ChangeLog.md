@@ -1,4 +1,16 @@
 
+# v1.25.1-rev1
+
+Released: 28-Jan-2021
+
+This is a required system update. 
+
+* Upgrade to cardano-node-1.25.1 ([#25][25])
+
+[25]: https://github.com/tdiesler/nessus-cardano/issues/25
+
+For details see [v1.25.1-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.25.1-rev1)
+
 # v1.24.2-rev7
 
 Released: 19-Jan-2021
