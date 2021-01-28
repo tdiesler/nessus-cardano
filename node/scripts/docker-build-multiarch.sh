@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CARDANO=1.24.2
+CARDANO=1.25.1
 
 NESSUS_REV=rev8-dev
 

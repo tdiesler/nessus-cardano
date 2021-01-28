@@ -3,9 +3,9 @@
 # 
 # https://docs.cardano.org/projects/cardano-node/en/latest/getting-started/install.html
 
-CARDANO_VER=1.24.2
+CARDANO_VER=1.25.1
 
-NESSUS_REV=rev8-dev
+NESSUS_REV=rev1-dev
 DOCKER_PUSH=true
  
 CABAL_VER=3.4.0.0
