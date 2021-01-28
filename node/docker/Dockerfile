@@ -137,7 +137,7 @@ RUN mkdir -p /opt/cardano/logs
 
 WORKDIR /root
 
-RUN git clone --depth 1 -b master https://github.com/cardano-community/guild-operators.git
+RUN git clone --depth 1 -b alpha https://github.com/cardano-community/guild-operators.git
 WORKDIR guild-operators
 
 # Use env vars defined in the entrypoint to configure gLiveView
