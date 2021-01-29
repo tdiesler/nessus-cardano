@@ -1,7 +1,7 @@
 
-# Nessus Cardano 
+# Nessus Cardano
 
-With Nessus Cardano we explore, praise, comment, contribute to various technical aspects of [Cardano](https://cardano.org). 
+With Nessus Cardano we explore, praise, comment, contribute to various technical aspects of [Cardano](https://cardano.org).
 This is our contribution to "Making The World Work Better For All".
 
 Initially, we focus on a "container first" approach for the Cardano node.
@@ -39,7 +39,7 @@ docker exec -it relay gLiveView
 ## Accessing the build-in topology updater
 
 There is currently no P2P module activated in cardano-1.24.2. Your node may call out to well known relay nodes, but you may never have incoming connections.
-According to [this](https://github.com/cardano-community/guild-operators/blob/alpha/docs/Scripts/topologyupdater.md) it is necessary to update your topology 
+According to [this](https://github.com/cardano-community/guild-operators/blob/alpha/docs/Scripts/topologyupdater.md) it is necessary to update your topology
 every hour. At the time of writing, cardano-node doesn't do this on its own.
 
 This functionality has been built into nessus/cardano as well. On startup, you should see a log similar to this ...
@@ -149,7 +149,7 @@ Generating /opt/cardano/data/ledger-state.json
 
 ## Getting the Sigma value
 
-Sigma represents your pool's share of the active stake. 
+Sigma represents your pool's share of the active stake.
 It is the ratio of active stake for a given epoch divided by the total stake.
 
 Details on how to get sigma are [here](https://github.com/papacarp/pooltool.io/tree/master/leaderLogs#getsigmapy-details)
@@ -188,13 +188,5 @@ Checking leadership log for Epoch 240 [ d Param: 0.32 ]
 2021-01-08 00:15:49 ==> Leader for 210658, Cumulative epoch blocks: 3
 2021-01-09 23:28:40 ==> Leader for 380629, Cumulative epoch blocks: 4
 ```
-
-## Is there a pool that runs this tech?
-
-Yes, we run [ASTOR Pool](http://astorpool.net). 
-
-ASTOR charges the required minimum to provide a reliable stake pool.
-Twenty-five percent of our margin goes to [charity](https://plant-for-the-planet.org).
-
 
 Enjoy!
