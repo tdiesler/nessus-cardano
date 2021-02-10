@@ -1,0 +1,26 @@
+{
+  "niv": {
+      "branch": "master",
+      "description": "Easy dependency management for Nix projects",
+      "homepage": "https://github.com/nmattia/niv",
+      "owner": "nmattia",
+      "repo": "niv",
+      "rev": "af958e8057f345ee1aca714c1247ef3ba1c15f5e",
+      "sha256": "1qjavxabbrsh73yck5dcq8jggvh3r2jkbr6b5nlz5d9yrqm9255n",
+      "type": "tarball",
+      "url": "https://github.com/nmattia/niv/archive/af958e8057f345ee1aca714c1247ef3ba1c15f5e.tar.gz",
+      "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "haskellNix": {
+        "branch": "master",
+        "description": "Haskell Infrastructure for Cardano",
+        "homepage": "https://input-output-hk.github.io/haskell.nix",
+        "owner": "input-output-hk",
+        "repo": "haskell.nix",
+        "rev": "1843d06f782205b2e97421ace6139a8a3ef1c149",
+        "sha256": "0nb6qbz8nncjkhh51rs6wy6ff0hp59fhqma93l9vcxh14s5lg1va",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/1843d06f782205b2e97421ace6139a8a3ef1c149.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [[ $1 == "cncli" ]]; then
+
+  exec /usr/local/bin/run-cncli $@
+
+else
+
+  echo "Nothing to do! Perhaps try [cncli]"
+  exit 1
+
+fi
