@@ -101,7 +101,7 @@ docker run --detach \
     --ip 172.18.0.20 \
     --network cardano \
     --hostname="prod" \
-    -e CARDANO_BLOCK_PRODUCER=false \
+    -e CARDANO_BLOCK_PRODUCER=true \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
     -e CARDANO_SHELLEY_KES_KEY="/var/cardano/config/keys/pool/kes.skey" \
     -e CARDANO_SHELLEY_VRF_KEY="/var/cardano/config/keys/pool/vrf.skey" \
