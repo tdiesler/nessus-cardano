@@ -34,7 +34,7 @@ EOF
 ./build.sh
 
 # Bash into the container to look around
-docker run --rm -it --entrypoint=bash nessusio/cardano-node:dev
+docker run --rm -it --entrypoint=bash nessusio/cardano-node
 
 docker rm relay
 docker run --detach \
@@ -43,7 +43,7 @@ docker run --detach \
     -p 12798:12798 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
     -v /mnt/disks/data00:/opt/cardano/data \
-    nessusio/cardano-node:dev run
+    nessusio/cardano-node run
 
 docker logs -n 100 -f relay
 ```
@@ -53,17 +53,17 @@ docker logs -n 100 -f relay
 ```
 docker run --rm -it \
     -e PROM_HOST=10.128.0.31 \
-    nessusio/cardano-tools:dev gLiveView
+    nessusio/cardano-tools gLiveView
 ```
 
 ## Run the CNCLI Leader Log
 
 ```
 # Bash into the container to look around
-docker run --rm -it nessusio/cardano-tools:dev
+docker run --rm -it nessusio/cardano-tools
 
 docker run --rm -it \
-    nessusio/cardano-tools:dev cncli
+    nessusio/cardano-tools cncli
 
 ```
 

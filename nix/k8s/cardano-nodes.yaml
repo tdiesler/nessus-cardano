@@ -45,7 +45,7 @@ metadata:
 spec:
   containers:
   - name: relay
-    image: nessusio/cardano-node:dev
+    image: nessusio/cardano-node
     imagePullPolicy: Always
     env:
     - name: CARDANO_PUBLIC_IP
@@ -143,7 +143,7 @@ metadata:
 spec:
   containers:
   - name: bprod
-    image: nessusio/cardano-node:dev
+    image: nessusio/cardano-node
     imagePullPolicy: Always
     env:
     - name: CARDANO_TOPOLOGY

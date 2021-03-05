@@ -1,4 +1,20 @@
 
+# v1.25.1-rev2
+
+Released: 05-Mar-2021
+
+This is a major fetaure update. 
+
+* Provide high quality multiarch docker image and k8s support ([#28][28])
+* Add support for docker compose ([#29][29])
+* Split nessusio/cardano into cardano-node and cardano-tools ([#30][30])
+
+[28]: https://github.com/tdiesler/nessus-cardano/issues/28
+[29]: https://github.com/tdiesler/nessus-cardano/issues/29
+[30]: https://github.com/tdiesler/nessus-cardano/issues/30
+
+For details see [v1.25.1-rev2](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.25.1-rev2)
+
 # v1.25.1-rev1
 
 Released: 28-Jan-2021

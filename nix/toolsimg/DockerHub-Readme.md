@@ -42,7 +42,8 @@ The details about this API are [here](https://github.com/AndrewWestberg/cncli/bl
 
 ```
 alias cncli="docker run -it --rm \
-  -v ~/cardano:/var/cardano \
+  -v ~/cardano/keys:/var/cardano/keys \
+  -v cncli:/var/cardano/cncli \
   nessusio/cardano-tools cncli"
 
 NODE_IP=10.128.0.31

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CARDANO_VER="1.25.1"
-NESSUS_REV="dev"
+NESSUS_REV="rev2"
 
 CNCLI_VER="1.4.0"
 ARCH=`uname -m`

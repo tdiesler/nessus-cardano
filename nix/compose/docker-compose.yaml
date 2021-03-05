@@ -17,7 +17,7 @@ services:
 
   relay:
     container_name: compose_relay
-    image: nessusio/cardano-node:dev
+    image: nessusio/cardano-node
     ports:
       - "3001:3001"
     networks:
@@ -48,7 +48,7 @@ services:
 
   bprod:
     container_name: compose_bprod
-    image: nessusio/cardano-node:dev
+    image: nessusio/cardano-node
     expose:
       - "3001"
     networks:
