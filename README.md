@@ -75,7 +75,7 @@ For a running container, you can do ...
 docker exec -it relay gLiveView
 ```
 
-<img src="docs/img/relay-glview.png" width="400">
+<img src="docs/img/relay-glview.png" width="500">
 
 ## Accessing the build-in topology updater
 
