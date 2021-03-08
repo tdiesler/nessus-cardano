@@ -41,9 +41,29 @@ sudo yum install -y yum-utils \
   && sudo usermod -aG docker $USER \
   && sudo systemctl enable --now docker
 
+# Install Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.28.5/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose \
+  && sudo chmod +x /usr/local/bin/docker-compose
+
 # Initialize bare git repositories
 mkdir -p ~/gitsrv/cardano-node ~/gitsrv/nessus-cardano \
   && git init --bare ~/gitsrv/cardano-node \
   && git init --bare ~/gitsrv/nessus-cardano \
   && git config --global pull.ff only
+```
+
+## Populate the Data Volume
+
+```
+EPOCH=251
+
+mkdir ~/data \
+  && scp core@relay01.astorpool.net:shelley-data-e$EPOCH.tgz . \
+  && tar -xzv -C ~/data -f ~/shelley-data-e$EPOCH.tgz
+
+docker run --name=tmp -v shelley-data:/data centos \
+  && docker cp ~/data/protocolMagicId tmp:/data \
+  && docker cp ~/data/immutable tmp:/data \
+  && docker cp ~/data/ledger tmp:/data \
+  && docker rm tmp
 ```

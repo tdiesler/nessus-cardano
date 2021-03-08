@@ -27,8 +27,8 @@ let
     else if builtins.currentSystem == "aarch64-linux" then "arm64"
     else builtins.abort "[ERROR] Unsupported platform architecture: ${builtins.currentSystem}";
 
-  nodeImage = import ./nodeimg { inherit cardanoVersion nessusRevision imageArch; };
-  toolsImage = import ./toolsimg { inherit cardanoVersion nessusRevision cncliVersion imageArch; };
+  nodeImage = import ./docker/node { inherit cardanoVersion nessusRevision imageArch; };
+  toolsImage = import ./docker/tools { inherit cardanoVersion nessusRevision cncliVersion imageArch; };
 
 in
 

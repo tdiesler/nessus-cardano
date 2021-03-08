@@ -5,7 +5,7 @@
 #
 {
   # Pinned packages with Niv
-  sources ? import ../sources.nix,
+  sources ? import ../../sources.nix,
   haskellNix ? import sources.haskellNix {},
   nixpkgsSrc ? haskellNix.sources.nixpkgs-2009,
   nixpkgsArgs ? haskellNix.nixpkgsArgs,
@@ -18,9 +18,9 @@
   cardanoVersion,
   nessusRevision,
 
-  cardano ? import ../cardano { inherit cardanoVersion nessusRevision; },
-  baseImage ? import ../baseimg { inherit cardanoVersion nessusRevision imageArch; },
-  gLiveView ? import ../gliveview { },
+  cardano ? import ../../cardano { inherit cardanoVersion nessusRevision; },
+  baseImage ? import ../base { inherit cardanoVersion nessusRevision imageArch; },
+  gLiveView ? import ../../gliveview { },
 }:
 
 let

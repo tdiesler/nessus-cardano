@@ -16,7 +16,6 @@ services:
   # Relay -------------------------------------------------------------------------------------------------------------
 
   relay:
-    container_name: compose_relay
     image: nessusio/cardano-node
     ports:
       - "3001:3001"
@@ -46,8 +45,7 @@ services:
 
   # Block Producer ----------------------------------------------------------------------------------------------------
 
-  bprod:
-    container_name: compose_bprod
+  prod:
     image: nessusio/cardano-node
     expose:
       - "3001"
@@ -68,13 +66,13 @@ services:
     command: "run"
     depends_on: [ "relay" ]
     volumes:
-      - bprod-keys:/var/cardano/config/keys
-      - bprod-data:/opt/cardano/data
+      - prod-keys:/var/cardano/config/keys
+      - prod-data:/opt/cardano/data
 
 # Volumes #############################################################################################################
 
 volumes:
   relay-data:
-  bprod-data:
-  bprod-keys:
+  prod-data:
+  prod-keys:
     external: true

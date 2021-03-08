@@ -40,31 +40,11 @@ docker rm relay
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -p 12798:12798 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
-    -v /mnt/disks/data00:/opt/cardano/data \
+    -v shelley-data:/opt/cardano/data \
     nessusio/cardano-node run
 
 docker logs -n 100 -f relay
-```
-
-## Run the Cardano Tools
-
-```
-docker run --rm -it \
-    -e PROM_HOST=10.128.0.31 \
-    nessusio/cardano-tools gLiveView
-```
-
-## Run the CNCLI Leader Log
-
-```
-# Bash into the container to look around
-docker run --rm -it nessusio/cardano-tools
-
-docker run --rm -it \
-    nessusio/cardano-tools cncli
-
 ```
 
 ## Bare Metal Build

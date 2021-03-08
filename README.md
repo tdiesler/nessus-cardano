@@ -14,7 +14,7 @@ To get up and running with [Cardano](https://cardano.org), you can spin up a nod
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -v shelley-data:/opt/cardano/data \
+    -v node-data:/opt/cardano/data \
     nessusio/cardano-node run
 
 docker logs -f relay
@@ -23,47 +23,6 @@ docker logs -f relay
 This works on [x86_64](https://hub.docker.com/r/nessusio/cardano-node/tags?name=amd64) and [arm64](https://hub.docker.com/r/nessusio/cardano-node/tags?name=arm64).
 
 The [nessusio/cardano-node](https://hub.docker.com/r/nessusio/cardano-node) image is built from source in a multiple stages like [this](node/docker/Dockerfile).
-
-## Kubernetes
-
-This project has started as an incubator space for stuff that may eventually become available upstream. As part of this, we want to
-"[provide high quality multiarch docker images and k8s support](https://forum.cardano.org/t/provide-high-quality-multiarch-docker-image-and-k8s-support/47906)"
-
-With Kubernetes as the de-facto standard for container deployment, orchestration, monitoring, scaling , etc, it should be as easy as this to run Cardano nodes …
-
-
-```
-kubectl apply -f nix/k8s/cardano-nodes.yaml
-
-storageclass.storage.k8s.io/cardano-standard-rwo created
-persistentvolumeclaim/relay-data created
-pod/relay created
-service/relay-np created
-service/relay-clip created
-persistentvolumeclaim/bprod-data created
-pod/bprod created
-service/bprod-clip created
-```
-
-This is documented in detail [over here](https://app.gitbook.com/@tdiesler/s/cardano/k8s/cardano-k8s).
-
-For details you may want to have a look at [nix/k8s/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/k8s/cardano-nodes.yaml).
-
-
-## Docker Compose
-
-We sometimes may prefer somm middle ground between manually spinning up individual docker containers and the full blown enterprise Kubernetes account.
-
-Perhaps we'd like to use [Docker Compose](https://docs.docker.com/compose).
-
-```
-$ docker-compose -f nix/compose/docker-compose.yaml up --detach
-
-Creating compose_relay ... done
-Creating compose_bprod ... done
-```
-
-For details you may want to have a look at [nix/compose/docker-compose.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/compose/docker-compose.yaml).
 
 ## Accessing the build-in gLiveView
 
@@ -90,7 +49,7 @@ docker run --detach \
     --name=relay \
     -p 3001:3001 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
-    -v shelley-data:/opt/cardano/data \
+    -v node-data:/opt/cardano/data \
     nessusio/cardano-node run
 
 $ docker exec -it relay tail /opt/cardano/logs/topologyUpdateResult
@@ -158,14 +117,14 @@ docker exec -it prod gLiveView
 
 ## Running the Cardano CLI
 
-We can also use the image to run Cardano CLI commands.
+We can also use the image to run Cardano CLI commands. For this to work,
+the node must share its IPC socket location, which we can then use in the
+`cardano-cli` alias definition.
 
 ```
-# Define the cardano-cli alias
-
 alias cardano-cli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
-  -v /mnt/disks/data00:/opt/cardano/data \
+  -v relay-ipc:/opt/cardano/ipc \
   nessusio/cardano-node cardano-cli"
 
 cardano-cli query tip --mainnet
@@ -175,6 +134,47 @@ cardano-cli query tip --mainnet
     "slotNo": 16910651
 }
 ```
+
+## Kubernetes
+
+This project has started as an incubator space for stuff that may eventually become available upstream. As part of this, we want to
+"[provide high quality multiarch docker images and k8s support](https://forum.cardano.org/t/provide-high-quality-multiarch-docker-image-and-k8s-support/47906)"
+
+With Kubernetes as the de-facto standard for container deployment, orchestration, monitoring, scaling , etc, it should be as easy as this to run Cardano nodes …
+
+
+```
+kubectl apply -f nix/docker/k8s/cardano-nodes.yaml
+
+storageclass.storage.k8s.io/cardano-standard-rwo created
+persistentvolumeclaim/relay-data created
+pod/relay created
+service/relay-np created
+service/relay-clip created
+persistentvolumeclaim/bprod-data created
+pod/bprod created
+service/bprod-clip created
+```
+
+This is documented in detail [over here](https://app.gitbook.com/@tdiesler/s/cardano/k8s/cardano-k8s).
+
+For details you may want to have a look at [nix/docker/k8s/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/k8s/cardano-nodes.yaml).
+
+
+## Docker Compose
+
+We sometimes may prefer somm middle ground between manually spinning up individual docker containers and the full blown enterprise Kubernetes account.
+
+Perhaps we'd like to use [Docker Compose](https://docs.docker.com/compose).
+
+```
+$ docker-compose -f nix/compose/docker-compose.yaml up --detach
+
+Creating compose_relay ... done
+Creating compose_bprod ... done
+```
+
+For details you may want to have a look at [nix/docker/compose/docker-compose.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/compose/docker-compose.yaml).
 
 ## Ledger State
 

@@ -5,7 +5,7 @@
 #
 {
   # Pinned packages with Niv
-  sources ? import ../sources.nix,
+  sources ? import ../../sources.nix,
   haskellNix ? import sources.haskellNix {},
   nixpkgsSrc ? haskellNix.sources.nixpkgs-2009,
   nixpkgsArgs ? haskellNix.nixpkgsArgs,
@@ -18,8 +18,8 @@
   cardanoVersion,
   nessusRevision,
 
-  libsodium ? import ../libsodium {},
-  cardano ? import ../cardano { inherit cardanoVersion nessusRevision; }
+  libsodium ? import ../../libsodium {},
+  cardano ? import ../../cardano { inherit cardanoVersion nessusRevision; }
 }:
 
 let

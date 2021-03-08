@@ -1,6 +1,6 @@
 {
   # Pinned packages with Niv
-  sources ? import ../sources.nix,
+  sources ? import ../../sources.nix,
   haskellNix ? import sources.haskellNix {},
   nixpkgsSrc ? haskellNix.sources.nixpkgs-2009,
   nixpkgsArgs ? haskellNix.nixpkgsArgs,
@@ -14,8 +14,8 @@
   nessusRevision,
   cncliVersion,
 
-  cncli ? import ../cncli { inherit cncliVersion; },
-  baseImage ? import ../baseimg { inherit cardanoVersion nessusRevision imageArch; }
+  cncli ? import ../../cncli { inherit cncliVersion; },
+  baseImage ? import ../base { inherit cardanoVersion nessusRevision imageArch; }
 }:
 
 let
