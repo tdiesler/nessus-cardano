@@ -168,13 +168,13 @@ We sometimes may prefer somm middle ground between manually spinning up individu
 Perhaps we'd like to use [Docker Compose](https://docs.docker.com/compose).
 
 ```
-$ docker-compose -f nix/compose/docker-compose.yaml up --detach
+$ docker-compose -f nix/docker/compose/cardano-nodes.yaml up --detach
 
 Creating compose_relay ... done
 Creating compose_bprod ... done
 ```
 
-For details you may want to have a look at [nix/docker/compose/docker-compose.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/compose/docker-compose.yaml).
+For details you may want to have a look at [nix/docker/compose/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/compose/cardano-nodes.yaml).
 
 ## Ledger State
 
@@ -238,6 +238,20 @@ cat leaderlog.json | jq -c ".assignedSlots[] | {no: .no, slot: .slotInEpoch, at:
 {"no":2,"slot":312656,"at":"2021-02-28T13:35:47+01:00"}
 {"no":3,"slot":330588,"at":"2021-02-28T18:34:39+01:00"}
 {"no":4,"slot":401912,"at":"2021-03-01T14:23:23+01:00"}
+```
+
+# Build the Images
+
+In line with the [upstream project](https://github.com/input-output-hk/cardano-node) we also us
+a [Nix](https://nixos.org/guides/install-nix.html) based build. The build requires Nix and a
+working Docker environment. This works on x86_64 and arm64.
+
+Spinning up a build/test environment on GCE is documented [here](./vps/gce-centos8.md)
+
+To build all images and their respective dependencies, run ...
+
+```
+./build.sh all
 ```
 
 Enjoy!
