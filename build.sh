@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CARDANO_VER="1.25.1"
-NESSUS_REV="dev"
+NESSUS_REV="rev3"
 
 CNCLI_VER="1.4.0"
 ARCH=`uname -m`
@@ -65,7 +65,13 @@ fi
 
 function buildImage () {
 
-  shortName=$1
+  if [[ $1 != "cardano-node" && $1 != "cardano-tools" ]]; then
+      echo "[Error] Illegal argument: $1"
+      echo "Usage: $0 [all|[cardano-node|cardano-tools]] [push]"
+      exit 1
+  fi
+
+  shortName="$1"
 
   IMAGE_NAME="nessusio/${shortName}"
   FULL_IMAGE_NAME="${IMAGE_NAME}:${FULL_ARCH_VERSION}"

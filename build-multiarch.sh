@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CARDANO_VER="1.25.1"
-NESSUS_REV="dev"
+NESSUS_REV="rev3"
 
 FULL_VERSION="${CARDANO_VER}-${NESSUS_REV}"
 
@@ -25,6 +25,10 @@ function buildManifest() {
 
   echo "docker manifest inspect ${IMAGE_NAME}:${IMAGE_TAG}"
   docker manifest inspect "${IMAGE_NAME}:${IMAGE_TAG}"
+  if [[ $? != 0 ]]; then
+      echo "[Error] No such manifest: ${IMAGE_NAME}:${IMAGE_TAG}"
+      exit 1
+  fi
 
   if [[ $PUSH == true ]]; then
     echo "docker manifest push ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -33,6 +37,12 @@ function buildManifest() {
 }
 
 function buildImage () {
+
+  if [[ $1 != "cardano-node" && $1 != "cardano-tools" ]]; then
+      echo "[Error] Illegal argument: $1"
+      echo "Usage: $0 [all|[cardano-node|cardano-tools]] [push]"
+      exit 1
+  fi
 
   shortName="$1"
 

@@ -1,9 +1,31 @@
 
+# v1.25.1-rev3
+
+Released: 14-Mar-2021
+
+This is a minor feature update and bug fix release.
+
+* Align node socket name with upstream task ([#35][35])
+* Add build instructions to readme task ([#32][32])
+* Add support for cardano-db-sync feature ([#31][31])
+* Update to Cabal-3.4.0.0 task ([#10][10])
+* Upgrade to GHC-8.10.4 task ([#7][7])
+* Initial sync may block with CPU maxed out bug ([#6][6])
+
+[6]: https://github.com/tdiesler/nessus-cardano/issues/6
+[7]: https://github.com/tdiesler/nessus-cardano/issues/7
+[10]: https://github.com/tdiesler/nessus-cardano/issues/10
+[31]: https://github.com/tdiesler/nessus-cardano/issues/31
+[32]: https://github.com/tdiesler/nessus-cardano/issues/32
+[35]: https://github.com/tdiesler/nessus-cardano/issues/35
+
+For details see [v1.25.1-rev3](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.25.1-rev3)
+
 # v1.25.1-rev2
 
 Released: 05-Mar-2021
 
-This is a major fetaure update. 
+This is a major feature update.
 
 * Provide high quality multiarch docker image and k8s support ([#28][28])
 * Add support for docker compose ([#29][29])
@@ -19,7 +41,7 @@ For details see [v1.25.1-rev2](https://github.com/tdiesler/nessus-cardano/issues
 
 Released: 28-Jan-2021
 
-This is a required system update. 
+This is a required system update.
 
 * Upgrade to cardano-node-1.25.1 ([#25][25])
 
@@ -31,7 +53,7 @@ For details see [v1.25.1-rev1](https://github.com/tdiesler/nessus-cardano/issues
 
 Released: 19-Jan-2021
 
-This is a minor bug fix release. 
+This is a minor bug fix release.
 
 * Docker restart may leave topology cron unstarted ([#23][23])
 * Prevent outgoing update connections to guild-operators ([#24][24])
