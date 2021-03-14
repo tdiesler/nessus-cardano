@@ -9,10 +9,12 @@ services:
 
   cardano-node:
     image: nessusio/cardano-node:${CARDANO_NODE_VERSION:-1.25.1}
-    restart: on-failure
-    ports:
-      - ${NODE_PORT:-3001}:3001
+    #ports:
+    #  - 3001:3001
+    environment:
+      CARDANO_SOCKET_PATH: "opt/cardano/ipc/node.socket"
     command: "run"
+    restart: on-failure
     volumes:
       - node-data:/opt/cardano/data
       - node-ipc:/opt/cardano/ipc
@@ -26,7 +28,6 @@ services:
 
   postgres:
     image: postgres:${POSTGRES_VERSION:-13.2}
-    restart: on-failure
     environment:
       POSTGRES_DB_FILE: "/run/secrets/postgres_db"
       POSTGRES_PASSWORD_FILE: "/run/secrets/postgres_password"
@@ -34,6 +35,7 @@ services:
       POSTGRES_LOGGING: "true"
     ports:
       - ${POSTGRES_PORT:-5432}:5432
+    restart: on-failure
     volumes:
       - postgres:/var/lib/postgresql/data
     secrets:
@@ -50,12 +52,12 @@ services:
 
   cardano-db-sync:
     image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-8.0.0}
-    restart: on-failure
     environment:
       NETWORK: "${NETWORK:-mainnet}"
       POSTGRES_HOST: "postgres"
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       EXTENDED: "true"
+    restart: on-failure
     volumes:
       - db-sync-data:/var/lib/cdbsync
       - node-ipc:/node-ipc
@@ -66,6 +68,52 @@ services:
     depends_on:
       - postgres
       - cardano-node
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+# Hasura --------------------------------------------------------------------------------------------------------------
+
+  hasura:
+    image: inputoutput/cardano-graphql-hasura:${CARDANO_GRAPHQL_VERSION:-3.2.0}
+    environment:
+      - HASURA_GRAPHQL_ENABLE_CONSOLE=true
+    ports:
+      - ${HASURA_PORT:-8080}:8080
+    restart: on-failure
+    secrets:
+      - postgres_db
+      - postgres_password
+      - postgres_user
+    depends_on:
+      - postgres
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+# Cardano GraphQL -----------------------------------------------------------------------------------------------------
+
+  cardano-graphql:
+    image: inputoutput/cardano-graphql:${CARDANO_GRAPHQL_VERSION:-3.2.0}
+    environment:
+      - ALLOW_INTROSPECTION=true
+      - CACHE_ENABLED=true
+      - LOGGER_MIN_SEVERITY=${LOGGER_MIN_SEVERITY:-info}
+    expose:
+      - ${API_PORT:-3100}
+    ports:
+      - ${API_PORT:-3100}:3100
+    restart: on-failure
+    volumes:
+      - node-ipc:/node-ipc
+    secrets:
+      - postgres_db
+      - postgres_password
+      - postgres_user
     logging:
       driver: "json-file"
       options:
