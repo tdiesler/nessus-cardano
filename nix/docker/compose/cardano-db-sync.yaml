@@ -11,8 +11,6 @@ services:
     image: nessusio/cardano-node:1.25.1
     ports:
       - 3001:3001
-    environment:
-      CARDANO_SOCKET_PATH: "opt/cardano/ipc/node.socket"
     command: "run"
     volumes:
       - node-data:/opt/cardano/data

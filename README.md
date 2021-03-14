@@ -124,7 +124,7 @@ the node must share its IPC socket location, which we can then use in the
 ```
 alias cardano-cli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
-  -v relay-ipc:/opt/cardano/ipc \
+  -v node-ipc:/opt/cardano/ipc \
   nessusio/cardano-node cardano-cli"
 
 cardano-cli query tip --mainnet

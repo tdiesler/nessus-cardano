@@ -24,7 +24,7 @@ if [[ -z $CARDANO_DATABASE_PATH ]]; then
 fi
 
 if [[ -z $CARDANO_SOCKET_PATH ]]; then
-  CARDANO_SOCKET_PATH="/opt/cardano/ipc/socket"
+  CARDANO_SOCKET_PATH="/opt/cardano/ipc/node.socket"
 fi
 
 if [[ -z $CARDANO_LOG_DIR ]]; then

@@ -82,7 +82,7 @@ in
     config = {
       Env = [
         # Export the default socket path for use by the cli
-        "CARDANO_NODE_SOCKET_PATH=/opt/cardano/ipc/socket"
+        "CARDANO_NODE_SOCKET_PATH=/opt/cardano/ipc/node.socket"
       ];
       Entrypoint = [ "entrypoint" ];
     };
