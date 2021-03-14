@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CARDANO_VER="1.25.1"
-NESSUS_REV="rev3"
+NESSUS_REV="dev"
 
 FULL_VERSION="${CARDANO_VER}-${NESSUS_REV}"
 
