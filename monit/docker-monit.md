@@ -44,7 +44,7 @@ mkdir -p monit
 cat << EOF > monit/monitrc-extras
 set eventqueue basedir /var/monit/ slots 1000
 set mmonit http://$MMONIT_AUTH@$MMONIT_ADDR:$MMONIT_PORT/collector
-set httpd port 2812 and 
+set httpd port 2812 and
     use address 0.0.0.0    # bind to all interfaces (i.e. not just to localhost)
     allow $MMONIT_ADDR     # allow the M/Monit host to connect to the server
     allow $MONIT_AUTH      # monit authorization
@@ -59,7 +59,7 @@ docker rm -f tmp
 
 # Run the Image
 
-HOSTNAME=ada02
+HOSTNAME=ada01rl
 
 docker rm -f monit
 docker run --detach \

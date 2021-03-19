@@ -33,7 +33,7 @@ https://cloud.google.com/sdk/gcloud/reference/container/clusters/create
 
 ```
 gcloud container clusters create $CLUSTER_NAME \
-  --disk-size=32GB \
+  --disk-size=20GB \
   --machine-type=e2-medium \
   --node-locations=$CLUSTER_ZONE \
   --zone=$CLUSTER_ZONE \

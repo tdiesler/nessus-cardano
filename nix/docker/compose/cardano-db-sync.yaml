@@ -88,8 +88,6 @@ volumes:
   db-sync-data:
   postgres:
   node-ipc:
-    external: true
-    name: node-ipc
   node-data:
     external: true
     name: node-data

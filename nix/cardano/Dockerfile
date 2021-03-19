@@ -4,10 +4,9 @@
 
 # Some build-arg parameters
 ARG CARDANO_VER
+ARG CABAL_VER
+ARG GHC_VER
 ARG ARCH
-
-ARG CABAL_VER="3.4.0.0"
-ARG GHC_VER="8.10.4"
 
 ## Install dependencies and libsodium #################################################################################
 

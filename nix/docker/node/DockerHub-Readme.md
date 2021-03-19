@@ -45,7 +45,6 @@ docker run --detach \
     -p 3001:3001 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
     -v /mnt/disks/data00:/opt/cardano/data \
-    -v relay-ipc:/opt/cardano/ipc \
     nessusio/cardano-node run
 
 docker logs -f relay
@@ -72,15 +71,14 @@ docker exec -it relay gLiveView
 
 ## Accessing the cardano-cli
 
-Accessing the cardano-cli through Docker can be a little convoluted. We therefore
-define an alias which lets us work with the cli as we would normally.
+We can also use the image to run Cardano CLI commands.
 
-The cli needs access to the node's socket path. We can provide it through a volume
-that we can share between the node and the cli container.
+For this to work, the node must share its IPC socket location, which can then
+be use in the alias definition.
 
 ```
 alias cardano-cli="docker run -it --rm \
-  -v relay-ipc:/opt/cardano/ipc \
+  -v node-ipc:/opt/cardano/ipc \
   nessusio/cardano-node cardano-cli"
 
 cardano-cli query tip --mainnet

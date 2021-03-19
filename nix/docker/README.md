@@ -33,18 +33,54 @@ EOF
 # Build the cardano node image
 ./build.sh
 
-# Bash into the container to look around
-docker run --rm -it --entrypoint=bash nessusio/cardano-node
+VERSION=dev
 
 docker rm relay
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
-    -v shelley-data:/opt/cardano/data \
-    nessusio/cardano-node run
+    -v node-data:/opt/cardano/data \
+    nessusio/cardano-node:$VERSION run
 
 docker logs -n 100 -f relay
+
+docker exec -it relay gLiveView
+```
+
+## Access Metrics
+
+```
+# Print env variables
+docker exec relay cat /usr/local/bin/env
+
+# EKG for topologyUpdater
+docker exec relay curl -s -H 'Accept: application/json' 127.0.0.1:12788 | jq .
+
+# Prometheus for gLiveView
+docker exec relay curl -s 127.0.0.1:12798/metrics | sort
+```
+
+## Topology Updates
+
+```
+docker exec relay cat /opt/cardano/logs/topologyUpdateResult
+
+docker exec relay cat /opt/cardano/config/mainnet-topology.json
+```
+
+## Populating the Data Volume
+
+```
+mkdir ~/data
+scp core@relay01.astorpool.net:shelley-data-e251.tgz ~/data
+cd ~/data; tar xzvf shelley-data-e251.tgz
+
+docker run --name=tmp -v node-data:/data centos
+docker cp ~/data/protocolMagicId tmp:/data
+docker cp ~/data/immutable tmp:/data
+docker cp ~/data/ledger tmp:/data
+docker rm tmp
 ```
 
 ## Bare Metal Build

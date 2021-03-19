@@ -99,7 +99,7 @@ A producer node is configured in the same way as a Relay node, except that it ha
 
 ```
 docker run --detach \
-    --name=prod \
+    --name=bprod \
     -p 3001:3001 \
     -e CARDANO_BLOCK_PRODUCER=true \
     -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
@@ -110,16 +110,17 @@ docker run --detach \
     -v /mnt/disks/data01:/opt/cardano/data \
     nessusio/cardano-node run
 
-docker logs -f prod
+docker logs -f bprod
 
-docker exec -it prod gLiveView
+docker exec -it bprod gLiveView
 ```
 
 ## Running the Cardano CLI
 
-We can also use the image to run Cardano CLI commands. For this to work,
-the node must share its IPC socket location, which we can then use in the
-`cardano-cli` alias definition.
+We can also use the image to run Cardano CLI commands.
+
+For this to work, the node must share its IPC socket location, which can then
+be use in the alias definition.
 
 ```
 alias cardano-cli="docker run -it --rm \
@@ -134,6 +135,21 @@ cardano-cli query tip --mainnet
     "slotNo": 16910651
 }
 ```
+
+## Docker Compose
+
+We sometimes may prefer somm middle ground between manually spinning up individual docker containers and the full blown enterprise Kubernetes account.
+
+Perhaps we'd like to use [Docker Compose](https://docs.docker.com/compose).
+
+```
+$ docker-compose -f nix/docker/compose/cardano-nodes.yaml up --detach
+
+Creating compose_relay ... done
+Creating compose_bprod ... done
+```
+
+For details you may want to have a look at [nix/docker/compose/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/compose/cardano-nodes.yaml).
 
 ## Kubernetes
 
@@ -159,22 +175,6 @@ service/bprod-clip created
 This is documented in detail [over here](https://app.gitbook.com/@tdiesler/s/cardano/k8s/cardano-k8s).
 
 For details you may want to have a look at [nix/docker/k8s/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/k8s/cardano-nodes.yaml).
-
-
-## Docker Compose
-
-We sometimes may prefer somm middle ground between manually spinning up individual docker containers and the full blown enterprise Kubernetes account.
-
-Perhaps we'd like to use [Docker Compose](https://docs.docker.com/compose).
-
-```
-$ docker-compose -f nix/docker/compose/cardano-nodes.yaml up --detach
-
-Creating compose_relay ... done
-Creating compose_bprod ... done
-```
-
-For details you may want to have a look at [nix/docker/compose/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/compose/cardano-nodes.yaml).
 
 ## Ledger State
 

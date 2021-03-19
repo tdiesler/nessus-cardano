@@ -14,12 +14,12 @@ systemctl restart sshd
 # Update the system
 yum update -y
 
-cat << EOF >> /home/$NUSER/.bash_profile
+# cat << EOF >> /home/$NUSER/.bash_profile
 # Locale and Language
-export LANGUAGE=en_US.UTF-8
-export LANG=en_US.UTF-8
-export LC_ALL=C
-EOF
+# export LANGUAGE=en_US.UTF-8
+# export LANG=en_US.UTF-8
+# export LC_ALL=C
+# EOF
 
 # Check Time Service
 timedatectl
@@ -78,12 +78,13 @@ EOF
 https://docs.docker.com/engine/install/centos
 
 ```
-sudo yum install -y yum-utils
-sudo yum-config-manager --add-repo \
+sudo yum install -y yum-utils \
+  && sudo yum-config-manager --add-repo \
     https://download.docker.com/linux/centos/docker-ce.repo
 
-sudo yum install -y docker-ce docker-ce-cli containerd.io
-sudo systemctl enable --now docker
+sudo yum install -y docker-ce docker-ce-cli containerd.io \
+  && sudo systemctl enable --now docker
+  && sudo systemctl start docker
 
 sudo usermod -aG docker $USER
 

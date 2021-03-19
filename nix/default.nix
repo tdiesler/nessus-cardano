@@ -15,6 +15,8 @@
   cardanoVersion,
   nessusRevision,
   cncliVersion,
+  cabalVersion,
+  ghcVersion,
 
   # Required image short name
   shortName
@@ -27,8 +29,8 @@ let
     else if builtins.currentSystem == "aarch64-linux" then "arm64"
     else builtins.abort "[ERROR] Unsupported platform architecture: ${builtins.currentSystem}";
 
-  nodeImage = import ./docker/node { inherit cardanoVersion nessusRevision imageArch; };
-  toolsImage = import ./docker/tools { inherit cardanoVersion nessusRevision cncliVersion imageArch; };
+  nodeImage = import ./docker/node { inherit cardanoVersion nessusRevision cabalVersion ghcVersion imageArch; };
+  toolsImage = import ./docker/tools { inherit cardanoVersion nessusRevision cabalVersion ghcVersion cncliVersion imageArch; };
 
 in
 

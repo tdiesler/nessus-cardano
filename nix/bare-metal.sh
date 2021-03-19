@@ -3,9 +3,9 @@
 # https://docs.cardano.org/projects/cardano-node/en/latest/getting-started/install.html
 
 # Some build-arg parameters
-cardanoVersion="1.25.1";
+cardanoVersion="1.26.0";
 cabalVersion="3.4.0.0";
-ghcVersion="8.10.2";
+ghcVersion="8.10.4";
 
 ARCH=`uname -m`
 

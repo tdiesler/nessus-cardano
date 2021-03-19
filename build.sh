@@ -1,9 +1,12 @@
 #!/bin/bash
 
-CARDANO_VER="1.25.1"
+CARDANO_VER="1.26.0"
 NESSUS_REV="dev"
 
 CNCLI_VER="1.4.0"
+CABAL_VER="3.2.0.0"
+GHC_VER="8.10.4"
+
 ARCH=`uname -m`
 
 # Checking supported architectures ====================================================================================
@@ -21,8 +24,6 @@ else
   exit 1
 fi
 
-FULL_ARCH_VERSION="${CARDANO_VER}-${NESSUS_REV}-${ARCH_SUFFIX}"
-
 # Extracting binaries from arm64 Docker image =========================================================================
 #
 # Note, we currently cannot build the cardano derivation for arm64
@@ -30,14 +31,21 @@ FULL_ARCH_VERSION="${CARDANO_VER}-${NESSUS_REV}-${ARCH_SUFFIX}"
 
 if [[ ${ARCH_SUFFIX} == "arm64" ]]; then
 
-  dockerBuildOut="./nix/cardano/target/cardano-node-${FULL_ARCH_VERSION}"
+  AUX_IMAGE_VERSION="${CARDANO_VER}-${ARCH_SUFFIX}"
+
+  dockerBuildOut="./nix/cardano/target/cardano-node-${AUX_IMAGE_VERSION}"
 
   if [[ ! -d ${dockerBuildOut} ]]; then
 
-    AUX_IMAGE_NAME="nessusio/cardano-aux:${FULL_ARCH_VERSION}"
+    AUX_IMAGE_NAME="nessusio/cardano-aux:${AUX_IMAGE_VERSION}"
+
+    # Override cabal version for arm64
+    CABAL_VER="3.4.0.0"
 
     docker build \
       --build-arg CARDANO_VER=${CARDANO_VER} \
+      --build-arg CABAL_VER=${CABAL_VER} \
+      --build-arg GHC_VER=${GHC_VER} \
       --build-arg ARCH=${ARCH} \
       --tag ${AUX_IMAGE_NAME} \
       ./nix/cardano
@@ -73,6 +81,8 @@ function buildImage () {
 
   shortName="$1"
 
+  FULL_ARCH_VERSION="${CARDANO_VER}-${NESSUS_REV}-${ARCH_SUFFIX}"
+
   IMAGE_NAME="nessusio/${shortName}"
   FULL_IMAGE_NAME="${IMAGE_NAME}:${FULL_ARCH_VERSION}"
 
@@ -86,6 +96,8 @@ function buildImage () {
     --argstr cardanoVersion ${CARDANO_VER} \
     --argstr nessusRevision ${NESSUS_REV} \
     --argstr cncliVersion ${CNCLI_VER} \
+    --argstr cabalVersion ${CABAL_VER} \
+    --argstr ghcVersion ${GHC_VER} \
     --argstr shortName ${shortName}`
 
   if [[ $? -ne 0 ]]; then
@@ -96,7 +108,22 @@ function buildImage () {
   echo "Loading image ..."
   docker load -i ${IMAGEPATH}
 
-  if [[ ${NESSUS_REV} != "dev" ]]; then
+  if [[ ${NESSUS_REV} == "dev" ]]; then
+
+    DEV_ARCH_VERSION="dev-${ARCH_SUFFIX}"
+
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:dev"
+
+    echo "Tagged image: ${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:dev"
+
+    if [[ $PUSH == true ]]; then
+      docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:dev"
+    fi
+
+  else
 
     CARDANO_ARCH_VERSION="${CARDANO_VER}-${ARCH_SUFFIX}"
     LATEST_ARCH_VERSION="latest-${ARCH_SUFFIX}"
@@ -114,21 +141,6 @@ function buildImage () {
       docker push "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
       docker push "${IMAGE_NAME}:${CARDANO_ARCH_VERSION}"
       docker push "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
-    fi
-
-  else
-
-    DEV_ARCH_VERSION="dev-${ARCH_SUFFIX}"
-
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:dev"
-
-    echo "Tagged image: ${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-    echo "Tagged image: ${IMAGE_NAME}:dev"
-
-    if [[ $PUSH == true ]]; then
-      docker push "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
-      docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
     fi
 
   fi

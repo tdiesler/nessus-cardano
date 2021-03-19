@@ -17,10 +17,12 @@
   # Required version args
   cardanoVersion,
   nessusRevision,
+  cabalVersion,
+  ghcVersion,
 
-  cardano ? import ../../cardano { inherit cardanoVersion nessusRevision; },
-  baseImage ? import ../base { inherit cardanoVersion nessusRevision imageArch; },
-  gLiveView ? import ../../gliveview { },
+  cardano ? import ../../cardano { inherit cardanoVersion nessusRevision cabalVersion ghcVersion; },
+  baseImage ? import ../base { inherit cardanoVersion nessusRevision cabalVersion ghcVersion imageArch; },
+  gLiveView ? import ../../gLiveView { inherit cardanoVersion nessusRevision; },
 }:
 
 let

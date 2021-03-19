@@ -13,9 +13,11 @@
   cardanoVersion,
   nessusRevision,
   cncliVersion,
+  cabalVersion,
+  ghcVersion,
 
   cncli ? import ../../cncli { inherit cncliVersion; },
-  baseImage ? import ../base { inherit cardanoVersion nessusRevision imageArch; }
+  baseImage ? import ../base { inherit cardanoVersion nessusRevision cabalVersion ghcVersion imageArch; }
 }:
 
 let

@@ -1,12 +1,21 @@
 ## Install gLiveView ###########################################################
 #
-# Note, that this currently does not use a specific tag
-# Instead it uses whatever happens to be HEAD at build time of this image
+# Note, that guild-operators does currently not have reliable releases
+# Instead, we cherry pick a revision that we found to be good at
+# build time of this image.
+#
+# [FR] Improvements to the release process
+# https://github.com/cardano-community/guild-operators/issues/855
+#
 # The auto update feature of gLiveView is disabled
 #
 # https://github.com/cardano-community/guild-operators
 {
   pkgs ? import <nixpkgs> {},
+
+  # Required version args
+  cardanoVersion,
+  nessusRevision
 }:
 
 pkgs.stdenv.mkDerivation {
@@ -17,8 +26,8 @@ pkgs.stdenv.mkDerivation {
   src = builtins.fetchGit {
     name = "guild-operators";
     url = "https://github.com/cardano-community/guild-operators.git";
-    # This commit moved gLiveView.sh to v1.19.4
-    rev = "5ee20a20b5f74d01735130264913d0ae06f76f48";
+    # Moves the gLiveView version to 1.19.5
+    rev = "0461fe51888a89b5a08f6799686bba82c046d827";
   };
 
   builder = ./builder.sh;

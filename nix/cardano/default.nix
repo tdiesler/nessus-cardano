@@ -9,6 +9,8 @@
   # Required version args
   cardanoVersion,
   nessusRevision,
+  cabalVersion,
+  ghcVersion,
 
   libsodium ? import ../libsodium {}
 }:
@@ -34,7 +36,7 @@ in
       src = gitSources;
 
       buildInputs = [
-        pkgs.haskell-nix.compiler.ghc8102
+        pkgs.haskell-nix.compiler.ghc8104
         pkgs.cabal-install
         pkgs.cacert
         pkgs.git
@@ -44,9 +46,8 @@ in
         libsodium
       ];
 
-      inherit cardanoVersion;
-      inherit nessusRevision;
-      inherit libsodium;
+      inherit cardanoVersion nessusRevision libsodium;
+      inherit cabalVersion ghcVersion;
 
       builder = ./builder-x86_64.sh;
     }
@@ -60,7 +61,7 @@ in
 
       src = gitSources;
 
-      dockerBuildOut = ./target/cardano-node + "-${fullVersion}-arm64";
+      dockerBuildOut = ./target/cardano-node + "-${cardanoVersion}-arm64";
 
       buildInputs = [
         pkgs.cacert

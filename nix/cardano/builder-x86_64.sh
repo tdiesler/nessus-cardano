@@ -7,9 +7,6 @@ HOME="$TMPDIR/home"
 CARDANO_VER="${cardanoVersion}"
 NESSUS_REV="${nessusRevision}"
 
-CABAL_VER="3.2.0.0"
-GHC_VER="8.10.2"
-
 if [ "$system" = "x86_64-linux" ] || [ "$system" = "x86_64-darwin" ]; then
   ARCH="x86_64";
   ARCH_TAG="amd64"
@@ -28,9 +25,9 @@ LATEST_VERSION="latest-$ARCH_TAG"
 echo "##########################################################"
 echo "# Build Cardano Node for ${ARCH}"
 echo "#"
-echo "# VERSION: $FULL_VERSION"
-echo "# CABAL:   $CABAL_VER"
-echo "# GHC:     $GHC_VER"
+echo "# VERSION: ${FULL_VERSION}"
+echo "# CABAL:   ${cabalVersion}"
+echo "# GHC:     ${ghcVersion}"
 echo ""
 
 export LD_LIBRARY_PATH="${libsodium}/lib"
@@ -87,5 +84,5 @@ cp $src/configuration/cardano/mainnet-* $out/config/
 
 echo "Copy binaries ..."
 mkdir -p $out/bin
-cp ./dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-node-${CARDANO_VER}/x/cardano-node/build/cardano-node/cardano-node $out/bin
-cp ./dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-cli-${CARDANO_VER}/x/cardano-cli/build/cardano-cli/cardano-cli $out/bin
+cp ./dist-newstyle/build/${ARCH}-linux/ghc-${ghcVersion}/cardano-node-${CARDANO_VER}/x/cardano-node/build/cardano-node/cardano-node $out/bin
+cp ./dist-newstyle/build/${ARCH}-linux/ghc-${ghcVersion}/cardano-cli-${CARDANO_VER}/x/cardano-cli/build/cardano-cli/cardano-cli $out/bin

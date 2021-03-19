@@ -17,9 +17,11 @@
   # Required version args
   cardanoVersion,
   nessusRevision,
+  cabalVersion,
+  ghcVersion,
 
   libsodium ? import ../../libsodium {},
-  cardano ? import ../../cardano { inherit cardanoVersion nessusRevision; }
+  cardano ? import ../../cardano { inherit cardanoVersion nessusRevision cabalVersion ghcVersion; }
 }:
 
 let
