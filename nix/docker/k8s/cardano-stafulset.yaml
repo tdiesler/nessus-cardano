@@ -1,0 +1,228 @@
+#
+# kubectl create namespace cardano
+#
+
+# GCE Storage Class
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cardano-standard-rwo
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-standard
+  fstype: ext4
+  replication-type: none
+
+# Relay ServiceAccount ################################################################################################
+
+# Service Account
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: cardano
+  name: relay-service-account
+
+# View Pods
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: relay-view-pods
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- kind: ServiceAccount
+  namespace: cardano
+  name: relay-service-account
+
+# View Nodes
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: relay-view-nodes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:resource-tracker
+subjects:
+- kind: ServiceAccount
+  namespace: cardano
+  name: relay-service-account
+
+# Relay ###############################################################################################################
+
+# Relay Set
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: cardano
+  name: relay
+spec:
+  selector:
+    matchLabels:
+      app: cardano
+      pod: relay
+  serviceName: relay
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cardano
+        pod: relay
+    spec:
+      serviceAccountName: relay-service-account
+      nodeSelector:
+        node-type: relay
+      containers:
+      - name: relay
+        image: nessusio/cardano-node:dev
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 3001
+            hostPort: 3001
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CARDANO_TOPOLOGY
+          value: '{
+              "Producers": [
+                {
+                  "addr": "relays-new.cardano-mainnet.iohk.io",
+                  "port": 3001,
+                  "valency": 1
+                },
+                {
+                  "addr": "$(BLOCK_PRODUCER_SERVICE_HOST)",
+                  "port": $(BLOCK_PRODUCER_SERVICE_PORT),
+                  "valency": 1
+                }
+              ]
+            }'
+        - name: CARDANO_CUSTOM_PEERS
+          value: "$(BLOCK_PRODUCER_SERVICE_HOST):$(BLOCK_PRODUCER_SERVICE_PORT)"
+        - name: CARDANO_UPDATE_TOPOLOGY
+          value: "true"
+        args: [ "run" ]
+        volumeMounts:
+        - name: datavol
+          mountPath: /opt/cardano/data
+  volumeClaimTemplates:
+  - metadata:
+      name: datavol
+    spec:
+      storageClassName: cardano-standard-rwo
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 10G
+
+# Relay Headless Service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: cardano
+  name: relay-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  sessionAffinity: None
+  ports:
+  - port: 3001 # Port 3001 must be reachable for external ingress
+    protocol: TCP
+    targetPort: 3001
+  selector:
+    app: cardano
+    pod: relay
+
+# Block Producer ######################################################################################################
+
+# Block Producer Set
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: cardano
+  name: block-producer
+spec:
+  selector:
+    matchLabels:
+      app: cardano
+      pod: bprod
+  serviceName: bprod
+  # A block producer cannot have more than 1 replica / namespace
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cardano
+        pod: bprod
+    spec:
+      nodeSelector:
+        node-type: block-producer
+      containers:
+      - name: bprod
+        image: nessusio/cardano-node:dev
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 3001
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CARDANO_TOPOLOGY
+          value: '{
+              "Producers": [
+                {
+                  "addr": "relay-headless.cardano.svc.cluster.local",
+                  "port": 3001,
+                  "valency": 1
+                }
+              ]
+            }'
+        args: [ "run" ]
+        volumeMounts:
+        - name: datavol
+          mountPath: /opt/cardano/data
+  volumeClaimTemplates:
+  - metadata:
+      name: datavol
+    spec:
+      storageClassName: cardano-standard-rwo
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 10G
+
+# Block Producer TCP Service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: cardano
+  name: block-producer
+  labels:
+    app: cardano
+spec:
+  selector:
+    app: cardano
+    pod: bprod
+  ports:
+  - name: tcp
+    port: 3001

@@ -67,7 +67,7 @@ fi
 isJsonValue "$CARDANO_CONFIG"
 if [[ $return == true ]]; then
   TARGET_FILE="/var/cardano/config/mainnet-config.json"
-  echo "Generating $TARGET_FILE ..."
+  echo "Writing $TARGET_FILE ..."
   mkdir -p `dirname $TARGET_FILE` \
     && echo $CARDANO_CONFIG > $TARGET_FILE \
     && CARDANO_CONFIG=$TARGET_FILE
@@ -77,7 +77,7 @@ fi
 isJsonValue "$CARDANO_TOPOLOGY"
 if [[ $return == true ]]; then
   TARGET_FILE="/var/cardano/config/mainnet-topology.json"
-  echo "Generating $TARGET_FILE ..."
+  echo "Writing $TARGET_FILE ..."
   mkdir -p `dirname $TARGET_FILE` \
     && echo $CARDANO_TOPOLOGY > $TARGET_FILE \
     && CARDANO_TOPOLOGY=$TARGET_FILE
@@ -251,9 +251,6 @@ do
     fi
 done
 
-printRunEnv
-writeRootEnv
-
 # The IPC socket dir is not created on demand
 mkdir -p `dirname $CARDANO_SOCKET_PATH`
 
@@ -262,9 +259,53 @@ rm -rf $CARDANO_DATABASE_PATH/lost+found
 
 if [[ $CARDANO_BLOCK_PRODUCER == true ]]; then
 
+  printRunEnv
+  writeRootEnv
+
   runBlockProducerNode
 
 else
+
+  if [[ -z $CARDANO_PUBLIC_IP && -n $KUBERNETES_SERVICE_HOST ]]; then
+
+    echo "Reading CARDANO_PUBLIC_IP from Kubernetes ..."
+
+    # Accessing the Kubernetes API from a Pod
+    # https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/#without-using-a-proxy
+
+    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+    if [[ -f ${SERVICEACCOUNT}/namespace && ${SERVICEACCOUNT}/token && ${SERVICEACCOUNT}/ca.crt ]]; then
+
+      APISERVER=https://kubernetes.default.svc
+      NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+      TOKEN=$(cat ${SERVICEACCOUNT}/token)
+      CACERT=${SERVICEACCOUNT}/ca.crt
+
+      AUTH_HEADER="Authorization: Bearer ${TOKEN}"
+
+      POD_API_PATH="${APISERVER}/api/v1/namespaces/cardano/pods/${HOSTNAME}"
+      NODE_NAME=$(curl -s --cacert ${CACERT} --header "${AUTH_HEADER}" -X GET ${POD_API_PATH} | jq -r ".spec.nodeName")
+
+      if [[ -n ${NODE_NAME} ]]; then
+        NODE_API_PATH="${APISERVER}/api/v1/nodes/$NODE_NAME"
+        EXTERNAL_IP=$(curl -s --cacert ${CACERT} --header "${AUTH_HEADER}" -X GET ${NODE_API_PATH} | jq -r '.status.addresses[] | select(.type == "ExternalIP") | .address')
+      fi
+
+      echo "Kubernetes ${HOSTNAME} => ${NODE_NAME} => ${EXTERNAL_IP}"
+
+      if [[ -n ${EXTERNAL_IP} ]]; then
+        CARDANO_PUBLIC_IP=${EXTERNAL_IP}
+      else
+        echo "[Warning] Cannot obtain ExternalIP for: ${HOSTNAME}"
+      fi
+
+    else
+      echo "[Warning] Cannot access the Pod's service account"
+    fi
+  fi
+
+  printRunEnv
+  writeRootEnv
 
   if [[ $CARDANO_UPDATE_TOPOLOGY == true ]]; then
     topologyUpdate -l &
