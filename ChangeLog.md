@@ -1,4 +1,21 @@
 
+# v1.26.1-rev1
+
+Released: 08-Apr-2021
+
+This is a required system update.
+
+* Upgrade to cardano-node-1.26.1 ([#42][42])
+* Migrate monit/mmonit build to Nix ([#41][41])
+* Upgrade to gLiveView-1.20.3
+* Upgrade to mmonit-3.7.7
+* Upgrade to cncli-1.5.1
+
+[41]: https://github.com/tdiesler/nessus-cardano/issues/41
+[42]: https://github.com/tdiesler/nessus-cardano/issues/42
+
+For details see [v1.26.1-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.26.1-rev1)
+
 # v1.25.1-rev3
 
 Released: 14-Mar-2021

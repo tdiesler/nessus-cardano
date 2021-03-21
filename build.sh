@@ -1,13 +1,13 @@
 #!/bin/bash
 
 CARDANO_VER="1.26.1"
-NESSUS_REV="dev"
+NESSUS_REV="rev1"
 
 MMONIT_VER="3.7.7"
-MMONIT_REV="dev"
+MMONIT_REV="rev1"
 
 MONIT_VER="5.27.1"
-MONIT_REV="dev"
+MONIT_REV="rev1"
 
 CNCLI_VER="1.5.1"
 CABAL_VER="3.2.0.0"
