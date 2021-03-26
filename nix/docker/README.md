@@ -83,6 +83,81 @@ docker cp ~/data/ledger tmp:/data
 docker rm tmp
 ```
 
+## Run Monit
+
+
+```
+# Setup the Config Volume
+
+MMONIT_PORT=8080
+MMONIT_ADDR=astorpool.net
+MMONIT_AUTH='username:changeit'
+
+MONIT_AUTH=$MMONIT_AUTH
+
+mkdir -p monit
+
+cat << EOF > monit/monitrc-extras
+set eventqueue basedir /var/monit/ slots 1000
+set mmonit http://$MMONIT_AUTH@$MMONIT_ADDR:$MMONIT_PORT/collector
+set httpd port 2812 and
+    use address 0.0.0.0    # bind to all interfaces (i.e. not just to localhost)
+    allow $MMONIT_ADDR     # allow the M/Monit host to connect to the server
+    allow $MONIT_AUTH      # monit authorization
+EOF
+
+docker rm -f monit
+docker volume rm -f monit-config
+docker run --name=tmp -v monit-config:/etc/monit.d/ centos
+docker cp monit/monitrc-extras tmp:/etc/monit.d
+docker run --rm -v monit-config:/etc/monit.d centos find /etc/monit.d -type f | sort
+docker rm -f tmp
+
+# Run the Image
+
+VERSION=5.27.1
+VERSION=dev
+
+HOSTNAME=ada01rl
+
+docker rm -f monit
+docker run --detach \
+  --name=monit \
+  --restart=always \
+  --memory=50m \
+  --hostname=$HOSTNAME \
+  -v monit-config:/etc/monit.d \
+  nessusio/monit:${VERSION} -Iv
+
+docker logs -f monit
+```
+
+## Run M/Monit
+
+Login: admin/swordfish
+
+```
+docker pull nessusio/mmonit
+
+VERSION=3.7.6-rev2
+VERSION=dev
+
+CONFDIR="/usr/local/var/mmonit/conf"
+LICENSE="${CONFDIR}/license.xml"
+
+docker rm -f mmonit
+docker run --detach \
+  --name=mmonit \
+  -p 8080:8080 \
+  --restart=always \
+  -v ~/mmonit/conf:${CONFDIR} \
+  nessusio/mmonit:${VERSION} -i
+
+docker exec -it mmonit cat ${LICENSE}
+
+docker logs -f mmonit
+```
+
 ## Bare Metal Build
 
 Debian 10 (Buster)

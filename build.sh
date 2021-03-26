@@ -3,6 +3,12 @@
 CARDANO_VER="1.26.0"
 NESSUS_REV="dev"
 
+MMONIT_VER="3.7.6"
+MMONIT_REV="dev"
+
+MONIT_VER="5.27.1"
+MONIT_REV="dev"
+
 CNCLI_VER="1.4.0"
 CABAL_VER="3.2.0.0"
 GHC_VER="8.10.4"
@@ -11,16 +17,10 @@ ARCH=`uname -m`
 
 # Checking supported architectures ====================================================================================
 
-if [[ ${ARCH} == "x86_64" ]]; then
-
-  ARCH_SUFFIX="amd64"
-
-elif [[ ${ARCH} == "aarch64" ]]; then
-
-  ARCH_SUFFIX="arm64"
-
+if [[ ${ARCH} == "x86_64" ]]; then ARCH_SUFFIX="amd64"
+elif [[ ${ARCH} == "aarch64" ]]; then ARCH_SUFFIX="arm64"
 else
-  echo "[ERROR] Unsupported platform architecture: `uname -a`"
+  echo "[ERROR] Unsupported platform architecture: ${ARCH}"
   exit 1
 fi
 
@@ -73,15 +73,28 @@ fi
 
 function buildImage () {
 
-  if [[ $1 != "cardano-node" && $1 != "cardano-tools" ]]; then
+  shortName=$1
+  push=$2
+
+  if [[ $shortName == "cardano-node" || $shortName == "cardano-tools" ]]; then
+    VERSION_MAJOR=${CARDANO_VER}
+    VERSION_MINOR=${NESSUS_REV}
+
+  elif [[ $shortName == "mmonit" ]]; then
+    VERSION_MAJOR=${MMONIT_VER}
+    VERSION_MINOR=${MMONIT_REV}
+
+  elif [[ $shortName == "monit" ]]; then
+    VERSION_MAJOR=${MONIT_VER}
+    VERSION_MINOR=${MONIT_REV}
+
+  else
       echo "[Error] Illegal argument: $1"
-      echo "Usage: $0 [all|[cardano-node|cardano-tools]] [push]"
+      echo "Usage: $0 [cardano-node|cardano-tools|mmonit|monit] [push]"
       exit 1
   fi
 
-  shortName="$1"
-
-  FULL_ARCH_VERSION="${CARDANO_VER}-${NESSUS_REV}-${ARCH_SUFFIX}"
+  FULL_ARCH_VERSION="${VERSION_MAJOR}-${VERSION_MINOR}-${ARCH_SUFFIX}"
 
   IMAGE_NAME="nessusio/${shortName}"
   FULL_IMAGE_NAME="${IMAGE_NAME}:${FULL_ARCH_VERSION}"
@@ -92,13 +105,35 @@ function buildImage () {
   echo "# VERSION: ${FULL_ARCH_VERSION}"
   echo "#"
 
-  IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix \
-    --argstr cardanoVersion ${CARDANO_VER} \
-    --argstr nessusRevision ${NESSUS_REV} \
-    --argstr cncliVersion ${CNCLI_VER} \
-    --argstr cabalVersion ${CABAL_VER} \
-    --argstr ghcVersion ${GHC_VER} \
-    --argstr shortName ${shortName}`
+  if [[ $shortName == "cardano-node" ]]; then
+    IMAGEPATH=`nix-build --show-trace ./nix/docker/node \
+      --argstr cardanoVersion ${CARDANO_VER} \
+      --argstr nessusRevision ${NESSUS_REV} \
+      --argstr cabalVersion ${CABAL_VER} \
+      --argstr ghcVersion ${GHC_VER} \
+      --argstr imageArch ${ARCH_SUFFIX}`
+
+  elif [[ $shortName == "cardano-tools" ]]; then
+    IMAGEPATH=`nix-build --show-trace ./nix/docker/tools \
+      --argstr cardanoVersion ${CARDANO_VER} \
+      --argstr nessusRevision ${NESSUS_REV} \
+      --argstr cncliVersion ${CNCLI_VER} \
+      --argstr cabalVersion ${CABAL_VER} \
+      --argstr ghcVersion ${GHC_VER} \
+      --argstr imageArch ${ARCH_SUFFIX}`
+
+  elif [[ $shortName == "mmonit" ]]; then
+    IMAGEPATH=`nix-build --show-trace ./nix/docker/mmonit \
+      --argstr mmonitVersion ${MMONIT_VER} \
+      --argstr mmonitRevision ${MMONIT_REV} \
+      --argstr imageArch ${ARCH_SUFFIX}`
+
+  elif [[ $shortName == "monit" ]]; then
+    IMAGEPATH=`nix-build --show-trace ./nix/docker/monit \
+      --argstr monitVersion ${MONIT_VER} \
+      --argstr monitRevision ${MONIT_REV} \
+      --argstr imageArch ${ARCH_SUFFIX}`
+  fi
 
   if [[ $? -ne 0 ]]; then
     echo "[ERROR] Unable to build image '${FULL_IMAGE_NAME}'"
@@ -108,7 +143,27 @@ function buildImage () {
   echo "Loading image ..."
   docker load -i ${IMAGEPATH}
 
-  if [[ ${NESSUS_REV} == "dev" ]]; then
+  if [[ ${VERSION_MINOR} != "dev" ]]; then
+
+    MAJOR_ARCH_VERSION="${VERSION_MAJOR}-${ARCH_SUFFIX}"
+    LATEST_ARCH_VERSION="latest-${ARCH_SUFFIX}"
+
+    # Tag with arch suffix
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:latest"
+
+    echo "Tagged image: ${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:latest"
+
+    if [[ $push == true ]]; then
+      docker push "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
+    fi
+
+  else
 
     DEV_ARCH_VERSION="dev-${ARCH_SUFFIX}"
 
@@ -118,29 +173,9 @@ function buildImage () {
     echo "Tagged image: ${IMAGE_NAME}:${DEV_ARCH_VERSION}"
     echo "Tagged image: ${IMAGE_NAME}:dev"
 
-    if [[ $PUSH == true ]]; then
+    if [[ $push == true ]]; then
       docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
       docker push "${IMAGE_NAME}:dev"
-    fi
-
-  else
-
-    CARDANO_ARCH_VERSION="${CARDANO_VER}-${ARCH_SUFFIX}"
-    LATEST_ARCH_VERSION="latest-${ARCH_SUFFIX}"
-
-    # Tag with arch suffix
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${CARDANO_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:latest"
-
-    echo "Tagged image: ${IMAGE_NAME}:${CARDANO_ARCH_VERSION}"
-    echo "Tagged image: ${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
-    echo "Tagged image: ${IMAGE_NAME}:latest"
-
-    if [[ $PUSH == true ]]; then
-      docker push "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
-      docker push "${IMAGE_NAME}:${CARDANO_ARCH_VERSION}"
-      docker push "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
     fi
 
   fi
@@ -148,15 +183,23 @@ function buildImage () {
 
 if (( $# < 1 )); then
     echo "[Error] Illegal number of arguments."
-    echo "Usage: $0 [all|[cardano-node|cardano-tools]] [push]"
+    echo "Usage: $0 [cardano-node|cardano-tools|mmonit|monit] [push]"
     exit 1
 fi
 
-PUSH=$2
+shortName=$1
+push=$2
 
-if [[ "$1" == "all" ]]; then
-  buildImage "cardano-node"
-  buildImage "cardano-tools"
+if [[ $shortName == "all" ]]; then
+  buildImage "cardano-node" $push
+  buildImage "cardano-tools" $push
+  buildImage "mmonit" $push
+  buildImage "monit" $push
+
+elif [[ $shortName == "cardano" ]]; then
+  buildImage "cardano-node" $push
+  buildImage "cardano-tools" $push
+
 else
-  buildImage $1
+  buildImage $shortName $push
 fi

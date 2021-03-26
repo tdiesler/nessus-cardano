@@ -20,6 +20,7 @@
   cabalVersion,
   ghcVersion,
 
+  debian ? import ../debian {},
   libsodium ? import ../../libsodium {},
   cardano ? import ../../cardano { inherit cardanoVersion nessusRevision cabalVersion ghcVersion; }
 }:
@@ -28,31 +29,13 @@ let
 
   imageName = "nessusio/cardano-base";
 
-  # docker manifest inspect debian:10-slim
-  rootImage = if builtins.currentSystem == "x86_64-linux" then
-      pkgs.dockerTools.pullImage {
-        imageName = "debian";
-        imageDigest = "sha256:7f5c2603ccccb7fa4fc934bad5494ee9f47a5708ed0233f5cd9200fe616002ad";
-        sha256 ="0nvww953mkl20z0848dwfik3aslwkard3lbp7vz19bsz1hx1gqqq";
-        finalImageName = "debian";
-        finalImageTag = "10";
-    } else if builtins.currentSystem == "aarch64-linux" then
-      pkgs.dockerTools.pullImage {
-        imageName = "debian";
-        imageDigest = "sha256:84180b466ff0e0ae26ad4e4278504606577cfcd1157edfd5f29556062c77ce6b";
-        sha256 ="0nfnn5bcm38ca7bm5vyxay1fsbhkk37xkznj80v62a3fryz8c74k";
-        finalImageName = "debian";
-        finalImageTag = "10";
-    } else
-      builtins.abort "[ERROR] Unsupported platform architecture: ${builtins.currentSystem}";
-
 in
   pkgs.dockerTools.buildImage {
 
     name = imageName;
     tag = "${cardanoVersion}-${nessusRevision}-${imageArch}";
 
-    fromImage = rootImage;
+    fromImage = debian;
 
     contents = [
       pkgs.cacert            # X.509 certificates of public CA's

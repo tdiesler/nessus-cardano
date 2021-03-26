@@ -113,19 +113,16 @@ niv update
 https://docs.docker.com/engine/install/debian/
 
 ```
-sudo apt-get install -y apt-transport-https ca-certificates gnupg-agent software-properties-common
-
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-
-sudo add-apt-repository \
+sudo apt-get install -y apt-transport-https ca-certificates gnupg-agent software-properties-common \
+  && curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add - \
+  && sudo add-apt-repository \
    "deb https://download.docker.com/linux/debian \
    $(lsb_release -cs) \
    stable"
 
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-sudo systemctl status docker
+sudo apt-get update \
+  && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+  && sudo systemctl status docker
 
 sudo usermod -aG docker $USER
 

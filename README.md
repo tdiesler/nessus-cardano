@@ -184,11 +184,11 @@ This important functionality has also been built into [nessusio/cardano-tools](h
 
 First, we also define an alias and ping the node that we want to work with.
 
-Details about this API are [here](https://github.com/AndrewWestberg/cncli/blob/develop/README.md#running).
+Details about this API are [here](https://github.com/AndrewWestberg/cncli/blob/develop/USAGE.md).
 
 ```
 $ alias cncli="docker run -it --rm \
-  -v ~/cardano/keys:/var/cardano/keys \
+  -v ~/cardano:/var/cardano/local \
   -v cncli:/var/cardano/cncli \
   nessusio/cardano-tools cncli"
 
@@ -223,11 +223,15 @@ $ cncli sync --host $NODE_IP \
 We can now obtain the leader schedule for our pool.
 
 ```
+$ cardano-cli query ledger-state \
+  --mary-era --mainnet > ~/cardano/scratch/ledger-state.json
+
 $ cncli leaderlog \
   --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
   --shelley-genesis /opt/cardano/config/mainnet-shelley-genesis.json \
   --byron-genesis /opt/cardano/config/mainnet-byron-genesis.json \
-  --pool-vrf-skey /var/cardano/keys/pool/vrf.skey \
+  --ledger-state /var/cardano/local/scratch/ledger-state.json \
+  --pool-vrf-skey /var/cardano/local/keys/pool/vrf.skey \
   --db /var/cardano/cncli/cncli.db \
   --tz Europe/Berlin \
   --ledger-set next | tee leaderlog.json

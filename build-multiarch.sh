@@ -3,7 +3,11 @@
 CARDANO_VER="1.26.0"
 NESSUS_REV="dev"
 
-FULL_VERSION="${CARDANO_VER}-${NESSUS_REV}"
+MMONIT_VER="3.7.6"
+MMONIT_REV="dev"
+
+MONIT_VER="5.27.1"
+MONIT_REV="dev"
 
 function buildManifest() {
 
@@ -38,23 +42,36 @@ function buildManifest() {
 
 function buildImage () {
 
-  if [[ $1 != "cardano-node" && $1 != "cardano-tools" ]]; then
+  shortName=$1
+
+  if [[ $shortName == "cardano-node" || $shortName == "cardano-tools" ]]; then
+    VERSION_MAJOR=${CARDANO_VER}
+    VERSION_MINOR=${NESSUS_REV}
+
+  elif [[ $shortName == "mmonit" ]]; then
+    VERSION_MAJOR=${MMONIT_VER}
+    VERSION_MINOR=${MMONIT_REV}
+
+  elif [[ $shortName == "monit" ]]; then
+    VERSION_MAJOR=${MONIT_VER}
+    VERSION_MINOR=${MONIT_REV}
+
+  else
       echo "[Error] Illegal argument: $1"
-      echo "Usage: $0 [all|[cardano-node|cardano-tools]] [push]"
+      echo "Usage: $0 [cardano-node|cardano-tools|mmonit|monit] [push]"
       exit 1
   fi
 
-  shortName="$1"
+  FULL_VERSION="${VERSION_MAJOR}-${VERSION_MINOR}"
 
-  if [[ ${NESSUS_REV} != "dev" ]]; then
+  if [[ ${VERSION_MINOR} != "dev" ]]; then
 
     buildManifest ${shortName} ${FULL_VERSION}
-    buildManifest ${shortName} ${CARDANO_VER}
+    buildManifest ${shortName} ${VERSION_MAJOR}
     buildManifest ${shortName} "latest"
 
   else
 
-    buildManifest ${shortName} ${FULL_VERSION}
     buildManifest ${shortName} "dev"
 
   fi
@@ -62,15 +79,23 @@ function buildImage () {
 
 if (( $# < 1 )); then
     echo "[Error] Illegal number of arguments."
-    echo "Usage: $0 [all|[cardano-node|cardano-tools]] [push]"
+    echo "Usage: $0 [cardano-node|cardano-tools|mmonit|monit] [push]"
     exit 1
 fi
 
+shortName=$1
 PUSH=$2
 
-if [[ "$1" == "all" ]]; then
+if [[ $shortName == "all" ]]; then
   buildImage "cardano-node"
   buildImage "cardano-tools"
+  buildImage "mmonit"
+  buildImage "monit"
+
+elif [[ $shortName == "cardano" ]]; then
+  buildImage "cardano-node"
+  buildImage "cardano-tools"
+
 else
-  buildImage $1
+  buildImage $shortName
 fi
