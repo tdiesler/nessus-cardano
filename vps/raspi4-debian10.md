@@ -45,8 +45,8 @@ EOF
 source .profile
 
 # Update the system
-sudo apt-get update
-sudo apt-get full-upgrade -y
+sudo apt-get update \
+  && sudo apt-get full-upgrade -y
 
 # Change the default runlevel
 # System | Boot | Console
@@ -58,13 +58,21 @@ sudo ln -s /lib/systemd/system/multi-user.target /etc/systemd/system/default.tar
 # sudo apt-get remove -y ntp ntpdate
 # sudo systemctl start systemd-timesyncd
 # sudo systemctl status systemd-timesyncd
-# sudo timedatectl set-timezone Europe/Berlin
+
 timedatectl
+timedatectl list-timezones | grep Berlin
+sudo timedatectl set-timezone Europe/Berlin
 
 # Enable memory accounting
 # https://github.com/raspberrypi/Raspberry-Pi-OS-64bit/issues/124
 CMDLINE=`cat /boot/cmdline.txt`
 echo "$CMDLINE cgroup_memory=1 cgroup_enable=memory" | sudo tee /boot/cmdline.txt
+
+# Enable KVM Kernel Module
+# Needed for runAsRoot in Nix dockerTools.buildImage
+sudo apt install -y virt-manager libvirt0 qemu-system
+sudo usermod -aG libvirt-qemu $(whoami)
+sudo chmod 666 /dev/kvm
 
 # Restart after boot cmd changes
 sudo shutdown -r now

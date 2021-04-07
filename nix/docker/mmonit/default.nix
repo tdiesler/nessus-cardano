@@ -11,8 +11,6 @@
   # Required version args
   mmonitVersion,
   mmonitRevision,
-
-  debian ? import ../debian {},
 }:
 
 let
@@ -26,10 +24,10 @@ let
 
   mmonitDist = if builtins.currentSystem == "x86_64-linux" then pkgs.fetchurl {
       url = "https://mmonit.com/dist/mmonit-${mmonitVersion}-linux-x64.tar.gz";
-      sha256 = "0n5y7y7k59k7j33hpmpylywbsn0sxx4kyzl3sm23j08pphg5fr8q";
+      sha256 = "1vvyv5apvr7qgzn486r209lfdnjfjl9chmm5v7rqapcvc9s7h8v4";
     } else pkgs.fetchurl {
       url = "https://mmonit.com/dist/mmonit-${mmonitVersion}-linux-arm64.tar.gz";
-      sha256 = "0sp7whbj7x7zmjqpis872sv19msmgpgzywzgzy0ax9ylg5hr40lh";
+      sha256 = "1xay7nd6qfkplxzvidzmqsfii0ssf70rz8jrwpwf7wwv9yrq89n6";
     };
 in
   pkgs.dockerTools.buildImage {
@@ -37,7 +35,10 @@ in
     name = imageName;
     tag = "${mmonitVersion}-${mmonitRevision}-${imageArch}";
 
-    fromImage = debian;
+    contents = [
+      pkgs.bashInteractive   # Provide the BASH shell
+      pkgs.cacert            # X.509 certificates of public CA's
+    ];
 
     # Set creation date to build time. Breaks reproducibility
     created = "now";

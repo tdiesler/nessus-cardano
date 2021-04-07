@@ -1,15 +1,15 @@
 #!/bin/bash
 
-CARDANO_VER="1.26.0"
+CARDANO_VER="1.26.1"
 NESSUS_REV="dev"
 
-MMONIT_VER="3.7.6"
+MMONIT_VER="3.7.7"
 MMONIT_REV="dev"
 
 MONIT_VER="5.27.1"
 MONIT_REV="dev"
 
-CNCLI_VER="1.4.0"
+CNCLI_VER="1.5.1"
 CABAL_VER="3.2.0.0"
 GHC_VER="8.10.4"
 
@@ -106,7 +106,7 @@ function buildImage () {
   echo "#"
 
   if [[ $shortName == "cardano-node" ]]; then
-    IMAGEPATH=`nix-build --show-trace ./nix/docker/node \
+    IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/node \
       --argstr cardanoVersion ${CARDANO_VER} \
       --argstr nessusRevision ${NESSUS_REV} \
       --argstr cabalVersion ${CABAL_VER} \
@@ -114,7 +114,7 @@ function buildImage () {
       --argstr imageArch ${ARCH_SUFFIX}`
 
   elif [[ $shortName == "cardano-tools" ]]; then
-    IMAGEPATH=`nix-build --show-trace ./nix/docker/tools \
+    IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/tools \
       --argstr cardanoVersion ${CARDANO_VER} \
       --argstr nessusRevision ${NESSUS_REV} \
       --argstr cncliVersion ${CNCLI_VER} \
@@ -123,13 +123,13 @@ function buildImage () {
       --argstr imageArch ${ARCH_SUFFIX}`
 
   elif [[ $shortName == "mmonit" ]]; then
-    IMAGEPATH=`nix-build --show-trace ./nix/docker/mmonit \
+    IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/mmonit \
       --argstr mmonitVersion ${MMONIT_VER} \
       --argstr mmonitRevision ${MMONIT_REV} \
       --argstr imageArch ${ARCH_SUFFIX}`
 
   elif [[ $shortName == "monit" ]]; then
-    IMAGEPATH=`nix-build --show-trace ./nix/docker/monit \
+    IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/monit \
       --argstr monitVersion ${MONIT_VER} \
       --argstr monitRevision ${MONIT_REV} \
       --argstr imageArch ${ARCH_SUFFIX}`

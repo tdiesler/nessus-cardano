@@ -16,8 +16,8 @@
   cabalVersion,
   ghcVersion,
 
+  baseImage ? import ../debian {},
   cncli ? import ../../cncli { inherit cncliVersion; },
-  baseImage ? import ../base { inherit cardanoVersion nessusRevision cabalVersion ghcVersion imageArch; }
 }:
 
 let
@@ -29,7 +29,7 @@ let
     # Shift the first option by one index
     shift
 
-    export LD_LIBRARY_PATH="${pkgs.openssl.out}/lib"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.openssl.out}/lib"
 
     ${cncli}/bin/cncli $@
   '';
@@ -48,12 +48,18 @@ in
     name = imageName;
     tag = "${cardanoVersion}-${nessusRevision}-${imageArch}";
 
-    fromImage = baseImage;
-
     # Set creation date to build time. Breaks reproducibility
     created = "now";
 
+    fromImage = baseImage;
+
     contents = [
+
+      # Packages needed by cncli
+      pkgs.bashInteractive   # Provide the BASH shell
+      pkgs.cacert            # X.509 certificates of public CA's
+      pkgs.glibc             # The GNU C Library
+      pkgs.openlibm          # High quality system independent, portable, open source libm implementation
       pkgs.openssl           # A cryptographic library that implements the SSL and TLS protocols
     ];
 
@@ -66,15 +72,13 @@ in
 
       # Entrypoint and helper scripts
       cp ${context}/bin/* usr/local/bin
+      cp ${cncliScript}/bin/run-cncli usr/local/bin
 
       # Node configurations
       cp ${mainnet-config} opt/cardano/config/mainnet-config.json
       cp ${mainnet-topology} opt/cardano/config/mainnet-topology.json
       cp ${byron-genesis} opt/cardano/config/mainnet-byron-genesis.json
       cp ${shelley-genesis} opt/cardano/config/mainnet-shelley-genesis.json
-
-      # CNCLI entrypoint
-      cp ${cncliScript}/bin/run-cncli usr/local/bin
     '';
 
     config = {

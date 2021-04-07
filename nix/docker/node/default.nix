@@ -20,9 +20,10 @@
   cabalVersion,
   ghcVersion,
 
+  baseImage ? import ../debian {},
   cardano ? import ../../cardano { inherit cardanoVersion nessusRevision cabalVersion ghcVersion; },
-  baseImage ? import ../base { inherit cardanoVersion nessusRevision cabalVersion ghcVersion imageArch; },
   gLiveView ? import ../../gLiveView { inherit cardanoVersion nessusRevision; },
+  libsodium ? import ../../libsodium {},
 }:
 
 let
@@ -49,13 +50,41 @@ in
 
     fromImage = baseImage;
 
+    contents = [
+
+      # Base packages needed by cardano
+      pkgs.bashInteractive   # Provide the BASH shell
+      pkgs.cacert            # X.509 certificates of public CA's
+      pkgs.coreutils         # Basic utilities expected in GNU OS's
+      pkgs.curl              # CLI tool for transferring files via URLs
+      pkgs.glibcLocales      # Locale information for the GNU C Library
+      pkgs.iana-etc          # IANA protocol and port number assignments
+      pkgs.iproute           # Utilities for controlling TCP/IP networking
+      pkgs.iputils           # Useful utilities for Linux networking
+      pkgs.socat             # Utility for bidirectional data transfer
+      pkgs.utillinux         # System utilities for Linux
+      libsodium              # Cardano crypto library fork
+
+      # Packages needed on RaspberryPi
+      pkgs.numactl           # Tools for non-uniform memory access
+
+      # Packages needed by gLiveView
+      pkgs.bc                # An arbitrary precision calculator
+      pkgs.gawk              # GNU implementation of the Awk programming language
+      pkgs.gnugrep           # GNU implementation of the Unix grep command
+      pkgs.jq                # Utility for JSON processing
+      pkgs.ncurses           # Free software emulation of curses
+      pkgs.netcat            # Networking utility for reading from and writing to network connections
+      pkgs.procps            # Utilities that give information about processes using the /proc filesystem
+      pkgs.tuptime           # Total uptime & downtime statistics utility
+    ];
+
     # Set creation date to build time. Breaks reproducibility
     created = "now";
 
-    contents = [
-      pkgs.bc                # An arbitrary precision calculator
-      pkgs.procps            # Utilities that give information about processes using the /proc filesystem
-    ];
+    # Requires 'system-features = kvm' in /etc/nix/nix.conf
+    # https://discourse.nixos.org/t/cannot-build-docker-image/7445
+    # runAsRoot = '' do root stuff '';
 
     extraCommands = ''
 
@@ -78,6 +107,7 @@ in
       cp -r ${gLiveView}/cnode-helper-scripts cnode-helper-scripts
 
       # Create links for executables
+      ln -s ${cardano}/bin/cardano-cli usr/local/bin/cardano-cli
       ln -s ${cardano}/bin/cardano-node usr/local/bin/cardano-node
     '';
 

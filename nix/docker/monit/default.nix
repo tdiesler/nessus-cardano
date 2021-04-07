@@ -11,8 +11,6 @@
   # Required version args
   monitVersion,
   monitRevision,
-
-  debian ? import ../debian {},
 }:
 
 let
@@ -40,9 +38,9 @@ in
     name = imageName;
     tag = "${monitVersion}-${monitRevision}-${imageArch}";
 
-    fromImage = debian;
-
     contents = [
+      pkgs.bashInteractive   # Provide the BASH shell
+      pkgs.cacert            # X.509 certificates of public CA's
       pkgs.libnsl
     ];
 

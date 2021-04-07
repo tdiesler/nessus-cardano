@@ -23,7 +23,7 @@ substituters = https://hydra.iohk.io https://cache.nixos.org
 
 # Needed when runAsRoot is used by dockerTools.buildImage
 # https://discourse.nixos.org/t/cannot-build-docker-image/7445
-# system-features = kvm
+system-features = kvm
 EOF
 ```
 
@@ -41,11 +41,29 @@ docker run --detach \
     -p 3001:3001 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
     -v node-data:/opt/cardano/data \
+    -v node-ipc:/opt/cardano/ipc \
     nessusio/cardano-node:$VERSION run
 
 docker logs -n 100 -f relay
 
 docker exec -it relay gLiveView
+```
+
+## Running the Cardano CLI
+
+```
+alias cardano-cli="docker run -it --rm \
+  -v ~/cardano:/var/cardano/local \
+  -v node-ipc:/opt/cardano/ipc \
+  nessusio/cardano-node:$VERSION cardano-cli"
+
+cardano-cli query tip --mainnet
+{
+  "epoch": 258,
+  "hash": "1df02b27a76b58f7ca12878e1384da9e55978182efa7dec3d1238b83e2fa34d9",
+  "slot": 26299903,
+  "block": 5563915
+}
 ```
 
 ## Access Metrics
@@ -84,7 +102,6 @@ docker rm tmp
 ```
 
 ## Run Monit
-
 
 ```
 # Setup the Config Volume
@@ -156,6 +173,67 @@ docker run --detach \
 docker exec -it mmonit cat ${LICENSE}
 
 docker logs -f mmonit
+```
+
+## Ledger State
+
+```
+alias cncli="docker run -it --rm \
+  -v ~/cardano:/var/cardano/local \
+  -v cncli:/var/cardano/cncli \
+  nessusio/cardano-tools:$VERSION cncli"
+
+NODE_IP=34.68.137.181
+
+cncli ping --host $NODE_IP
+{
+  "status": "ok",
+  "host": "10.128.0.31",
+  "port": 3001,
+  "connectDurationMs": 0,
+  "durationMs": 53
+}
+```
+
+### Syncing the database
+
+This command connects to a remote node and synchronizes blocks to a local sqlite database.
+
+```
+cncli sync --host $NODE_IP \
+  --db /var/cardano/cncli/cncli.db \
+  --no-service
+
+...
+2021-03-04T10:23:19.719Z INFO  cardano_ouroboros_network::protocols::chainsync   > block 5417518 of 5417518, 100.00% synced
+2021-03-04T10:23:23.459Z INFO  cncli::nodeclient::sync                           > Exiting...
+```
+
+### Slot Leader Schedule
+
+We can now obtain the leader schedule for our pool.
+
+```
+cardano-cli query ledger-state \
+  --mary-era --mainnet > ~/cardano/scratch/ledger-state.json
+
+# --ledger-state /var/cardano/local/scratch/ledger-state.json \
+
+cncli leaderlog \
+  --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
+  --shelley-genesis /opt/cardano/config/mainnet-shelley-genesis.json \
+  --byron-genesis /opt/cardano/config/mainnet-byron-genesis.json \
+  --pool-vrf-skey /var/cardano/local/keys/pool/vrf.skey \
+  --db /var/cardano/cncli/cncli.db \
+  --tz Europe/Berlin \
+  --ledger-set current | tee leaderlog.json
+
+cat leaderlog.json | jq -c ".assignedSlots[] | {no: .no, slot: .slotInEpoch, at: .at}"
+
+{"no":1,"slot":165351,"at":"2021-02-26T20:40:42+01:00"}
+{"no":2,"slot":312656,"at":"2021-02-28T13:35:47+01:00"}
+{"no":3,"slot":330588,"at":"2021-02-28T18:34:39+01:00"}
+{"no":4,"slot":401912,"at":"2021-03-01T14:23:23+01:00"}
 ```
 
 ## Bare Metal Build

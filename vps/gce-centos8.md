@@ -55,13 +55,13 @@ mkdir -p ~/gitsrv/cardano-node ~/gitsrv/nessus-cardano \
 ## Populate the Data Volume
 
 ```
-EPOCH=251
+EPOCH=254
 
-mkdir ~/data \
-  && scp core@relay01.astorpool.net:shelley-data-e$EPOCH.tgz . \
-  && tar -xzv -C ~/data -f ~/shelley-data-e$EPOCH.tgz
+mkdir -p ~/data \
+  && scp core@relay01.astorpool.net:node-data-e$EPOCH.tgz . \
+  && tar -xzv -C ~/data -f ~/node-data-e$EPOCH.tgz
 
-docker run --name=tmp -v shelley-data:/data centos \
+docker run --name=tmp -v node-data:/data centos \
   && docker cp ~/data/protocolMagicId tmp:/data \
   && docker cp ~/data/immutable tmp:/data \
   && docker cp ~/data/ledger tmp:/data \
