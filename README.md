@@ -38,7 +38,7 @@ docker exec -it relay gLiveView
 
 ## Accessing the build-in topology updater
 
-There is currently no P2P module activated in cardano-1.25.1. Your node may call out to well known relay nodes, but you may never have incoming connections.
+There is currently no P2P module activated in cardano-1.26.1. Your node may call out to well known relay nodes, but you may never have incoming connections.
 According to [this](https://github.com/cardano-community/guild-operators/blob/alpha/docs/Scripts/topologyupdater.md) it is necessary to update your topology
 every hour. At the time of writing, cardano-node doesn't do this on its own.
 
@@ -224,7 +224,7 @@ We can now obtain the leader schedule for our pool.
 
 ```
 $ cardano-cli query ledger-state \
-  --mary-era --mainnet > ~/cardano/scratch/ledger-state.json
+  --mainnet > ~/cardano/scratch/ledger-state.json
 
 $ cncli leaderlog \
   --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \

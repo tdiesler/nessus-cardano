@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CARDANO_VER="1.26.1"
-NESSUS_REV="rev1"
+NESSUS_REV="dev"
 
 MMONIT_VER="3.7.7"
 MMONIT_REV="rev1"
