@@ -3,11 +3,11 @@
 CARDANO_VER="1.26.1"
 NESSUS_REV="dev"
 
-MMONIT_VER="3.7.7"
-MMONIT_REV="rev1"
+MONIT_VER="5.28.0"
+MONIT_REV="rev2"
 
-MONIT_VER="5.27.1"
-MONIT_REV="rev1"
+MMONIT_VER="3.7.7"
+MMONIT_REV="rev2"
 
 function buildManifest() {
 

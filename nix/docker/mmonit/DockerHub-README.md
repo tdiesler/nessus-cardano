@@ -18,13 +18,20 @@ Each image comes in multiple arch variant. Current we support `amd64` and `arm64
 Login: admin/swordfish
 
 ```
-docker pull nessusio/mmonit
+VERSION=3.7.7-rev2
+
+CONFDIR="/usr/local/var/mmonit/conf"
+LICENSE="${CONFDIR}/license.xml"
 
 docker rm -f mmonit
 docker run --detach \
   --name=mmonit \
   -p 8080:8080 \
-  nessusio/mmonit -i
+  --restart=always \
+  -v ~/mmonit/conf/license.xml:${LICENSE} \
+  nessusio/mmonit:${VERSION} -i
+
+docker exec -it mmonit cat ${LICENSE}
 
 docker logs -f mmonit
 ```

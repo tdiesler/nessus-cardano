@@ -24,10 +24,28 @@ let
 
   monitDist = if builtins.currentSystem == "x86_64-linux" then pkgs.fetchurl {
       url = "https://bitbucket.org/tildeslash/monit/downloads/monit-${monitVersion}-linux-x64.tar.gz";
-      sha256 = "1pq922rffdm9ndan1pb5ln5l8hh96mg2xjj135cj207c5fzw7bib";
+      sha256 = "1vvhd2w8b8b1aizndhdg36mbnn15qw6hh6y3rjaqxqpqmagv150m";
     } else pkgs.fetchurl {
       url = "https://bitbucket.org/tildeslash/monit/downloads/monit-${monitVersion}-linux-arm64.tar.gz";
-      sha256 = "1qrj8hj51w8ydg3yjsdg5di9hmq2m8y6qpjl3n0qvcizqg6bhkiq";
+      sha256 = "10yixpbscm3myngasqg0mdgcgpisqiwqny51s8xmff3wq9m6n1b7";
+    };
+
+  # docker manifest inspect centos:8
+  # https://hub.docker.com/_/centos
+  baseImage = if builtins.currentSystem == "x86_64-linux" then
+      pkgs.dockerTools.pullImage {
+        imageName = "debian";
+        imageDigest = "sha256:7f5c2603ccccb7fa4fc934bad5494ee9f47a5708ed0233f5cd9200fe616002ad";
+        sha256 ="0nvww953mkl20z0848dwfik3aslwkard3lbp7vz19bsz1hx1gqqq";
+        finalImageName = "debian";
+        finalImageTag = "10";
+    } else
+      pkgs.dockerTools.pullImage {
+        imageName = "centos";
+        imageDigest = "sha256:7723d6b5d15b1c64d0a82ee6298c66cf8c27179e1c8a458e719041ffd08cd091";
+        sha256 ="1vgi53gkccdzn4l6cq7z42s5inmb1fp06j0r4p28yhj72zypq0an";
+        finalImageName = "centos";
+        finalImageTag = "8";
     };
 
     # The Docker context with static content
@@ -38,14 +56,14 @@ in
     name = imageName;
     tag = "${monitVersion}-${monitRevision}-${imageArch}";
 
-    contents = [
-      pkgs.bashInteractive   # Provide the BASH shell
-      pkgs.cacert            # X.509 certificates of public CA's
-      pkgs.libnsl
-    ];
+    fromImage = baseImage;
 
     # Set creation date to build time. Breaks reproducibility
     created = "now";
+
+    contents = [
+      #pkgs.libnsl            # Client interface library for NIS(YP) and NIS+
+    ];
 
     extraCommands = ''
 

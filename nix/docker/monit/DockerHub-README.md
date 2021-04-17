@@ -19,7 +19,7 @@ Each image comes in multiple arch variant. Current we support `amd64` and `arm64
 
 ```
 MMONIT_PORT=8080
-MMONIT_ADDR=95.179.129.205
+MMONIT_ADDR=108.61.165.223
 MMONIT_AUTH='username:changeit'
 
 MONIT_AUTH=$MMONIT_AUTH
@@ -29,7 +29,7 @@ mkdir -p monit
 cat << EOF > monit/monitrc-extras
 set eventqueue basedir /var/monit/ slots 1000
 set mmonit http://$MMONIT_AUTH@$MMONIT_ADDR:$MMONIT_PORT/collector
-set httpd port 2812 and 
+set httpd port 2812 and
     use address 0.0.0.0    # bind to all interfaces (i.e. not just to localhost)
     allow $MMONIT_ADDR     # allow the M/Monit host to connect to the server
     allow $MONIT_AUTH      # monit authorization
@@ -47,11 +47,14 @@ docker rm -f tmp
 ### Run the Image
 
 ```
+VERSION=5.28.0-rev2
+
 docker rm -f monit
 docker run --detach \
   --name=monit \
+  --hostname=ada01bp \
   -v monit-config:/etc/monit.d \
-  nessusio/monit -Iv
+  nessusio/monit:${VERSION} -Iv
 
 docker logs -f monit
 ```

@@ -3,11 +3,11 @@
 CARDANO_VER="1.26.1"
 NESSUS_REV="dev"
 
-MMONIT_VER="3.7.7"
-MMONIT_REV="rev1"
+MONIT_VER="5.28.0"
+MONIT_REV="rev2"
 
-MONIT_VER="5.27.1"
-MONIT_REV="rev1"
+MMONIT_VER="3.7.7"
+MMONIT_REV="rev2"
 
 CNCLI_VER="1.5.1"
 CABAL_VER="3.2.0.0"
@@ -29,7 +29,7 @@ fi
 # Note, we currently cannot build the cardano derivation for arm64
 # https://github.com/input-output-hk/haskell.nix/issues/1027
 
-if [[ ${ARCH_SUFFIX} == "arm64" ]]; then
+function buildCardanoNodeArm64 () {
 
   AUX_IMAGE_VERSION="${CARDANO_VER}-${ARCH_SUFFIX}"
 
@@ -67,9 +67,8 @@ if [[ ${ARCH_SUFFIX} == "arm64" ]]; then
   else
 
     echo "Using binaries from ${dockerBuildOut} ..."
-
   fi
-fi
+}
 
 function buildImage () {
 
@@ -106,6 +105,9 @@ function buildImage () {
   echo "#"
 
   if [[ $shortName == "cardano-node" ]]; then
+    if [[ ${ARCH_SUFFIX} == "arm64" ]]; then
+      buildCardanoNodeArm64
+    fi
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/node \
       --argstr cardanoVersion ${CARDANO_VER} \
       --argstr nessusRevision ${NESSUS_REV} \
@@ -177,7 +179,6 @@ function buildImage () {
       docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
       docker push "${IMAGE_NAME}:dev"
     fi
-
   fi
 }
 
