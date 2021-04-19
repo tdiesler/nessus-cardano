@@ -42,7 +42,7 @@ sudo yum install -y yum-utils \
   && sudo systemctl enable --now docker
 
 # Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/1.28.5/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose \
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.1/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose \
   && sudo chmod +x /usr/local/bin/docker-compose
 
 # Initialize bare git repositories

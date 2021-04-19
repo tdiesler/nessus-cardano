@@ -1,0 +1,75 @@
+
+# Networks ############################################################################################################
+
+networks:
+  cardano:
+    name: cardano
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+# Services ############################################################################################################
+
+services:
+
+  # Block Producer ----------------------------------------------------------------------------------------------------
+
+  bprod:
+    image: nessusio/cardano-node:dev
+    container_name: bprod
+    hostname: bprod
+    networks:
+      cardano:
+    ports:
+      - "3001:3001"
+    environment:
+      CARDANO_TOPOLOGY: '{
+          "Producers": [
+            {
+              "addr": "relay01.astorpool.net",
+              "port": 3001,
+              "valency": 1
+            }
+          ]
+        }'
+      CARDANO_BLOCK_PRODUCER: "true"
+    command: "run"
+    volumes:
+      - /mnt/disks/data01:/opt/cardano/data
+      - bprod-keys:/var/cardano/config/keys
+
+  # Monit -------------------------------------------------------------------------------------------------------------
+
+  monit:
+    image: nessusio/monit
+    container_name: monit
+    hostname: ada01bp
+    networks:
+      cardano:
+    command: "-Iv"
+    volumes:
+      - monit-config:/etc/monit.d
+
+  # NGINX -------------------------------------------------------------------------------------------------------------
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    hostname: nginx
+    networks:
+      cardano:
+    ports:
+      - "12798:80"
+    volumes:
+      - nginx-config:/etc/nginx:ro
+
+# Volumes #############################################################################################################
+
+volumes:
+  bprod-keys:
+    external: true
+  monit-config:
+    external: true
+  nginx-config:
+    external: true

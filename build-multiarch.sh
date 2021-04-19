@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CARDANO_VER="1.26.1"
+CARDANO_VER="1.26.2"
 NESSUS_REV="dev"
 
 MONIT_VER="5.28.0"

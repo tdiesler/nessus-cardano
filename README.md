@@ -143,10 +143,17 @@ We sometimes may prefer somm middle ground between manually spinning up individu
 Perhaps we'd like to use [Docker Compose](https://docs.docker.com/compose).
 
 ```
-$ docker-compose -f nix/docker/compose/cardano-nodes.yaml up --detach
+$ docker-compose -f nix/docker/compose/cardano-node-relay.yaml up --detach
 
-Creating compose_relay ... done
-Creating compose_bprod ... done
+Creating relay ... done
+Creating monit ... done
+Creating nginx ... done
+
+$ docker-compose -f nix/docker/compose/cardano-node-bprod.yaml up --detach
+
+Creating bprod ... done
+Creating monit ... done
+Creating nginx ... done
 ```
 
 For details you may want to have a look at [nix/docker/compose/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/compose/cardano-nodes.yaml).

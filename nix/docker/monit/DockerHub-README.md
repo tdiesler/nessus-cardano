@@ -52,7 +52,8 @@ VERSION=5.28.0-rev2
 docker rm -f monit
 docker run --detach \
   --name=monit \
-  --hostname=ada01bp \
+  --hostname=ada01rl \
+  --network=cardano \
   -v monit-config:/etc/monit.d \
   nessusio/monit:${VERSION} -Iv
 

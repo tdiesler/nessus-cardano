@@ -16,12 +16,13 @@ services:
   # Relay -------------------------------------------------------------------------------------------------------------
 
   relay:
-    image: nessusio/cardano-node
-    ports:
-      - "3001:3001"
+    image: nessusio/cardano-node:dev
+    container_name: relay
+    hostname: relay
     networks:
       cardano:
-        ipv4_address: 172.28.0.2
+    ports:
+      - "3001:3001"
     environment:
       CARDANO_TOPOLOGY: '{
           "Producers": [
@@ -31,48 +32,47 @@ services:
               "valency": 1
             },
             {
-              "addr": "172.28.0.3",
+              "addr": "xxx.xxx.xxx.xxx",
               "port": 3001,
               "valency": 1
             }
           ]
         }'
-      CARDANO_CUSTOM_PEERS: "172.28.0.3:3001"
+      CARDANO_CUSTOM_PEERS: "xxx.xxx.xxx.xxx:3001"
       CARDANO_UPDATE_TOPOLOGY: "true"
     command: "run"
     volumes:
-      - relay-data:/opt/cardano/data
+      - /mnt/disks/data00:/opt/cardano/data
 
-  # Block Producer ----------------------------------------------------------------------------------------------------
+  # Monit -------------------------------------------------------------------------------------------------------------
 
-  bprod:
-    image: nessusio/cardano-node
-    expose:
-      - "3001"
+  monit:
+    image: nessusio/monit
+    container_name: monit
+    hostname: ada01rl
     networks:
       cardano:
-        ipv4_address: 172.28.0.3
-    environment:
-      CARDANO_TOPOLOGY: '{
-          "Producers": [
-            {
-              "addr": "172.28.0.2",
-              "port": 3001,
-              "valency": 1
-            }
-          ]
-        }'
-      CARDANO_BLOCK_PRODUCER: "true"
-    command: "run"
-    depends_on: [ "relay" ]
+    command: "-Iv"
     volumes:
-      - bprod-keys:/var/cardano/config/keys
-      - bprod-data:/opt/cardano/data
+      - monit-config:/etc/monit.d
+
+  # NGINX -------------------------------------------------------------------------------------------------------------
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    hostname: nginx
+    networks:
+      cardano:
+    ports:
+      - "12798:80"
+    volumes:
+      - nginx-config:/etc/nginx:ro
 
 # Volumes #############################################################################################################
 
 volumes:
-  relay-data:
-  bprod-data:
-  bprod-keys:
+  monit-config:
+    external: true
+  nginx-config:
     external: true
