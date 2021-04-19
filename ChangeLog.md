@@ -1,3 +1,16 @@
+# v1.26.2-rev1
+
+Released: 19-Apr-2021
+
+This is a required system update.
+
+* Upgrade to cardano-node-1.26.2 ([#45][45])
+* Run monit/mmonit on debian ([#44][44])
+
+[44]: https://github.com/tdiesler/nessus-cardano/issues/44
+[45]: https://github.com/tdiesler/nessus-cardano/issues/45
+
+For details see [v1.26.2-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.26.2-rev1)
 
 # v1.26.1-rev1
 

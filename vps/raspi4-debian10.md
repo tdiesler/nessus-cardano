@@ -116,7 +116,8 @@ EOF
 
 ### Install Docker
 
-https://docs.docker.com/engine/install/debian/
+https://docs.docker.com/engine/install/debian
+https://withblue.ink/2020/06/24/docker-and-docker-compose-on-raspberry-pi-os.html
 
 ```
 sudo apt-get install -y apt-transport-https ca-certificates gnupg-agent software-properties-common \
@@ -134,6 +135,10 @@ sudo usermod -aG docker $USER
 
 # Verify docker access after restart
 docker ps
+
+# Install Docker Compose
+sudo apt install -y python3-pip libffi-dev \
+  && sudo pip3 install docker-compose
 ```
 
 ### Meassure Temperature

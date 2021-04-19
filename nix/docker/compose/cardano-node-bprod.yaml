@@ -16,7 +16,7 @@ services:
   # Block Producer ----------------------------------------------------------------------------------------------------
 
   bprod:
-    image: nessusio/cardano-node:dev
+    image: nessusio/cardano-node
     container_name: bprod
     hostname: bprod
     networks:

@@ -16,7 +16,7 @@ services:
   # Relay -------------------------------------------------------------------------------------------------------------
 
   relay:
-    image: nessusio/cardano-node:dev
+    image: nessusio/cardano-node
     container_name: relay
     hostname: relay
     networks:
