@@ -1,3 +1,19 @@
+# v1.26.2-rev2
+
+Released: 22-Apr-2021
+
+This is a minor feature update and bug fix release.
+
+* Missing libselinux.so since 1.26.1 ([#46][46])
+* Restart containers in docker compose script ([#47][47])
+* Upgrade to cncli-2.0.3 ([#48][48])
+
+[46]: https://github.com/tdiesler/nessus-cardano/issues/46
+[47]: https://github.com/tdiesler/nessus-cardano/issues/47
+[48]: https://github.com/tdiesler/nessus-cardano/issues/48
+
+For details see [v1.26.2-rev2](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.26.2-rev2)
+
 # v1.26.2-rev1
 
 Released: 19-Apr-2021
