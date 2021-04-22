@@ -62,7 +62,9 @@ in
     created = "now";
 
     contents = [
-      #pkgs.libnsl            # Client interface library for NIS(YP) and NIS+
+      pkgs.bashInteractive   # Provide the BASH shell
+      pkgs.cacert            # X.509 certificates of public CA's
+      pkgs.coreutils         # Basic utilities expected in GNU OS's
     ];
 
     extraCommands = ''

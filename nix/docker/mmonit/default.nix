@@ -26,10 +26,10 @@ let
 
   mmonitDist = if builtins.currentSystem == "x86_64-linux" then pkgs.fetchurl {
       url = "https://mmonit.com/dist/mmonit-${mmonitVersion}-linux-x64.tar.gz";
-      sha256 = "10p3mkxwja0yszvmgnbypj5brl5m5i6823i1w2mnyyaqkpnmvi93";
+      sha256 = "1d1xpry2k84146a8mdmz506ybpjhz8y7xi2m9x9v0kxjgamwm3l1";
     } else pkgs.fetchurl {
       url = "https://mmonit.com/dist/mmonit-${mmonitVersion}-linux-arm64.tar.gz";
-      sha256 = "1xay7nd6qfkplxzvidzmqsfii0ssf70rz8jrwpwf7wwv9yrq89n6";
+      sha256 = "0c7f99mpp2z54np9z0q5lp6pac2wdf6gkyx8a96cndvkk13qnll2";
     };
 in
   pkgs.dockerTools.buildImage {
@@ -42,6 +42,7 @@ in
     contents = [
       pkgs.bashInteractive   # Provide the BASH shell
       pkgs.cacert            # X.509 certificates of public CA's
+      pkgs.coreutils         # Basic utilities expected in GNU OS's
     ];
 
     # Set creation date to build time. Breaks reproducibility
