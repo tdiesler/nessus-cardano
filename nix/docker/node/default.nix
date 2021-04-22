@@ -1,4 +1,4 @@
-# Build the cardano node Docker image
+# Build the cardano node image
 #
 # Several examples for pkgs.dockerTools are here
 # https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix

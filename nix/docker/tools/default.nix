@@ -1,3 +1,8 @@
+# Build the cardano tools image
+#
+# Several examples for pkgs.dockerTools are here
+# https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix
+#
 {
   # Pinned packages with Niv
   sources ? import ../../sources.nix,
@@ -13,8 +18,6 @@
   cardanoVersion,
   nessusRevision,
   cncliVersion,
-  cabalVersion,
-  ghcVersion,
 
   baseImage ? import ../debian {},
   cncli ? import ../../cncli { inherit cncliVersion; },
@@ -58,6 +61,7 @@ in
       # Packages needed by cncli
       pkgs.bashInteractive   # Provide the BASH shell
       pkgs.cacert            # X.509 certificates of public CA's
+      pkgs.coreutils         # Basic utilities expected in GNU OS's
       pkgs.glibc             # The GNU C Library
       pkgs.openlibm          # High quality system independent, portable, open source libm implementation
       pkgs.openssl           # A cryptographic library that implements the SSL and TLS protocols
