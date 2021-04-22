@@ -61,10 +61,11 @@ in
     # Set creation date to build time. Breaks reproducibility
     created = "now";
 
-    contents = [
+    contents = if builtins.currentSystem == "x86_64-linux" then [
       pkgs.bashInteractive   # Provide the BASH shell
       pkgs.cacert            # X.509 certificates of public CA's
       pkgs.coreutils         # Basic utilities expected in GNU OS's
+    ] else [
     ];
 
     extraCommands = ''
