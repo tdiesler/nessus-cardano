@@ -18,6 +18,7 @@ services:
   bprod:
     image: nessusio/cardano-node
     container_name: bprod
+    restart: unless-stopped
     hostname: bprod
     networks:
       cardano:
@@ -44,6 +45,7 @@ services:
   monit:
     image: nessusio/monit
     container_name: monit
+    restart: unless-stopped
     hostname: ada01bp
     networks:
       cardano:
@@ -56,6 +58,7 @@ services:
   nginx:
     image: nginx
     container_name: nginx
+    restart: unless-stopped
     hostname: nginx
     networks:
       cardano:
