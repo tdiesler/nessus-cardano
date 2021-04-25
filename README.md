@@ -24,6 +24,19 @@ This works on [x86_64](https://hub.docker.com/r/nessusio/cardano-node/tags?name=
 
 The [nessusio/cardano-node](https://hub.docker.com/r/nessusio/cardano-node) image is built from source in a multiple stages like [this](node/docker/Dockerfile).
 
+## Running a Relay Node on the Testnet
+
+```
+docker run --detach \
+    --name=testrl \
+    -p 3001:3001 \
+    -e CARDANO_NETWORK=testnet \
+    -v test-data:/opt/cardano/data \
+    nessusio/cardano-node run
+
+docker logs -f testrl
+```
+
 ## Accessing the build-in gLiveView
 
 The image has [gLiveView](https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh) monitoring built in.

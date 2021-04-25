@@ -11,12 +11,16 @@ shift
 # Define a few defaults
 CARDANO_CONFIG_BASE="/opt/cardano/config"
 
+if [[ -z $CARDANO_NETWORK ]]; then
+  CARDANO_NETWORK="mainnet"
+fi
+
 if [[ -z $CARDANO_CONFIG ]]; then
-  CARDANO_CONFIG="$CARDANO_CONFIG_BASE/mainnet-config.json"
+  CARDANO_CONFIG="$CARDANO_CONFIG_BASE/$CARDANO_NETWORK-config.json"
 fi
 
 if [[ -z $CARDANO_TOPOLOGY ]]; then
-  CARDANO_TOPOLOGY="$CARDANO_CONFIG_BASE/mainnet-topology.json"
+  CARDANO_TOPOLOGY="$CARDANO_CONFIG_BASE/$CARDANO_NETWORK-topology.json"
 fi
 
 if [[ -z $CARDANO_DATABASE_PATH ]]; then
@@ -66,7 +70,7 @@ fi
 # Process CARDANO_CONFIG as JSON value
 isJsonValue "$CARDANO_CONFIG"
 if [[ $return == true ]]; then
-  TARGET_FILE="/var/cardano/config/mainnet-config.json"
+  TARGET_FILE="/var/cardano/config/$CARDANO_NETWORK-config.json"
   echo "Writing $TARGET_FILE ..."
   mkdir -p `dirname $TARGET_FILE` \
     && echo $CARDANO_CONFIG > $TARGET_FILE \
@@ -76,7 +80,7 @@ fi
 # Process CARDANO_TOPOLOGY as JSON value
 isJsonValue "$CARDANO_TOPOLOGY"
 if [[ $return == true ]]; then
-  TARGET_FILE="/var/cardano/config/mainnet-topology.json"
+  TARGET_FILE="/var/cardano/config/$CARDANO_NETWORK-topology.json"
   echo "Writing $TARGET_FILE ..."
   mkdir -p `dirname $TARGET_FILE` \
     && echo $CARDANO_TOPOLOGY > $TARGET_FILE \
@@ -89,6 +93,7 @@ fi
 #
 printRunEnv () {
 
+  echo "CARDANO_NETWORK=$CARDANO_NETWORK"
   echo "CARDANO_CONFIG=$CARDANO_CONFIG"
   echo "CARDANO_TOPOLOGY=$CARDANO_TOPOLOGY"
   echo "CARDANO_BIND_ADDR=$CARDANO_BIND_ADDR"
@@ -147,6 +152,7 @@ cat << EOF > /usr/local/bin/env
 #!/usr/bin/env bash
 
 # Docker run ENV vars
+CARDANO_NETWORK="$CARDANO_NETWORK"
 CARDANO_CONFIG="$CARDANO_CONFIG"
 CARDANO_TOPOLOGY="$CARDANO_TOPOLOGY"
 CARDANO_BIND_ADDR="$CARDANO_BIND_ADDR"
@@ -163,7 +169,7 @@ CARDANO_BLOCK_PRODUCER=$CARDANO_BLOCK_PRODUCER
 CNODE_HOSTNAME="$CARDANO_PUBLIC_IP"
 CNODE_PORT=$CARDANO_PORT
 CUSTOM_PEERS="$CARDANO_CUSTOM_PEERS"
-GENESIS_JSON="$CARDANO_CONFIG_BASE/mainnet-shelley-genesis.json"
+GENESIS_JSON="$CARDANO_CONFIG_BASE/$CARDANO_NETWORK-shelley-genesis.json"
 TOPOLOGY="$CARDANO_TOPOLOGY"
 LOG_DIR="$CARDANO_LOG_DIR"
 EKG_HOST="$EKG_HOST"

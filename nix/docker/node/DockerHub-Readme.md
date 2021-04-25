@@ -26,6 +26,7 @@ Each image comes in multiple arch variant. Current we support `amd64` and `arm64
 | CARDANO_CUSTOM_PEERS                    |                                   | List of custom peers added by the topology updater  |
 | CARDANO_DATABASE_PATH                   | --database-path                   | Directory where the state is stored                 |
 | CARDANO_LOG_DIR                         |                                   | Path to the log directory                           |
+| CARDANO_NETWORK                         |                                   | The cardano network (e.g. testnet)                  |
 | CARDANO_PORT                            | --port                            | The port number                                     |
 | CARDANO_PUBLIC_IP                       |                                   | Public IP used by the topology updater              |
 | CARDANO_SHELLEY_KES_KEY                 | --shelley-kes-key                 | Path to the KES key file                            |
@@ -44,10 +45,24 @@ docker run --detach \
     --name=relay \
     -p 3001:3001 \
     -e CARDANO_UPDATE_TOPOLOGY=true \
-    -v /mnt/disks/data00:/opt/cardano/data \
+    -v node-data:/opt/cardano/data \
     nessusio/cardano-node run
 
 docker logs -f relay
+```
+
+## Running a Relay Node on the Testnet
+
+```
+docker run --detach \
+    --name=testrl \
+    -p 3001:3001 \
+    -e CARDANO_NETWORK=testnet \
+    -e CARDANO_UPDATE_TOPOLOGY=true \
+    -v test-data:/opt/cardano/data \
+    nessusio/cardano-node run
+
+docker logs -f testrl
 ```
 
 ## Reading topology updater results

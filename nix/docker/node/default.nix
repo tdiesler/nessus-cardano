@@ -20,6 +20,8 @@
   cabalVersion,
   ghcVersion,
 
+  hydraBuild ? "5822084",
+
   baseImage ? import ../debian {},
   cardano ? import ../../cardano { inherit cardanoVersion nessusRevision cabalVersion ghcVersion; },
   gLiveView ? import ../../gLiveView { inherit cardanoVersion nessusRevision; },
@@ -30,14 +32,19 @@ let
 
   imageName = "nessusio/cardano-node";
 
-  # The configs for the given cardano-node version
-  # mainnet-config = builtins.fetchurl "https://raw.githubusercontent.com/input-output-hk/cardano-node/${cardanoVersion}/configuration/cardano/mainnet-config.json";
-  mainnet-topology = builtins.fetchurl "https://raw.githubusercontent.com/input-output-hk/cardano-node/${cardanoVersion}/configuration/cardano/mainnet-topology.json";
-  byron-genesis = builtins.fetchurl "https://raw.githubusercontent.com/input-output-hk/cardano-node/${cardanoVersion}/configuration/cardano/mainnet-byron-genesis.json";
-  shelley-genesis = builtins.fetchurl "https://raw.githubusercontent.com/input-output-hk/cardano-node/${cardanoVersion}/configuration/cardano/mainnet-shelley-genesis.json";
+  # The mainet configs for the cardano-node
+  mainnet-config = ./context/config/mainnet-config.json;
+  mainnet-topology = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/mainnet-topology.json";
+  mainnet-byron-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/mainnet-byron-genesis.json";
+  mainnet-shelley-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/mainnet-shelley-genesis.json";
+
+  # The testnet configs for the cardano-node
+  testnet-config = ./context/config/testnet-config.json;
+  testnet-topology = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-topology.json";
+  testnet-byron-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-byron-genesis.json";
+  testnet-shelley-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-shelley-genesis.json";
 
   # Custom mainnet-config.json
-  mainnet-config = ./context/config/mainnet-config.json;
 
   # The Docker context with static content
   context = ./context;
@@ -100,8 +107,13 @@ in
       # Node configurations
       cp ${mainnet-config} opt/cardano/config/mainnet-config.json
       cp ${mainnet-topology} opt/cardano/config/mainnet-topology.json
-      cp ${byron-genesis} opt/cardano/config/mainnet-byron-genesis.json
-      cp ${shelley-genesis} opt/cardano/config/mainnet-shelley-genesis.json
+      cp ${mainnet-byron-genesis} opt/cardano/config/mainnet-byron-genesis.json
+      cp ${mainnet-shelley-genesis} opt/cardano/config/mainnet-shelley-genesis.json
+
+      cp ${testnet-config} opt/cardano/config/testnet-config.json
+      cp ${testnet-topology} opt/cardano/config/testnet-topology.json
+      cp ${testnet-byron-genesis} opt/cardano/config/testnet-byron-genesis.json
+      cp ${testnet-shelley-genesis} opt/cardano/config/testnet-shelley-genesis.json
 
       # gLiveView scripts
       cp -r ${gLiveView}/cnode-helper-scripts cnode-helper-scripts
