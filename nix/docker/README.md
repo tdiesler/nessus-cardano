@@ -47,6 +47,10 @@ docker run --detach \
 docker logs -n 100 -f relay
 
 docker exec -it relay gLiveView
+
+# Bash into the node to look around
+docker run --rm -it --entrypoint=bash \
+  nessusio/cardano-node:$VERSION
 ```
 
 ## Running the Cardano CLI
@@ -91,8 +95,8 @@ docker exec relay cat /opt/cardano/config/mainnet-topology.json
 
 ```
 mkdir ~/data
-scp core@relay01.astorpool.net:shelley-data-e251.tgz ~/data
-cd ~/data; tar xzvf shelley-data-e251.tgz
+scp core@relay01.astorpool.net:node-data-e258.tgz ~/data
+cd ~/data; tar xzvf node-data-e258.tgz
 
 docker run --name=tmp -v node-data:/data centos
 docker cp ~/data/protocolMagicId tmp:/data

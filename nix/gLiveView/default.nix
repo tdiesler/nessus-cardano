@@ -26,8 +26,8 @@ pkgs.stdenv.mkDerivation {
   src = builtins.fetchGit {
     name = "guild-operators";
     url = "https://github.com/cardano-community/guild-operators.git";
-    # Moves the gLiveView version to 1.20.3
-    rev = "b51dabd5af3bca682ddf1b79e5a1e8c905ec64b2";
+    # gLiveView version to 1.20.6
+    rev = "0f3b1e3412f5002fcfb6dc539ba65a68635eaab4";
   };
 
   builder = ./builder.sh;

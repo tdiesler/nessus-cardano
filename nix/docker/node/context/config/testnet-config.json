@@ -62,6 +62,9 @@
     "mapBackends": {
       "cardano.node.metrics": [
         "EKGViewBK"
+      ],
+      "cardano.node.resources": [
+        "EKGViewBK"
       ]
     },
     "mapSubtrace": {

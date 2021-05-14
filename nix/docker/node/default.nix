@@ -20,7 +20,8 @@
   cabalVersion,
   ghcVersion,
 
-  hydraBuild ? "5822084",
+  # https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/index.html
+  hydraBuild ? "6198010",
 
   baseImage ? import ../debian {},
   cardano ? import ../../cardano { inherit cardanoVersion nessusRevision cabalVersion ghcVersion; },
