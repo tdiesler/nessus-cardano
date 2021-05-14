@@ -1,3 +1,19 @@
+# v1.27.0-rev1
+
+Released: 14-May-2021
+
+This is a major feature update and bug fix release.
+
+* Migrate k8s node configuration to StatefulSets ([#36][36])
+* Add support for testnet configs ([#50][50])
+* Upgrade to cardano-node-1.27.0 ([#53][53])
+
+[36]: https://github.com/tdiesler/nessus-cardano/issues/36
+[50]: https://github.com/tdiesler/nessus-cardano/issues/50
+[53]: https://github.com/tdiesler/nessus-cardano/issues/53
+
+For details see [v1.27.0-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.27.0-rev1)
+
 # v1.26.2-rev2
 
 Released: 22-Apr-2021
