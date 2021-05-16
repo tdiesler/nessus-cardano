@@ -16,7 +16,7 @@ services:
   # Relay -------------------------------------------------------------------------------------------------------------
 
   relay:
-    image: nessusio/cardano-node
+    image: nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest}
     container_name: relay
     restart: unless-stopped
     hostname: relay
