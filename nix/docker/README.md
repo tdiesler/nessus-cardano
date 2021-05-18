@@ -88,7 +88,7 @@ docker exec relay curl -s 127.0.0.1:12798/metrics | sort
 ```
 docker exec relay cat /opt/cardano/logs/topologyUpdateResult
 
-docker exec relay cat /opt/cardano/config/mainnet-topology.json
+docker exec relay cat /var/cardano/config/mainnet-topology.json
 ```
 
 ## Populating the Data Volume
