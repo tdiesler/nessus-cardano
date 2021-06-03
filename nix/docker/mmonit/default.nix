@@ -26,10 +26,10 @@ let
 
   mmonitDist = if builtins.currentSystem == "x86_64-linux" then pkgs.fetchurl {
       url = "https://mmonit.com/dist/mmonit-${mmonitVersion}-linux-x64.tar.gz";
-      sha256 = "1d1xpry2k84146a8mdmz506ybpjhz8y7xi2m9x9v0kxjgamwm3l1";
+      sha256 = "1hxgwpzd8j3w9xrn529qz4viknss5yddbqdqk7bsfvs559jzgpj5";
     } else pkgs.fetchurl {
       url = "https://mmonit.com/dist/mmonit-${mmonitVersion}-linux-arm64.tar.gz";
-      sha256 = "0c7f99mpp2z54np9z0q5lp6pac2wdf6gkyx8a96cndvkk13qnll2";
+      sha256 = "0yiin67f8n10giwp0ldn6sdh3jl88wr2ils5yzxwi1r9qsp6grn9";
     };
 in
   pkgs.dockerTools.buildImage {
@@ -51,10 +51,13 @@ in
     extraCommands = ''
       # Extract M/Monit dist
       tar -xzf ${mmonitDist}
+      # Move to stable location
+      mkdir -p usr/local/var
+      mv mmonit-${mmonitVersion} usr/local/var/mmonit
     '';
 
     config = {
-      WorkingDir = "/mmonit-${mmonitVersion}";
+      WorkingDir = "/usr/local/var/mmonit";
       Entrypoint = [ "bin/mmonit" ];
     };
   }

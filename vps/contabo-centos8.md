@@ -26,7 +26,8 @@ timedatectl
 
 NUSER=core
 useradd -G root -m $NUSER -s /bin/bash
-cp -r .ssh /home/$NUSER/
+mkdir /home/$NUSER/.ssh
+chmod 700 /home/$NUSER/.ssh
 chown -R $NUSER.$NUSER /home/$NUSER/.ssh
 
 cat << EOF > /etc/sudoers.d/user-privs-$NUSER
@@ -83,7 +84,7 @@ sudo yum install -y yum-utils \
     https://download.docker.com/linux/centos/docker-ce.repo
 
 sudo yum install -y docker-ce docker-ce-cli containerd.io \
-  && sudo systemctl enable --now docker
+  && sudo systemctl enable --now docker \
   && sudo systemctl start docker
 
 sudo usermod -aG docker $USER

@@ -136,9 +136,7 @@ docker rm -f tmp
 
 # Run the Image
 
-VERSION=5.27.1
 VERSION=dev
-
 HOSTNAME=ada01rl
 
 docker rm -f monit
@@ -158,9 +156,6 @@ docker logs -f monit
 Login: admin/swordfish
 
 ```
-docker pull nessusio/mmonit
-
-VERSION=3.7.6-rev2
 VERSION=dev
 
 CONFDIR="/usr/local/var/mmonit/conf"
@@ -174,9 +169,9 @@ docker run --detach \
   -v ~/mmonit/conf:${CONFDIR} \
   nessusio/mmonit:${VERSION} -i
 
-docker exec -it mmonit cat ${LICENSE}
-
 docker logs -f mmonit
+
+docker exec -it mmonit cat ${LICENSE}
 ```
 
 ## Ledger State

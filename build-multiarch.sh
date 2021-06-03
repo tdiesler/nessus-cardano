@@ -7,7 +7,7 @@ MONIT_VER="5.28.0"
 MONIT_REV="rev4"
 
 MMONIT_VER="3.7.7"
-MMONIT_REV="rev3"
+MMONIT_REV="rev4"
 
 function buildManifest() {
 
