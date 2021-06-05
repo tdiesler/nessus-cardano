@@ -1,3 +1,19 @@
+# v1.27.0-rev2
+
+Released: 05-Jun-2021
+
+This is a minor feature update and bug fix release.
+
+* Client-side handling of custom peers ([#55][5])
+* Review M/Monit license handling ([#57][57])
+* Upgrade to cncli-2.1.1 ([#56][56])
+
+[55]: https://github.com/tdiesler/nessus-cardano/issues/55
+[56]: https://github.com/tdiesler/nessus-cardano/issues/56
+[57]: https://github.com/tdiesler/nessus-cardano/issues/57
+
+For details see [v1.27.0-rev2](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.27.0-rev2)
+
 # v1.27.0-rev1
 
 Released: 14-May-2021
