@@ -7,6 +7,7 @@
   pkgs ? import nixpkgsSrc nixpkgsArgs,
 
   # Required version args
+  cardanoBuildVersion,
   cardanoVersion,
   nessusRevision,
   cabalVersion,
@@ -46,7 +47,7 @@ in
         libsodium
       ];
 
-      inherit cardanoVersion nessusRevision libsodium;
+      inherit cardanoVersion cardanoBuildVersion nessusRevision libsodium;
       inherit cabalVersion ghcVersion;
 
       builder = ./builder-x86_64.sh;
@@ -70,9 +71,7 @@ in
         libsodium
       ];
 
-      inherit cardanoVersion;
-      inherit nessusRevision;
-      inherit libsodium;
+      inherit cardanoVersion cardanoBuildVersion nessusRevision libsodium;
 
       builder = ./builder-aarch64.sh;
     }

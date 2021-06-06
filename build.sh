@@ -1,28 +1,6 @@
 #!/bin/bash
 
-CARDANO_VER="1.27.0"
-NESSUS_REV="dev"
-
-MONIT_VER="5.28.0"
-MONIT_REV="rev4"
-
-MMONIT_VER="3.7.7"
-MMONIT_REV="rev4"
-
-CNCLI_VER="2.1.1"
-CABAL_VER="3.2.0.0"
-GHC_VER="8.10.4"
-
-ARCH=`uname -m`
-
-# Checking supported architectures ====================================================================================
-
-if [[ ${ARCH} == "x86_64" ]]; then ARCH_SUFFIX="amd64"
-elif [[ ${ARCH} == "aarch64" ]]; then ARCH_SUFFIX="arm64"
-else
-  echo "[ERROR] Unsupported platform architecture: ${ARCH}"
-  exit 1
-fi
+source ./build-common.sh
 
 # Extracting binaries from arm64 Docker image =========================================================================
 #
@@ -43,6 +21,7 @@ function buildCardanoNodeArm64 () {
     CABAL_VER="3.4.0.0"
 
     docker build \
+      --build-arg CARDANO_BUILD_VER=${CARDANO_BUILD_VER} \
       --build-arg CARDANO_VER=${CARDANO_VER} \
       --build-arg CABAL_VER=${CABAL_VER} \
       --build-arg GHC_VER=${GHC_VER} \
@@ -109,6 +88,7 @@ function buildImage () {
       buildCardanoNodeArm64
     fi
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/node \
+      --argstr cardanoBuildVersion ${CARDANO_BUILD_VER} \
       --argstr cardanoVersion ${CARDANO_VER} \
       --argstr nessusRevision ${NESSUS_REV} \
       --argstr cabalVersion ${CABAL_VER} \
@@ -117,6 +97,7 @@ function buildImage () {
 
   elif [[ $shortName == "cardano-tools" ]]; then
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/tools \
+      --argstr cardanoBuildVersion ${CARDANO_BUILD_VER} \
       --argstr cardanoVersion ${CARDANO_VER} \
       --argstr nessusRevision ${NESSUS_REV} \
       --argstr cncliVersion ${CNCLI_VER} \

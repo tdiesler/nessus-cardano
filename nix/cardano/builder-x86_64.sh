@@ -62,9 +62,10 @@ echo ""
 ## Buid + Install Cardano #######################################################################################################
 
 wrsrc="$TMPDIR/cardano-node"
+rm -rf ${wrsrc}
 
-git clone -b ${cardanoVersion} https://github.com/input-output-hk/cardano-node.git $wrsrc
-cd $wrsrc
+git clone -b ${cardanoVersion} https://github.com/input-output-hk/cardano-node.git ${wrsrc}
+cd ${wrsrc}
 
 echo "Cabal update ..."
 cabal update
@@ -78,11 +79,17 @@ echo "  flags: -external-libsodium-vrf" >> cabal.project.local
 echo "Cabal build all ..."
 cabal build all
 
+echo "Find cardano-node ..."
+find ${wrsrc}/dist-newstyle -type f -name cardano-node
+
+echo "Find cardano-cli ..."
+find ${wrsrc}/dist-newstyle -type f -name cardano-cli
+
 echo "Copy configs ..."
 mkdir -p $out/config
 cp $src/configuration/cardano/mainnet-* $out/config/
 
 echo "Copy binaries ..."
 mkdir -p $out/bin
-cp ./dist-newstyle/build/${ARCH}-linux/ghc-${ghcVersion}/cardano-node-${CARDANO_VER}/x/cardano-node/build/cardano-node/cardano-node $out/bin
-cp ./dist-newstyle/build/${ARCH}-linux/ghc-${ghcVersion}/cardano-cli-${CARDANO_VER}/x/cardano-cli/build/cardano-cli/cardano-cli $out/bin
+cp ${wrsrc}/dist-newstyle/build/${ARCH}-linux/ghc-${ghcVersion}/cardano-node-${cardanoBuildVersion}/x/cardano-node/build/cardano-node/cardano-node $out/bin
+cp ${wrsrc}/dist-newstyle/build/${ARCH}-linux/ghc-${ghcVersion}/cardano-cli-${cardanoBuildVersion}/x/cardano-cli/build/cardano-cli/cardano-cli $out/bin

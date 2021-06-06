@@ -3,6 +3,7 @@
 #
 
 # Some build-arg parameters
+ARG CARDANO_BUILD_VER
 ARG CARDANO_VER
 ARG CABAL_VER
 ARG GHC_VER
@@ -75,6 +76,7 @@ RUN cabal --version
 
 FROM builderB as builderC
 
+ARG CARDANO_BUILD_VER
 ARG CARDANO_VER
 ARG CABAL_VER
 ARG GHC_VER
@@ -94,8 +96,8 @@ RUN echo "  flags: -external-libsodium-vrf" >> cabal.project.local
 
 RUN cabal build all
 
-RUN cp dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-node-${CARDANO_VER}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
-RUN cp dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-cli-${CARDANO_VER}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
+RUN cp dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-node-${CARDANO_BUILD_VER}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
+RUN cp dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-cli-${CARDANO_BUILD_VER}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 
 WORKDIR /root
 
