@@ -33,16 +33,13 @@ EOF
 # Build the cardano node image
 ./build.sh
 
-VERSION=dev
-
 docker rm relay
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -e CARDANO_UPDATE_TOPOLOGY=true \
     -v node-data:/opt/cardano/data \
     -v node-ipc:/opt/cardano/ipc \
-    nessusio/cardano-node:$VERSION run
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
 
 docker logs -n 100 -f relay
 
@@ -50,7 +47,7 @@ docker exec -it relay gLiveView
 
 # Bash into the node to look around
 docker run --rm -it --entrypoint=bash \
-  nessusio/cardano-node:$VERSION
+  nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev}
 ```
 
 ## Running the Cardano CLI
@@ -59,7 +56,7 @@ docker run --rm -it --entrypoint=bash \
 alias cardano-cli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
   -v node-ipc:/opt/cardano/ipc \
-  nessusio/cardano-node:$VERSION cardano-cli"
+  nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} cardano-cli"
 
 cardano-cli query tip --mainnet
 {
@@ -136,7 +133,6 @@ docker rm -f tmp
 
 # Run the Image
 
-VERSION=dev
 HOSTNAME=ada01rl
 
 docker rm -f monit
@@ -146,7 +142,7 @@ docker run --detach \
   --memory=50m \
   --hostname=$HOSTNAME \
   -v monit-config:/etc/monit.d \
-  nessusio/monit:${VERSION} -Iv
+  nessusio/monit:${CARDANO_NODE_VERSION:-dev} -Iv
 
 docker logs -f monit
 ```
@@ -156,8 +152,6 @@ docker logs -f monit
 Login: admin/swordfish
 
 ```
-VERSION=dev
-
 CONFDIR="/usr/local/var/mmonit/conf"
 LICENSE="${CONFDIR}/license.xml"
 
@@ -167,7 +161,7 @@ docker run --detach \
   -p 8080:8080 \
   --restart=always \
   -v ~/mmonit/conf:${CONFDIR} \
-  nessusio/mmonit:${VERSION} -i
+  nessusio/mmonit:${CARDANO_NODE_VERSION:-dev} -i
 
 docker logs -f mmonit
 
@@ -180,7 +174,7 @@ docker exec -it mmonit cat ${LICENSE}
 alias cncli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
   -v cncli:/var/cardano/cncli \
-  nessusio/cardano-tools:$VERSION cncli"
+  nessusio/cardano-tools:${CARDANO_NODE_VERSION:-dev} cncli"
 
 NODE_IP=34.68.137.181
 
