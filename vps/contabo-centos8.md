@@ -7,8 +7,29 @@
 ```
 ssh root@vps
 
+# Assign a random SSH port above 10000
+rnd=$RANDOM; echo $rnd
+while (($rnd <= 10000)); do rnd=$(($rnd + $RANDOM)); echo $rnd; done
+sed -i "s/#Port 22$/Port $rnd/" /etc/ssh/sshd_config
+
+# Disable password authentication
 sed -i "s/PasswordAuthentication yes$/PasswordAuthentication no/" /etc/ssh/sshd_config
-cat /etc/ssh/sshd_config | grep PasswordAuthentication
+
+# Disable password authentication
+sed -i "s/ChallengeResponseAuthentication yes$/ChallengeResponseAuthentication no/" /etc/ssh/sshd_config
+
+# Disable root login
+sed -i "s/PermitRootLogin yes$/PermitRootLogin no/" /etc/ssh/sshd_config
+
+# Disable X11Forwarding
+sed -i "s/X11Forwarding yes$/X11Forwarding no/" /etc/ssh/sshd_config
+
+cat /etc/ssh/sshd_config | egrep "^Port"
+cat /etc/ssh/sshd_config | egrep "^PasswordAuthentication"
+cat /etc/ssh/sshd_config | egrep "^ChallengeResponseAuthentication"
+cat /etc/ssh/sshd_config | egrep "^PermitRootLogin"
+cat /etc/ssh/sshd_config | egrep "^X11Forwarding"
+
 systemctl restart sshd
 
 # Update the system
