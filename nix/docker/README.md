@@ -88,17 +88,39 @@ docker exec relay cat /opt/cardano/logs/topologyUpdateResult
 docker exec relay cat /var/cardano/config/mainnet-topology.json
 ```
 
-## Populating the Data Volume
+## Create Data Backup
 
 ```
-mkdir ~/data
-scp core@relay01.astorpool.net:node-data-e258.tgz ~/data
-cd ~/data; tar xzvf node-data-e258.tgz
+BACKUP_FILE=mainnet-data-e270.tgz
+DATA_VOLUME=/mnt/disks/data00
+TMPDATA_DIR=$HOME/data
 
-docker run --name=tmp -v node-data:/data centos
-docker cp ~/data/protocolMagicId tmp:/data
-docker cp ~/data/immutable tmp:/data
-docker cp ~/data/ledger tmp:/data
+rm -rf $TMPDATA_DIR; mkdir -p $TMPDATA_DIR
+docker run --name=tmp -v $DATA_VOLUME:/opt/cardano/data centos
+docker cp tmp:/opt/cardano/data/protocolMagicId $TMPDATA_DIR
+docker cp tmp:/opt/cardano/data/immutable $TMPDATA_DIR
+docker cp tmp:/opt/cardano/data/ledger $TMPDATA_DIR
+tar -C $TMPDATA_DIR -czvf $BACKUP_FILE protocolMagicId immutable ledger
+rm -rf $TMPDATA_DIR
+docker rm tmp
+```
+
+## Restore Data Backup
+
+```
+BACKUP_FILE=mainnet-data-e270.tgz
+DATA_VOLUME=/mnt/disks/data01
+TMPDATA_DIR=$HOME/data
+
+scp -P 22 core@relay01.astorpool.net:$BACKUP_FILE .
+rm -rf $TMPDATA_DIR; mkdir -p $TMPDATA_DIR
+tar -C $TMPDATA_DIR -xzvf $BACKUP_FILE
+
+docker run --name=tmp -v $DATA_VOLUME:/opt/cardano/data centos
+docker cp $TMPDATA_DIR/protocolMagicId tmp:/opt/cardano/data
+docker cp $TMPDATA_DIR/immutable tmp:/opt/cardano/data
+docker cp $TMPDATA_DIR/ledger tmp:/opt/cardano/data
+rm -rf $TMPDATA_DIR
 docker rm tmp
 ```
 
@@ -111,36 +133,30 @@ MMONIT_PORT=8080
 MMONIT_ADDR=astorpool.net
 MMONIT_AUTH='username:changeit'
 
-MONIT_AUTH=$MMONIT_AUTH
-
 mkdir -p monit
-
 cat << EOF > monit/monitrc-extras
 set eventqueue basedir /var/monit/ slots 1000
 set mmonit http://$MMONIT_AUTH@$MMONIT_ADDR:$MMONIT_PORT/collector
 set httpd port 2812 and
     use address 0.0.0.0    # bind to all interfaces (i.e. not just to localhost)
     allow $MMONIT_ADDR     # allow the M/Monit host to connect to the server
-    allow $MONIT_AUTH      # monit authorization
+    allow $MMONIT_AUTH     # monit authorization
 EOF
 
 docker rm -f monit
 docker volume rm -f monit-config
 docker run --name=tmp -v monit-config:/etc/monit.d/ centos
 docker cp monit/monitrc-extras tmp:/etc/monit.d
-docker run --rm -v monit-config:/etc/monit.d centos find /etc/monit.d -type f | sort
 docker rm -f tmp
 
 # Run the Image
-
-HOSTNAME=ada01rl
 
 docker rm -f monit
 docker run --detach \
   --name=monit \
   --restart=always \
   --memory=50m \
-  --hostname=$HOSTNAME \
+  --hostname=ada01rl \
   -v monit-config:/etc/monit.d \
   nessusio/monit:${CARDANO_NODE_VERSION:-dev} -Iv
 

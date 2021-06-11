@@ -37,8 +37,8 @@ services:
       CARDANO_BLOCK_PRODUCER: "true"
     command: "run"
     volumes:
+      - mainnet-bprod-keys:/var/cardano/config/keys
       - /mnt/disks/data01:/opt/cardano/data
-      - bprod-keys:/var/cardano/config/keys
 
   # Monit -------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ services:
 # Volumes #############################################################################################################
 
 volumes:
-  bprod-keys:
+  mainnet-bprod-keys:
     external: true
   monit-config:
     external: true
