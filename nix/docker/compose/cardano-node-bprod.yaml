@@ -40,19 +40,6 @@ services:
       - mainnet-bprod-keys:/var/cardano/config/keys
       - /mnt/disks/data01:/opt/cardano/data
 
-  # Monit -------------------------------------------------------------------------------------------------------------
-
-  monit:
-    image: nessusio/monit
-    container_name: monit
-    restart: unless-stopped
-    hostname: ada01bp
-    networks:
-      cardano:
-    command: "-Iv"
-    volumes:
-      - monit-config:/etc/monit.d
-
   # NGINX -------------------------------------------------------------------------------------------------------------
 
   nginx:
@@ -71,8 +58,6 @@ services:
 
 volumes:
   mainnet-bprod-keys:
-    external: true
-  monit-config:
     external: true
   nginx-config:
     external: true
