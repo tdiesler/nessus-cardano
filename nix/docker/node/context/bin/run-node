@@ -3,9 +3,6 @@
 # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
 set -eo pipefail
 
-scriptDir=$(dirname $0)
-source $scriptDir/functions
-
 echo "Running the cardano node ..."
 
 # Define a few defaults
@@ -67,6 +64,17 @@ if [[ -z $MAX_PEERS ]]; then
   MAX_PEERS=15
 fi
 
+#####################################################################
+# True if the given parameter is a valud json string
+
+isJsonValue () {
+  if echo "$1" | jq -c "." &> /dev/null; then
+    return=true
+  else
+    return=false
+  fi
+}
+
 # Process CARDANO_CONFIG as JSON value
 isJsonValue "$CARDANO_CONFIG"
 if [[ $return == true ]]; then
@@ -88,9 +96,8 @@ if [[ $return == true ]]; then
 fi
 
 #####################################################################
-#
 # Print run environment
-#
+
 printRunEnv () {
 
   echo "CARDANO_NETWORK=$CARDANO_NETWORK"
@@ -143,9 +150,8 @@ printRunEnv () {
 }
 
 #####################################################################
-#
 # Write root env file
-#
+
 writeRootEnv () {
 
 cat << EOF > /usr/local/bin/env
@@ -189,9 +195,8 @@ EOF
 }
 
 #####################################################################
-#
 # Run the relay node in the background
-#
+
 runRelayNode () {
 
   effopts=(--config $CARDANO_CONFIG \
@@ -208,9 +213,8 @@ runRelayNode () {
 }
 
 #####################################################################
-#
 # Run the block producer in the background
-#
+
 runBlockProducerNode () {
 
   effopts=(--config $CARDANO_CONFIG \

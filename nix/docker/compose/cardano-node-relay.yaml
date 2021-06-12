@@ -43,20 +43,7 @@ services:
       CARDANO_UPDATE_TOPOLOGY: "true"
     command: "run"
     volumes:
-      - /mnt/disks/data00:/opt/cardano/data
-
-  # Monit -------------------------------------------------------------------------------------------------------------
-
-  monit:
-    image: nessusio/monit
-    container_name: monit
-    restart: unless-stopped
-    hostname: ada01rl
-    networks:
-      cardano:
-    command: "-Iv"
-    volumes:
-      - monit-config:/etc/monit.d
+      - node-data:/opt/cardano/data
 
   # NGINX -------------------------------------------------------------------------------------------------------------
 
@@ -75,7 +62,7 @@ services:
 # Volumes #############################################################################################################
 
 volumes:
-  monit-config:
+  node-data:
     external: true
   nginx-config:
     external: true
