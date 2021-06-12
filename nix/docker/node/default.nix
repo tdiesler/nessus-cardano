@@ -130,5 +130,6 @@ in
         "CARDANO_NODE_SOCKET_PATH=/opt/cardano/ipc/node.socket"
       ];
       Entrypoint = [ "entrypoint" ];
+      StopSignal = "SIGINT";
     };
   }

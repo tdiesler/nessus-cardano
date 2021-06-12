@@ -7,6 +7,29 @@
 ```
 ssh root@vps
 
+# Update the system
+yum update -y
+yum install -y tar git epel-release
+
+# Check Time Service
+timedatectl set-local-rtc 0
+timedatectl
+
+NUSER=core
+useradd -G root -m $NUSER -s /bin/bash
+mkdir /home/$NUSER/.ssh
+echo "ssh-rsa AAAA..." > /home/$NUSER/.ssh/authorized_keys
+chmod 700 /home/$NUSER/.ssh
+chown -R $NUSER.$NUSER /home/$NUSER/.ssh
+
+cat << EOF > /etc/sudoers.d/user-privs-$NUSER
+$NUSER ALL=(ALL:ALL) NOPASSWD: ALL
+EOF
+
+# ------------------------------------------------------------------------------
+# SSH login to core@xxx.xxx.xxx.xxx from some other terminal
+# ------------------------------------------------------------------------------
+
 # Assign a random SSH port above 10000
 rnd=$RANDOM; echo $rnd
 while (($rnd <= 10000)); do rnd=$(($rnd + $RANDOM)); echo $rnd; done
@@ -32,31 +55,8 @@ cat /etc/ssh/sshd_config | egrep "^X11Forwarding"
 
 systemctl restart sshd
 
-# Update the system
-yum update -y
-
-# cat << EOF >> /home/$NUSER/.bash_profile
-# Locale and Language
-# export LANGUAGE=en_US.UTF-8
-# export LANG=en_US.UTF-8
-# export LC_ALL=C
-# EOF
-
-# Check Time Service
-timedatectl
-
-NUSER=core
-useradd -G root -m $NUSER -s /bin/bash
-mkdir /home/$NUSER/.ssh
-chmod 700 /home/$NUSER/.ssh
-chown -R $NUSER.$NUSER /home/$NUSER/.ssh
-
-cat << EOF > /etc/sudoers.d/user-privs-$NUSER
-$NUSER ALL=(ALL:ALL) NOPASSWD: ALL
-EOF
-
 # Start the SSH agent
-eval $(ssh-agent)
+# eval $(ssh-agent)
 ```
 
 ### Swap setup
@@ -112,4 +112,8 @@ sudo usermod -aG docker $USER
 
 # Verify docker access after restart
 docker ps
+
+# Install Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" \
+  -o /usr/local/bin/docker-compose
 ```
