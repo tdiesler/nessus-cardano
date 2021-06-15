@@ -17,24 +17,43 @@ Password: raspberry
 touch /Volumes/boot/SSH
 
 HOSTIP=192.168.0.55
-
 scp ~/.ssh/id_rsa.pub pi@$HOSTIP:.ssh/authorized_keys
 ```
 
 Verify that you can login using your private key. Then do ...
 
 ```
+# Assign a random SSH port above 10000
+rnd=$RANDOM; echo $rnd
+while (($rnd <= 10000)); do rnd=$(($rnd + $RANDOM)); echo $rnd; done
+sed -i "s/#Port 22$/Port $rnd/" /etc/ssh/sshd_config
+
 # Disable password authentication
-sudo sed -i "s/^#PasswordAuthentication yes$/PasswordAuthentication no/" /etc/ssh/sshd_config
-sudo cat /etc/ssh/sshd_config | grep PasswordAuthentication
-sudo systemctl restart sshd
+sed -i "s/PasswordAuthentication yes$/PasswordAuthentication no/" /etc/ssh/sshd_config
+
+# Disable password authentication
+sed -i "s/ChallengeResponseAuthentication yes$/ChallengeResponseAuthentication no/" /etc/ssh/sshd_config
+
+# Disable root login
+sed -i "s/PermitRootLogin yes$/PermitRootLogin no/" /etc/ssh/sshd_config
+
+# Disable X11Forwarding
+sed -i "s/X11Forwarding yes$/X11Forwarding no/" /etc/ssh/sshd_config
+
+cat /etc/ssh/sshd_config | egrep "^Port"
+cat /etc/ssh/sshd_config | egrep "^PasswordAuthentication"
+cat /etc/ssh/sshd_config | egrep "^ChallengeResponseAuthentication"
+cat /etc/ssh/sshd_config | egrep "^PermitRootLogin"
+cat /etc/ssh/sshd_config | egrep "^X11Forwarding"
+
+systemctl restart sshd
 
 # Set the locale
-sudo sed -i "s/^en_GB.UTF-8 UTF-8$/# en_GB.UTF-8 UTF-8/" /etc/locale.gen
-sudo sed -i "s/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/" /etc/locale.gen
+sed -i "s/^en_GB.UTF-8 UTF-8$/# en_GB.UTF-8 UTF-8/" /etc/locale.gen
+sed -i "s/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/" /etc/locale.gen
 cat /etc/locale.gen | grep en_
 
-sudo locale-gen en_US.UTF-8
+locale-gen en_US.UTF-8
 
 cat << EOF >> $HOME/.profile
 # Locale and Language
@@ -45,37 +64,37 @@ EOF
 source .profile
 
 # Update the system
-sudo apt-get update \
-  && sudo apt-get full-upgrade -y
+apt-get update \
+  && apt-get full-upgrade -y
 
 # Change the default runlevel
 # System | Boot | Console
-sudo rm /etc/systemd/system/default.target
-sudo ln -s /lib/systemd/system/multi-user.target /etc/systemd/system/default.target
+rm /etc/systemd/system/default.target
+ln -s /lib/systemd/system/multi-user.target /etc/systemd/system/default.target
 
 # Setup System Time synchronization
 # https://www.digitalocean.com/community/tutorials/how-to-set-up-time-synchronization-on-debian-10
-# sudo apt-get remove -y ntp ntpdate
-# sudo systemctl start systemd-timesyncd
-# sudo systemctl status systemd-timesyncd
+# apt-get remove -y ntp ntpdate
+# systemctl start systemd-timesyncd
+# systemctl status systemd-timesyncd
 
 timedatectl
 timedatectl list-timezones | grep Berlin
-sudo timedatectl set-timezone Europe/Berlin
+timedatectl set-timezone Europe/Berlin
 
 # Enable memory accounting
 # https://github.com/raspberrypi/Raspberry-Pi-OS-64bit/issues/124
 CMDLINE=`cat /boot/cmdline.txt`
-echo "$CMDLINE cgroup_memory=1 cgroup_enable=memory" | sudo tee /boot/cmdline.txt
+echo "$CMDLINE cgroup_memory=1 cgroup_enable=memory" | tee /boot/cmdline.txt
 
 # Enable KVM Kernel Module
 # Needed for runAsRoot in Nix dockerTools.buildImage
-sudo apt install -y virt-manager libvirt0 qemu-system
-sudo usermod -aG libvirt-qemu $(whoami)
-sudo chmod 666 /dev/kvm
+apt install -y virt-manager libvirt0 qemu-system
+usermod -aG libvirt-qemu $(whoami)
+chmod 666 /dev/kvm
 
 # Restart after boot cmd changes
-sudo shutdown -r now
+shutdown -r now
 ```
 
 ### Swap setup

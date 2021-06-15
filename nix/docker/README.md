@@ -27,30 +27,52 @@ system-features = kvm
 EOF
 ```
 
-## Build + Run the Cardano Node
+## Build + Look around
 
 ```
-# Build the cardano node image
-./build.sh
+./build.sh cardano
 
-VERSION=dev
+# Bash into the node to look around
+docker run --rm -it --entrypoint=bash \
+  -v node-data:/opt/cardano/data \
+  nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev}
 
+cardano-node run \
+  --config /opt/cardano/config/mainnet-config.json \
+  --topology /opt/cardano/config/mainnet-topology.json \
+  --socket-path /opt/cardano/ipc/socket \
+  --database-path /opt/cardano/data \
+  --host-addr 0.0.0.0 \
+  --port 3001
+```
+
+## Run the Cardano Node
+
+```
 docker rm relay
 docker run --detach \
     --name=relay \
     -p 3001:3001 \
-    -e CARDANO_UPDATE_TOPOLOGY=true \
     -v node-data:/opt/cardano/data \
     -v node-ipc:/opt/cardano/ipc \
-    nessusio/cardano-node:$VERSION run
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
 
 docker logs -n 100 -f relay
 
 docker exec -it relay gLiveView
 
-# Bash into the node to look around
-docker run --rm -it --entrypoint=bash \
-  nessusio/cardano-node:$VERSION
+# Print env variables
+docker exec relay cat /usr/local/bin/env
+
+# EKG for topologyUpdater
+docker exec relay curl -s -H 'Accept: application/json' 127.0.0.1:12788 | jq .
+
+# Prometheus for gLiveView
+docker exec relay curl -s 127.0.0.1:12798/metrics | sort
+
+# Topology Updates
+docker exec relay cat /opt/cardano/logs/topologyUpdateResult
+docker exec relay cat /var/cardano/config/mainnet-topology.json
 ```
 
 ## Running the Cardano CLI
@@ -59,7 +81,7 @@ docker run --rm -it --entrypoint=bash \
 alias cardano-cli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
   -v node-ipc:/opt/cardano/ipc \
-  nessusio/cardano-node:$VERSION cardano-cli"
+  nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} cardano-cli"
 
 cardano-cli query tip --mainnet
 {
@@ -70,85 +92,121 @@ cardano-cli query tip --mainnet
 }
 ```
 
-## Access Metrics
+## Create Data Backup
 
 ```
-# Print env variables
-docker exec relay cat /usr/local/bin/env
+BACKUP_FILE=mainnet-data-e270.tgz
+TMPDATA_DIR=$HOME/data
+DATA_VOLUME=node-data
 
-# EKG for topologyUpdater
-docker exec relay curl -s -H 'Accept: application/json' 127.0.0.1:12788 | jq .
-
-# Prometheus for gLiveView
-docker exec relay curl -s 127.0.0.1:12798/metrics | sort
-```
-
-## Topology Updates
-
-```
-docker exec relay cat /opt/cardano/logs/topologyUpdateResult
-
-docker exec relay cat /var/cardano/config/mainnet-topology.json
-```
-
-## Populating the Data Volume
-
-```
-mkdir ~/data
-scp core@relay01.astorpool.net:node-data-e258.tgz ~/data
-cd ~/data; tar xzvf node-data-e258.tgz
-
-docker run --name=tmp -v node-data:/data centos
-docker cp ~/data/protocolMagicId tmp:/data
-docker cp ~/data/immutable tmp:/data
-docker cp ~/data/ledger tmp:/data
+rm -rf $TMPDATA_DIR; mkdir -p $TMPDATA_DIR
+docker run --name=tmp -v $DATA_VOLUME:/opt/cardano/data centos
+docker cp tmp:/opt/cardano/data/protocolMagicId $TMPDATA_DIR
+docker cp tmp:/opt/cardano/data/immutable $TMPDATA_DIR
+docker cp tmp:/opt/cardano/data/ledger $TMPDATA_DIR
+tar -C $TMPDATA_DIR -czvf $BACKUP_FILE protocolMagicId immutable ledger
+rm -rf $TMPDATA_DIR
 docker rm tmp
+```
+
+## Restore Data Backup
+
+```
+BACKUP_FILE=mainnet-data-e270.tgz
+TMPDATA_DIR=$HOME/data
+DATA_VOLUME=node-data
+
+rm -rf $TMPDATA_DIR; mkdir -p $TMPDATA_DIR
+tar -C $TMPDATA_DIR -xzvf $BACKUP_FILE
+
+docker run --name=tmp -v $DATA_VOLUME:/opt/cardano/data centos
+docker cp $TMPDATA_DIR/protocolMagicId tmp:/opt/cardano/data
+docker cp $TMPDATA_DIR/immutable tmp:/opt/cardano/data
+docker cp $TMPDATA_DIR/ledger tmp:/opt/cardano/data
+rm -rf $TMPDATA_DIR
+docker rm tmp
+```
+
+
+## Run NGINX as Reverse Proxy
+
+https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy
+
+https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication
+
+```
+mkdir nginx
+cat << EOF > nginx/nginx.conf
+events {}
+http {
+    server {
+        # Unauthorized access to Liveness
+        location /metrics/xyz.../liveness {
+            proxy_pass http://relay:12798/metrics;
+        }
+    }
+}
+EOF
+
+# Create nginx-config volume
+docker rm -f nginx
+docker volume rm -f nginx-config
+docker run --name tmp -v nginx-config:/etc/nginx centos
+docker cp ~/nginx tmp:/etc/
+docker rm tmp
+
+docker rm -f nginx
+docker run --detach \
+    --name=nginx \
+    -p 12798:80 \
+    --hostname=nginx \
+    --network=cardano \
+    --restart=always \
+    --memory=50m \
+    -v nginx-config:/etc/nginx:ro \
+    nginx
+
+docker logs -f nginx
+
+curl http://localhost:12798/metrics/xyz.../liveness | sort
 ```
 
 ## Run Monit
 
 ```
-# Setup the Config Volume
+# Add monit to the environment
+nix-shell
+> monit -V
+
+# Setup the Config
 
 MMONIT_PORT=8080
 MMONIT_ADDR=astorpool.net
-MMONIT_AUTH='username:changeit'
+MMONIT_AUTH='monit:2B2m1tRTRnA#Z#AL'
 
-MONIT_AUTH=$MMONIT_AUTH
-
-mkdir -p monit
-
-cat << EOF > monit/monitrc-extras
+# Common config
+cat << EOF > ~/.monitrc
+set daemon 5 with start delay 10
 set eventqueue basedir /var/monit/ slots 1000
 set mmonit http://$MMONIT_AUTH@$MMONIT_ADDR:$MMONIT_PORT/collector
 set httpd port 2812 and
     use address 0.0.0.0    # bind to all interfaces (i.e. not just to localhost)
     allow $MMONIT_ADDR     # allow the M/Monit host to connect to the server
-    allow $MONIT_AUTH      # monit authorization
+    allow $MMONIT_AUTH     # monit authorization
 EOF
 
-docker rm -f monit
-docker volume rm -f monit-config
-docker run --name=tmp -v monit-config:/etc/monit.d/ centos
-docker cp monit/monitrc-extras tmp:/etc/monit.d
-docker run --rm -v monit-config:/etc/monit.d centos find /etc/monit.d -type f | sort
-docker rm -f tmp
+# Relay specific
+cat << EOF >> ~/.monitrc
+check filesystem  system    path /dev/sda2
+check system      ada01rl
+EOF
 
-# Run the Image
+# Block Producer specific
+cat << EOF >> ~/.monitrc
+check filesystem  node-data path /dev/sdb
+check system      ada01bp
+EOF
 
-VERSION=dev
-HOSTNAME=ada01rl
-
-docker rm -f monit
-docker run --detach \
-  --name=monit \
-  --restart=always \
-  --memory=50m \
-  --hostname=$HOSTNAME \
-  -v monit-config:/etc/monit.d \
-  nessusio/monit:${VERSION} -Iv
-
-docker logs -f monit
 ```
 
 ## Run M/Monit
@@ -156,8 +214,6 @@ docker logs -f monit
 Login: admin/swordfish
 
 ```
-VERSION=dev
-
 CONFDIR="/usr/local/var/mmonit/conf"
 LICENSE="${CONFDIR}/license.xml"
 
@@ -167,72 +223,11 @@ docker run --detach \
   -p 8080:8080 \
   --restart=always \
   -v ~/mmonit/conf:${CONFDIR} \
-  nessusio/mmonit:${VERSION} -i
+  nessusio/mmonit:${CARDANO_NODE_VERSION:-dev} -i
 
 docker logs -f mmonit
 
 docker exec -it mmonit cat ${LICENSE}
-```
-
-## Ledger State
-
-```
-alias cncli="docker run -it --rm \
-  -v ~/cardano:/var/cardano/local \
-  -v cncli:/var/cardano/cncli \
-  nessusio/cardano-tools:$VERSION cncli"
-
-NODE_IP=34.68.137.181
-
-cncli ping --host $NODE_IP
-{
-  "status": "ok",
-  "host": "10.128.0.31",
-  "port": 3001,
-  "connectDurationMs": 0,
-  "durationMs": 53
-}
-```
-
-### Syncing the database
-
-This command connects to a remote node and synchronizes blocks to a local sqlite database.
-
-```
-cncli sync --host $NODE_IP \
-  --db /var/cardano/cncli/cncli.db \
-  --no-service
-
-...
-2021-03-04T10:23:19.719Z INFO  cardano_ouroboros_network::protocols::chainsync   > block 5417518 of 5417518, 100.00% synced
-2021-03-04T10:23:23.459Z INFO  cncli::nodeclient::sync                           > Exiting...
-```
-
-### Slot Leader Schedule
-
-We can now obtain the leader schedule for our pool.
-
-```
-cardano-cli query ledger-state \
-  --mary-era --mainnet > ~/cardano/scratch/ledger-state.json
-
-# --ledger-state /var/cardano/local/scratch/ledger-state.json \
-
-cncli leaderlog \
-  --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
-  --shelley-genesis /opt/cardano/config/mainnet-shelley-genesis.json \
-  --byron-genesis /opt/cardano/config/mainnet-byron-genesis.json \
-  --pool-vrf-skey /var/cardano/local/keys/pool/vrf.skey \
-  --db /var/cardano/cncli/cncli.db \
-  --tz Europe/Berlin \
-  --ledger-set current | tee leaderlog.json
-
-cat leaderlog.json | jq -c ".assignedSlots[] | {no: .no, slot: .slotInEpoch, at: .at}"
-
-{"no":1,"slot":165351,"at":"2021-02-26T20:40:42+01:00"}
-{"no":2,"slot":312656,"at":"2021-02-28T13:35:47+01:00"}
-{"no":3,"slot":330588,"at":"2021-02-28T18:34:39+01:00"}
-{"no":4,"slot":401912,"at":"2021-03-01T14:23:23+01:00"}
 ```
 
 ## Bare Metal Build

@@ -1,12 +1,9 @@
 #!/bin/bash
 
-scriptDir=$(dirname $0)
-source $scriptDir/functions
+# https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+set -eo pipefail
 
 echo "Running the cardano node ..."
-
-# Shift the first option by one index
-shift
 
 # Define a few defaults
 CARDANO_CONFIG_BASE="/opt/cardano/config"
@@ -67,6 +64,17 @@ if [[ -z $MAX_PEERS ]]; then
   MAX_PEERS=15
 fi
 
+#####################################################################
+# True if the given parameter is a valud json string
+
+isJsonValue () {
+  if echo "$1" | jq -c "." &> /dev/null; then
+    return=true
+  else
+    return=false
+  fi
+}
+
 # Process CARDANO_CONFIG as JSON value
 isJsonValue "$CARDANO_CONFIG"
 if [[ $return == true ]]; then
@@ -88,9 +96,8 @@ if [[ $return == true ]]; then
 fi
 
 #####################################################################
-#
 # Print run environment
-#
+
 printRunEnv () {
 
   echo "CARDANO_NETWORK=$CARDANO_NETWORK"
@@ -143,9 +150,8 @@ printRunEnv () {
 }
 
 #####################################################################
-#
 # Write root env file
-#
+
 writeRootEnv () {
 
 cat << EOF > /usr/local/bin/env
@@ -184,14 +190,13 @@ CONFIG="$CARDANO_CONFIG"
 TOPOLOGY="$CARDANO_TOPOLOGY"
 SOCKET="$CARDANO_SOCKET_PATH"
 LOG_DIR="$CARDANO_LOG_DIR"
-UPDATE_CHECK="N" 
+UPDATE_CHECK="N"
 EOF
 }
 
 #####################################################################
-#
 # Run the relay node in the background
-#
+
 runRelayNode () {
 
   effopts=(--config $CARDANO_CONFIG \
@@ -204,13 +209,12 @@ runRelayNode () {
   effopts+=(${options[@]})
 
   echo "cardano-node run ${effopts[@]}"
-  cardano-node run ${effopts[@]} &
+  exec /usr/local/bin/cardano-node run ${effopts[@]}
 }
 
 #####################################################################
-#
 # Run the block producer in the background
-#
+
 runBlockProducerNode () {
 
   effopts=(--config $CARDANO_CONFIG \
@@ -226,11 +230,16 @@ runBlockProducerNode () {
   effopts+=(${options[@]})
 
   echo "cardano-node run ${effopts[@]}"
-  cardano-node run ${effopts[@]} &
+  exec /usr/local/bin/cardano-node run ${effopts[@]}
 }
 
+# Shift the first option by one index
+shift
+
 # Override default values with explicit options
+
 options=($@)
+
 for i in "${!options[@]}"
 do
     j=$((i + 1))
@@ -264,61 +273,54 @@ mkdir -p `dirname $CARDANO_SOCKET_PATH`
 # Removing a potentialy existing lost+found directory
 rm -rf $CARDANO_DATABASE_PATH/lost+found
 
-if [[ $CARDANO_BLOCK_PRODUCER == true ]]; then
+# Find the public IP when we run on Kubernetes
+if [[ -z $CARDANO_PUBLIC_IP && -n $KUBERNETES_SERVICE_HOST ]]; then
 
-  printRunEnv
-  writeRootEnv
+  echo "Reading CARDANO_PUBLIC_IP from Kubernetes ..."
 
-  runBlockProducerNode
+  # Accessing the Kubernetes API from a Pod
+  # https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/#without-using-a-proxy
 
-else
+  SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+  if [[ -f ${SERVICEACCOUNT}/namespace && ${SERVICEACCOUNT}/token && ${SERVICEACCOUNT}/ca.crt ]]; then
 
-  if [[ -z $CARDANO_PUBLIC_IP && -n $KUBERNETES_SERVICE_HOST ]]; then
+    APISERVER=https://kubernetes.default.svc
+    NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+    TOKEN=$(cat ${SERVICEACCOUNT}/token)
+    CACERT=${SERVICEACCOUNT}/ca.crt
 
-    echo "Reading CARDANO_PUBLIC_IP from Kubernetes ..."
+    AUTH_HEADER="Authorization: Bearer ${TOKEN}"
 
-    # Accessing the Kubernetes API from a Pod
-    # https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/#without-using-a-proxy
+    POD_API_PATH="${APISERVER}/api/v1/namespaces/cardano/pods/${HOSTNAME}"
+    NODE_NAME=$(curl -s --cacert ${CACERT} --header "${AUTH_HEADER}" -X GET ${POD_API_PATH} | jq -r ".spec.nodeName")
 
-    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
-    if [[ -f ${SERVICEACCOUNT}/namespace && ${SERVICEACCOUNT}/token && ${SERVICEACCOUNT}/ca.crt ]]; then
-
-      APISERVER=https://kubernetes.default.svc
-      NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
-      TOKEN=$(cat ${SERVICEACCOUNT}/token)
-      CACERT=${SERVICEACCOUNT}/ca.crt
-
-      AUTH_HEADER="Authorization: Bearer ${TOKEN}"
-
-      POD_API_PATH="${APISERVER}/api/v1/namespaces/cardano/pods/${HOSTNAME}"
-      NODE_NAME=$(curl -s --cacert ${CACERT} --header "${AUTH_HEADER}" -X GET ${POD_API_PATH} | jq -r ".spec.nodeName")
-
-      if [[ -n ${NODE_NAME} ]]; then
-        NODE_API_PATH="${APISERVER}/api/v1/nodes/$NODE_NAME"
-        EXTERNAL_IP=$(curl -s --cacert ${CACERT} --header "${AUTH_HEADER}" -X GET ${NODE_API_PATH} | jq -r '.status.addresses[] | select(.type == "ExternalIP") | .address')
-      fi
-
-      echo "Kubernetes ${HOSTNAME} => ${NODE_NAME} => ${EXTERNAL_IP}"
-
-      if [[ -n ${EXTERNAL_IP} ]]; then
-        CARDANO_PUBLIC_IP=${EXTERNAL_IP}
-      else
-        echo "[Warning] Cannot obtain ExternalIP for: ${HOSTNAME}"
-      fi
-
-    else
-      echo "[Warning] Cannot access the Pod's service account"
+    if [[ -n ${NODE_NAME} ]]; then
+      NODE_API_PATH="${APISERVER}/api/v1/nodes/$NODE_NAME"
+      EXTERNAL_IP=$(curl -s --cacert ${CACERT} --header "${AUTH_HEADER}" -X GET ${NODE_API_PATH} | jq -r '.status.addresses[] | select(.type == "ExternalIP") | .address')
     fi
+
+    echo "Kubernetes ${HOSTNAME} => ${NODE_NAME} => ${EXTERNAL_IP}"
+
+    if [[ -n ${EXTERNAL_IP} ]]; then
+      CARDANO_PUBLIC_IP=${EXTERNAL_IP}
+    else
+      echo "[Warning] Cannot obtain ExternalIP for: ${HOSTNAME}"
+    fi
+
+  else
+    echo "[Warning] Cannot access the Pod's service account"
   fi
-
-  printRunEnv
-  writeRootEnv
-
-  if [[ $CARDANO_UPDATE_TOPOLOGY == true ]]; then
-    topologyUpdate -l &
-  fi
-
-  runRelayNode
 fi
 
-trapSIGTERM
+printRunEnv
+writeRootEnv
+
+if [[ $CARDANO_UPDATE_TOPOLOGY == true ]]; then
+  topologyUpdate -l &
+fi
+
+if [[ $CARDANO_BLOCK_PRODUCER == true ]]; then
+  runBlockProducerNode
+else
+  runRelayNode
+fi

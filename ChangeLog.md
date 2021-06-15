@@ -1,10 +1,24 @@
+# v1.27.0-rev3
+
+Released: 15-Jun-2021
+
+This is a minor feature update and bug fix release.
+
+* Simplify stop signal handling by using SIGINT directly ([#49][49])
+* Migrate monit to system service ([#60][60])
+
+[49]: https://github.com/tdiesler/nessus-cardano/issues/49
+[60]: https://github.com/tdiesler/nessus-cardano/issues/60
+
+For details see [v1.27.0-rev3](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.27.0-rev3)
+
 # v1.27.0-rev2
 
 Released: 05-Jun-2021
 
 This is a minor feature update and bug fix release.
 
-* Client-side handling of custom peers ([#55][5])
+* Client-side handling of custom peers ([#55][55])
 * Review M/Monit license handling ([#57][57])
 * Upgrade to cncli-2.1.1 ([#56][56])
 

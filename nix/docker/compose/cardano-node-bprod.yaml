@@ -37,21 +37,8 @@ services:
       CARDANO_BLOCK_PRODUCER: "true"
     command: "run"
     volumes:
+      - mainnet-bprod-keys:/var/cardano/config/keys
       - /mnt/disks/data01:/opt/cardano/data
-      - bprod-keys:/var/cardano/config/keys
-
-  # Monit -------------------------------------------------------------------------------------------------------------
-
-  monit:
-    image: nessusio/monit
-    container_name: monit
-    restart: unless-stopped
-    hostname: ada01bp
-    networks:
-      cardano:
-    command: "-Iv"
-    volumes:
-      - monit-config:/etc/monit.d
 
   # NGINX -------------------------------------------------------------------------------------------------------------
 
@@ -70,9 +57,7 @@ services:
 # Volumes #############################################################################################################
 
 volumes:
-  bprod-keys:
-    external: true
-  monit-config:
+  mainnet-bprod-keys:
     external: true
   nginx-config:
     external: true
