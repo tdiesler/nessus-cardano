@@ -17,7 +17,7 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "_see": "https://github.com/input-output-hk/cardano-node/blob/alonzo-blue1.0/flake.lock#L26",
+        "_see": "https://github.com/input-output-hk/cardano-node/blob/alonzo-blue2.0/flake.lock#L26",
         "rev": "648e46ba3a235520f8be2f23bd6dda22525c61a1",
         "sha256": "0ks23n9am4vsqsqjl5p98pbh6fb4n4q3lm11qy8j6mpbvg5r6x8b",
         "type": "tarball",

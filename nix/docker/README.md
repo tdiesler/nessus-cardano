@@ -75,6 +75,24 @@ docker exec relay cat /opt/cardano/logs/topologyUpdateResult
 docker exec relay cat /var/cardano/config/mainnet-topology.json
 ```
 
+# Run the Cardano Testnet
+
+```
+docker rm relay
+docker run --detach \
+    --name=relay \
+    -p 3001:3001 \
+    -e CARDANO_NETWORK=testnet \
+    -e CARDANO_UPDATE_TOPOLOGY=true \
+    -v test-data:/opt/cardano/data \
+    -v node-ipc:/opt/cardano/ipc \
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
+
+docker logs -n 100 -f relay
+
+docker exec -it relay gLiveView
+```
+
 ## Running the Cardano CLI
 
 ```
