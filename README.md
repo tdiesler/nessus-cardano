@@ -196,13 +196,13 @@ This is documented in detail [over here](https://app.gitbook.com/@tdiesler/s/car
 
 For details you may want to have a look at [nix/docker/k8s/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/k8s/cardano-nodes.yaml).
 
-## Ledger State
+## Leader logs
 
 For a Stake Pool Operator it is important to know when the node is scheduled to produce the next block. We definitely want to be online at that important moment and fullfil our block producing duties. There are better times to do node maintenance.
 
-This important functionality has also been built into [nessusio/cardano-tools](https://hub.docker.com/r/nessusio/cardano-tools) the image.
+This important functionality has also been built into the [nessusio/cardano-tools](https://hub.docker.com/r/nessusio/cardano-tools) image.
 
-First, we also define an alias and ping the node that we want to work with.
+First, lets define an alias and ping the node that we want to work with.
 
 Details about this API are [here](https://github.com/AndrewWestberg/cncli/blob/develop/USAGE.md).
 
@@ -243,18 +243,35 @@ $ cncli sync --host $NODE_IP \
 We can now obtain the leader schedule for our pool.
 
 ```
-$ cardano-cli query ledger-state \
-  --mainnet > ~/cardano/scratch/ledger-state.json
+STAKE_SNAPSHOT=$HOME/cardano/scratch/stake-snapshot.json
+cardano-cli query stake-snapshot --stake-pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 --mainnet | \
+  tee $STAKE_SNAPSHOT
+
+# Prev
+LEDGER_SET=prev
+POOL_STAKE=$(cat $STAKE_SNAPSHOT | jq .poolStakeGo)
+ACTIVE_STAKE=$(cat $STAKE_SNAPSHOT | jq .activeStakeGo)
+
+# Current
+LEDGER_SET=current
+POOL_STAKE=$(cat $STAKE_SNAPSHOT | jq .poolStakeSet)
+ACTIVE_STAKE=$(cat $STAKE_SNAPSHOT | jq .activeStakeSet)
+
+# Next
+LEDGER_SET=next
+POOL_STAKE=$(cat $STAKE_SNAPSHOT | jq .poolStakeMark)
+ACTIVE_STAKE=$(cat $STAKE_SNAPSHOT | jq .activeStakeMark)
 
 $ cncli leaderlog \
   --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
   --shelley-genesis /opt/cardano/config/mainnet-shelley-genesis.json \
   --byron-genesis /opt/cardano/config/mainnet-byron-genesis.json \
-  --ledger-state /var/cardano/local/scratch/ledger-state.json \
   --pool-vrf-skey /var/cardano/local/keys/pool/vrf.skey \
   --db /var/cardano/cncli/cncli.db \
+  --active-stake $ACTIVE_STAKE \
+  --pool-stake $POOL_STAKE \
   --tz Europe/Berlin \
-  --ledger-set next | tee leaderlog.json
+  --ledger-set $LEDGER_SET | tee leaderlog.json
 
 cat leaderlog.json | jq -c ".assignedSlots[] | {no: .no, slot: .slotInEpoch, at: .at}"
 
