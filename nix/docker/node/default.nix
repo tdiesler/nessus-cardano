@@ -21,8 +21,8 @@
   cabalVersion,
   ghcVersion,
 
-  # https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/index.html
-  hydraBuild ? "6498473",
+  # https://github.com/input-output-hk/Alonzo-testnet/issues/20
+  hydraBuild ? "6854041",
 
   baseImage ? import ../debian {},
   cardano ? import ../../cardano { inherit cardanoVersion cardanoBuildVersion nessusRevision cabalVersion ghcVersion; },
@@ -45,11 +45,12 @@ let
   mainnet-alonzo-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/mainnet-alonzo-genesis.json";
 
   # The testnet configs for the cardano-node
-  testnet-config = ./context/config/testnet-config.json;
-  testnet-topology = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-topology.json";
-  testnet-byron-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-byron-genesis.json";
-  testnet-shelley-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-shelley-genesis.json";
-  testnet-alonzo-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-alonzo-genesis.json";
+  testnet-cluster="alonzo-white";
+  testnet-config = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/${testnet-cluster}-config.json";
+  testnet-topology = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/${testnet-cluster}-topology.json";
+  testnet-byron-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/${testnet-cluster}-byron-genesis.json";
+  testnet-shelley-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/${testnet-cluster}-shelley-genesis.json";
+  testnet-alonzo-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/${testnet-cluster}-alonzo-genesis.json";
 
   # Custom mainnet-config.json
 
@@ -118,11 +119,11 @@ in
       cp ${mainnet-shelley-genesis} opt/cardano/config/mainnet-shelley-genesis.json
       cp ${mainnet-alonzo-genesis} opt/cardano/config/mainnet-alonzo-genesis.json
 
-      cp ${testnet-config} opt/cardano/config/testnet-config.json
-      cp ${testnet-topology} opt/cardano/config/testnet-topology.json
-      cp ${testnet-byron-genesis} opt/cardano/config/testnet-byron-genesis.json
-      cp ${testnet-shelley-genesis} opt/cardano/config/testnet-shelley-genesis.json
-      cp ${testnet-alonzo-genesis} opt/cardano/config/testnet-alonzo-genesis.json
+      cp ${testnet-config} opt/cardano/config/${testnet-cluster}-config.json
+      cp ${testnet-topology} opt/cardano/config/${testnet-cluster}-topology.json
+      cp ${testnet-byron-genesis} opt/cardano/config/${testnet-cluster}-byron-genesis.json
+      cp ${testnet-shelley-genesis} opt/cardano/config/${testnet-cluster}-shelley-genesis.json
+      cp ${testnet-alonzo-genesis} opt/cardano/config/${testnet-cluster}-alonzo-genesis.json
 
       # gLiveView scripts
       cp -r ${gLiveView}/cnode-helper-scripts cnode-helper-scripts
