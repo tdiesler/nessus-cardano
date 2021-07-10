@@ -17,9 +17,10 @@
   # Required version args
   cardanoVersion,
   nessusRevision,
+  debianVersion,
   cncliVersion,
 
-  baseImage ? import ../debian {},
+  baseImage ? import ../baseImage { inherit debianVersion; },
   cncli ? import ../../cncli { inherit cncliVersion; },
 }:
 
@@ -54,7 +55,7 @@ in
     # Set creation date to build time. Breaks reproducibility
     created = "now";
 
-    fromImage = baseImage;
+    fromImage = "${baseImage.out}/nessusio-debian.tgz";
 
     contents = [
 

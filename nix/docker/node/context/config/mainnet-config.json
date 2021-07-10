@@ -54,12 +54,6 @@
   "defaultBackends": [
     "KatipBK"
   ],
-  "defaultScribes": [
-    [
-      "StdoutSK",
-      "stdout"
-    ]
-  ],
   "hasEKG": [
     "0.0.0.0",
     12788
@@ -92,12 +86,33 @@
   "setupBackends": [
     "KatipBK"
   ],
+  "defaultScribes": [
+    [
+      "StdoutSK",
+      "stdout"
+    ],
+    [
+      "FileSK",
+      "/opt/cardano/logs/debug.log"
+    ]
+  ],
   "setupScribes": [
     {
       "scFormat": "ScText",
       "scKind": "StdoutSK",
       "scName": "stdout",
-      "scRotation": null
+      "scRotation": null,
+      "scName": "stdout"
+    },
+    {
+      "scFormat": "ScText",
+      "scKind": "FileSK",
+      "scName": "/opt/cardano/logs/debug.log",
+      "scRotation": {
+        "rpLogLimitBytes": 50000000,
+        "rpKeepFilesNum": 14,
+        "rpMaxAgeHours": 24
+      }
     }
   ]
 }

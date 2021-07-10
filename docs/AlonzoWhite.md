@@ -321,6 +321,9 @@ curl -s https://smash.cardano-mainnet.iohk.io/api/v1/errors/${POOL_HASH}
 ## Run the Relay Node
 
 ```
+RELAY_IP="your.relay.ip"
+BPROD_IP="your.bprod.ip"
+
 # Setup the Producer topology
 # The Producer connects to the Relay (only)
 
@@ -333,7 +336,7 @@ cat << EOF > ~/cardano/config/alonzo-relay-topology.json
       "valency": 1
     },
     {
-      "addr": "alonzo-bprod.domain.net",
+      "addr": "${BPROD_IP}",
       "port": 3001,
       "valency": 1
     }
@@ -358,8 +361,8 @@ docker run --detach \
     -p 3001:3001 \
     -e CARDANO_NETWORK=alonzo-white \
     -e CARDANO_UPDATE_TOPOLOGY=true \
-    -e CARDANO_PUBLIC_IP="xxx.xxx.xxx.xxx" \
-    -e CARDANO_CUSTOM_PEERS="alonzo-bprod.domain.net:3001" \
+    -e CARDANO_PUBLIC_IP="${RELAY_IP}" \
+    -e CARDANO_CUSTOM_PEERS="${BPROD_IP}:3001" \
     -e CARDANO_TOPOLOGY="/var/cardano/config/alonzo-white-topology.json" \
     -v alonzo-relay-config:/var/cardano/config  \
     -v alonzo-data:/opt/cardano/data \
@@ -369,8 +372,12 @@ docker run --detach \
 docker logs -n=200 -f alonzo-relay
 
 docker exec -it alonzo-relay gLiveView
+
 docker exec -it alonzo-relay tail -n 12 /opt/cardano/logs/topologyUpdateResult
 docker exec -it alonzo-relay cat /var/cardano/config/alonzo-white-topology.json
+
+docker exec -it alonzo-relay tail -n 80 -f /opt/cardano/logs/debug.log
+docker exec -it alonzo-relay lnav /opt/cardano/logs/debug.log
 
 # Access the EKG metric
 docker exec -it alonzo-relay curl -H 'Accept: application/json' 127.0.0.1:12788 | jq
@@ -389,7 +396,7 @@ cat << EOF > ~/cardano/config/alonzo-bprod-topology.json
 {
   "Producers": [
     {
-      "addr": "xxx.xxx.xxx.xxx",
+      "addr": "${RELAY_IP}",
       "port": 3001,
       "valency": 1
     }
@@ -426,6 +433,7 @@ docker rm alonzo-bprod
 docker run --detach \
     --name=alonzo-bprod \
     --hostname=alonzo-bprod \
+    --restart=always \
     -p 3001:3001 \
     -e CARDANO_NETWORK=alonzo-white \
     -e CARDANO_BLOCK_PRODUCER=true \
@@ -442,6 +450,9 @@ docker run --detach \
 docker logs -n=200 -f alonzo-bprod
 
 docker exec -it alonzo-bprod gLiveView
+
+docker exec -it alonzo-bprod tail -n 80 -f /opt/cardano/logs/debug.log
+docker exec -it alonzo-bprod lnav /opt/cardano/logs/debug.log
 
 # Access the EKG metric
 docker exec -it bprod curl -H 'Accept: application/json' 127.0.0.1:12788 | jq
