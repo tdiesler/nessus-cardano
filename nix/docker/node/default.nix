@@ -17,14 +17,15 @@
   # Required version args
   cardanoVersion,
   nessusRevision,
+  debianVersion,
   cabalVersion,
   ghcVersion,
 
   # https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/index.html
   hydraBuild ? "6198010",
 
-  baseImage ? import ../debian {},
-  cardano ? import ../../cardano { inherit cardanoVersion nessusRevision cabalVersion ghcVersion; },
+  baseImage ? import ../baseImage { inherit debianVersion; },
+  cardano ? import ../../cardano { inherit cardanoVersion cardanoBuildVersion nessusRevision cabalVersion ghcVersion; },
   gLiveView ? import ../../gLiveView { inherit cardanoVersion nessusRevision; },
   libsodium ? import ../../libsodium {},
 }:
@@ -32,6 +33,10 @@
 let
 
   imageName = "nessusio/cardano-node";
+
+  # curl -o "./nix/docker/node/context/config/mainnet-config.json" "https://hydra.iohk.io/build/${hydraBuild}/download/1/mainnet-config.json"
+  # curl -o "./nix/docker/node/context/config/testnet-config.json" "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-config.json"
+  # curl -o "./nix/docker/node/context/config/alonzo-white-config.json" "https://hydra.iohk.io/build/${hydraBuild}/download/1/alonzo-white-config.json"
 
   # The mainet configs for the cardano-node
   mainnet-config = ./context/config/mainnet-config.json;
@@ -56,7 +61,7 @@ in
     name = imageName;
     tag = "${cardanoVersion}-${nessusRevision}-${imageArch}";
 
-    fromImage = baseImage;
+    fromImage = "${baseImage.out}/nessusio-debian.tgz";
 
     contents = [
 

@@ -40,6 +40,9 @@ sed -i "s/PermitRootLogin yes$/PermitRootLogin no/" /etc/ssh/sshd_config
 # Disable X11Forwarding
 sed -i "s/X11Forwarding yes$/X11Forwarding no/" /etc/ssh/sshd_config
 
+# Disable Wi-Fi on reboot
+echo "@reboot root ifconfig wlan0 down" >> /etc/crontab
+
 cat /etc/ssh/sshd_config | egrep "^Port"
 cat /etc/ssh/sshd_config | egrep "^PasswordAuthentication"
 cat /etc/ssh/sshd_config | egrep "^ChallengeResponseAuthentication"

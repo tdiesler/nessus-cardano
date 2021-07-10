@@ -2,7 +2,7 @@
 
 source ./build-common.sh
 
-# Extracting binaries from arm64 Docker image =========================================================================
+# Extracting cardano-node binaries from arm64 Docker image =====================
 #
 # Note, we currently cannot build the cardano derivation for arm64
 # https://github.com/input-output-hk/haskell.nix/issues/1027
@@ -45,7 +45,41 @@ function buildCardanoNodeArm64 () {
 
   else
 
-    echo "Using binaries from ${dockerBuildOut} ..."
+    echo "Using ${dockerBuildOut} ..."
+  fi
+}
+
+# Bild Debian base image =======================================================
+#
+# Note, we currently cannot build the lnav derivation for arm64
+# https://github.com/tstack/lnav/issues/882
+
+function buildBaseImage () {
+
+  AUX_IMAGE_VERSION="${DEBIAN_VER}-${ARCH_SUFFIX}"
+  AUX_IMAGE_NAME="nessusio/debian:${AUX_IMAGE_VERSION}"
+
+  dockerSaveDir="./nix/docker/baseImage/target"
+  dockerSaveFile="${dockerSaveDir}/nessusio-debian-${AUX_IMAGE_VERSION}.tgz"
+
+  if [[ ! -f ${dockerSaveFile} ]]; then
+
+    docker build \
+      --build-arg LNAV_VER=${LNAV_VER} \
+      --tag ${AUX_IMAGE_NAME} \
+      ./nix/docker/baseImage
+
+    if [ $? -ne 0 ]; then
+      echo "[ERROR] Unable to build image '${AUX_IMAGE_NAME}'"
+      exit 1
+    fi
+
+    echo "Save image ${dockerSaveFile} ..."
+    mkdir -p ${dockerSaveDir} && docker save -o ${dockerSaveFile} ${AUX_IMAGE_NAME}
+
+  else
+
+    echo "Using ${dockerSaveFile} ..."
   fi
 }
 
@@ -84,13 +118,20 @@ function buildImage () {
   echo "#"
 
   if [[ $shortName == "cardano-node" ]]; then
+
+    # Build the Debian base image
+    buildBaseImage
+
+    # Build the Cardano binaries for arm64
     if [[ ${ARCH_SUFFIX} == "arm64" ]]; then
       buildCardanoNodeArm64
     fi
+
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/node \
       --argstr cardanoBuildVersion ${CARDANO_BUILD_VER} \
       --argstr cardanoVersion ${CARDANO_VER} \
       --argstr nessusRevision ${NESSUS_REV} \
+      --argstr debianVersion ${DEBIAN_VER} \
       --argstr cabalVersion ${CABAL_VER} \
       --argstr ghcVersion ${GHC_VER} \
       --argstr imageArch ${ARCH_SUFFIX}`
@@ -100,6 +141,7 @@ function buildImage () {
       --argstr cardanoBuildVersion ${CARDANO_BUILD_VER} \
       --argstr cardanoVersion ${CARDANO_VER} \
       --argstr nessusRevision ${NESSUS_REV} \
+      --argstr debianVersion ${DEBIAN_VER} \
       --argstr cncliVersion ${CNCLI_VER} \
       --argstr cabalVersion ${CABAL_VER} \
       --argstr ghcVersion ${GHC_VER} \
