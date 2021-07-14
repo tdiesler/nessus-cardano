@@ -22,8 +22,8 @@
   cabalVersion,
   ghcVersion,
 
-  # https://github.com/input-output-hk/Alonzo-testnet/issues/20
-  hydraBuild ? "6854041",
+  # https://hydra.iohk.io/build/6928147/download/1/index.html
+  hydraBuild ? "6928147",
 
   baseImage ? import ../baseImage { inherit debianVersion; },
   cardano ? import ../../cardano { inherit cardanoVersion cardanoBuildVersion nessusRevision cabalVersion ghcVersion; },

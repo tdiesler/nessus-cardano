@@ -1,6 +1,6 @@
 {
   "AlonzoGenesisFile": "alonzo-white-alonzo-genesis.json",
-  "AlonzoGenesisHash": "dfdbcb0e55a2e389e69e703797b945b52aae500db33fcd2301f0c328afe4f7e2",
+  "AlonzoGenesisHash": "c7cdcccbc6adec169f74784de720db8414665591d87498b513266d41680c587f",
   "ApplicationName": "cardano-sl",
   "ApplicationVersion": 0,
   "ByronGenesisFile": "alonzo-white-byron-genesis.json",
@@ -60,6 +60,16 @@
   "defaultBackends": [
     "KatipBK"
   ],
+  "defaultScribes": [
+    [
+      "StdoutSK",
+      "stdout"
+    ],
+    [
+      "FileSK",
+      "/opt/cardano/logs/debug.log"
+    ]
+  ],
   "hasEKG": [
     "0.0.0.0",
     12788
@@ -91,16 +101,6 @@
   },
   "setupBackends": [
     "KatipBK"
-  ],
-  "defaultScribes": [
-    [
-      "StdoutSK",
-      "stdout"
-    ],
-    [
-      "FileSK",
-      "/opt/cardano/logs/debug.log"
-    ]
   ],
   "setupScribes": [
     {

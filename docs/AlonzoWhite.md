@@ -1,7 +1,22 @@
 ## Running a Relay Node on the Testnet
 
+### Using inputoutput/cardano-node
+
 ```
 docker rm -f alonzo-relay
+docker run --detach \
+  --name=alonzo-relay \
+  -p 3001:3001 \
+  -e NETWORK=alonzo-white \
+  -v alonzo-data:/data/db \
+  inputoutput/cardano-node:dev
+
+docker logs -f alonzo-relay
+```
+
+### Using nessusio/cardano-node
+
+```
 docker run --detach \
     --name=alonzo-relay \
     -p 3001:3001 \
@@ -318,11 +333,15 @@ POOL_HASH="0c11b7ef186952d83aaa5a15ab67794f9dde17a014bbddc4046d8c84"
 curl -s https://smash.cardano-mainnet.iohk.io/api/v1/errors/${POOL_HASH}
 ```
 
+<!--
+  Run the Relay Node ==================================================================================================
+-->
+
 ## Run the Relay Node
 
 ```
-RELAY_IP="your.relay.ip"
-BPROD_IP="your.bprod.ip"
+RELAY_IP="relay02.astorpool.net"
+BPROD_IP="f4iug5mj7tegta5i.myfritz.net"
 
 # Setup the Producer topology
 # The Producer connects to the Relay (only)
@@ -385,6 +404,10 @@ docker exec -it alonzo-relay curl -H 'Accept: application/json' 127.0.0.1:12788 
 # Access the Prometheus metrics
 docker exec -it alonzo-relay curl 127.0.0.1:12798/metrics | sort
 ```
+
+<!--
+  Run the Block Producer ==============================================================================================
+-->
 
 ## Run the Block Producer
 

@@ -54,6 +54,16 @@
   "defaultBackends": [
     "KatipBK"
   ],
+  "defaultScribes": [
+    [
+      "StdoutSK",
+      "stdout"
+    ],
+    [
+      "FileSK",
+      "/opt/cardano/logs/debug.log"
+    ]
+  ],
   "hasEKG": [
     "0.0.0.0",
     12788
@@ -85,16 +95,6 @@
   },
   "setupBackends": [
     "KatipBK"
-  ],
-  "defaultScribes": [
-    [
-      "StdoutSK",
-      "stdout"
-    ],
-    [
-      "FileSK",
-      "/opt/cardano/logs/debug.log"
-    ]
   ],
   "setupScribes": [
     {
