@@ -48,7 +48,7 @@ cardano-cli query protocol-parameters \
 https://github.com/input-output-hk/cardano-node/blob/master/doc/stake-pool-operations/keys_and_addresses.md
 
 ```
-OWNER="owner"
+OWNER="acc0"
 
 # Payment keys
 cardano-cli address key-gen \
@@ -88,7 +88,7 @@ curl -v -XPOST "https://faucet.alonzo-white.dev.cardano.org/send-money/${PAYMENT
 
 ```
 PAYMENT_ADDR=`cat ~/cardano/keys/alonzo/$OWNER/payment.addr`
-echo "fees: $PAYMENT_ADDR"
+echo "$OWNER: $PAYMENT_ADDR"
 
 # Query UTOX
 cardano-cli query utxo \
@@ -97,11 +97,11 @@ cardano-cli query utxo \
 
                            TxHash                                 TxIx        Amount
 --------------------------------------------------------------------------------------
-1ec0e64a7cbd9ccbbf3c3b56fc141c3972f0f4756130f0287fa8dae449f52ce0     0        999499811883 lovelace
+efafdac2325cca3153f7c2dc2f0c326afea47cf6c9c53f2e5deeb878e1ff058a     1        9999397232308 lovelace + TxOutDatumHashNone
 
-TX_IN="1ec0e64a7cbd9ccbbf3c3b56fc141c3972f0f4756130f0287fa8dae449f52ce0#0"
+TX_IN="efafdac2325cca3153f7c2dc2f0c326afea47cf6c9c53f2e5deeb878e1ff058a#1"
 
-UTOX_LVC=999499811883
+UTOX_LVC=9999397232308
 
 cardano-cli stake-address registration-certificate \
   --stake-verification-key-file /var/cardano/local/keys/alonzo/${OWNER}/stake.vkey \
@@ -218,7 +218,7 @@ cardano-cli stake-pool metadata-hash \
 cardano-cli stake-pool registration-certificate \
   --cold-verification-key-file /var/cardano/local/keys/alonzo/pool/cold.vkey \
   --vrf-verification-key-file /var/cardano/local/keys/alonzo/pool/vrf.vkey \
-  --pool-pledge 200000000000 \
+  --pool-pledge 1000000000 \
   --pool-cost 340000000 \
   --pool-margin 0.01 \
   --pool-reward-account-verification-key-file /var/cardano/local/keys/alonzo/$OWNER/stake.vkey \
@@ -237,20 +237,20 @@ cat ~/cardano/scratch/pool-registration.cert
 
 ```
 PAYMENT_ADDR=`cat ~/cardano/keys/alonzo/$OWNER/payment.addr`
-echo "fees: $PAYMENT_ADDR"
+echo "$OWNER: $PAYMENT_ADDR"
 
 # Query UTOX
 cardano-cli query utxo \
   --address $PAYMENT_ADDR \
   --testnet-magic 7
 
-                           TxHash                                 TxIx        Amount
+  TxHash                                                          TxIx        Amount
 --------------------------------------------------------------------------------------
-383dcb445833c39c96b570c47752587e0c0d55f7f05515fd2ddb57e588a76acf     0        999497627066 lovelace
+efafdac2325cca3153f7c2dc2f0c326afea47cf6c9c53f2e5deeb878e1ff058a     1        9999397232308 lovelace + TxOutDatumHashNone
 
-TX_IN="383dcb445833c39c96b570c47752587e0c0d55f7f05515fd2ddb57e588a76acf#0"
+TX_IN="efafdac2325cca3153f7c2dc2f0c326afea47cf6c9c53f2e5deeb878e1ff058a#1"
 
-UTOX_LVC=999497627066
+UTOX_LVC=9999397232308
 
 # Draft
 cardano-cli transaction build-raw \
@@ -270,7 +270,7 @@ cardano-cli transaction calculate-min-fee \
   --witness-count 1 \
   --testnet-magic 7
 
-> 184817 Lovelace
+> 184641 Lovelace
 
 cat ~/cardano/scratch/protocol.json | grep stakePoolDeposit
 
@@ -293,11 +293,7 @@ cardano-cli transaction build-raw \
   --certificate-file /var/cardano/local/keys/alonzo/$OWNER/delegation.cert \
   --out-file /var/cardano/local/scratch/tx.raw
 
-```
-
-### Sign and submit the transaction
-
-```
+# Sign the transaction
 cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
   --signing-key-file /var/cardano/local/keys/alonzo/$OWNER/payment.skey \
@@ -306,6 +302,7 @@ cardano-cli transaction sign \
   --out-file /var/cardano/local/scratch/tx.signed \
   --testnet-magic 7
 
+# Submit the transaction
 cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
   --testnet-magic 7
@@ -323,14 +320,6 @@ POOLID=$(cardano-cli stake-pool id \
   --cold-verification-key-file /var/cardano/local/keys/alonzo/pool/cold.vkey)
 
 echo ${POOLID}
-```
-
-## Run a few tests
-
-```
-# Bech32 decoder https://runkit.com/60e96ea11daf1b001dc6929e/60e96eb2e59fda001a769b3c
-POOL_HASH="0c11b7ef186952d83aaa5a15ab67794f9dde17a014bbddc4046d8c84"
-curl -s https://smash.cardano-mainnet.iohk.io/api/v1/errors/${POOL_HASH}
 ```
 
 <!--
