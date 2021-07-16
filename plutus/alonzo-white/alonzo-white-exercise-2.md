@@ -45,30 +45,27 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR0 \
   --testnet-magic 7
 
-TX_IN1="2fb82756c9816a41bff75bbb72791015c1c2508a8971868075925204db5d9492#0"
-TX_IN1_LVC="10026329201468"
-
-TO_ADDR=$(cat ~/cardano/keys/alonzo/acc1/payment.addr)
-REFUND_ADDR="$PAYMENT_ADDR0"
+TO_ADDR1=$(cat ~/cardano/keys/alonzo/acc1/payment.addr)
 
 # Calculate the change to send back to PAYMENT_ADDR
 FEES_LVC=200000
-SEND_LVC1=250000000
-SEND_LVC2=250000000
-SEND_LVC3=250000000
-SEND_LVC4=250000000
-REFUND_LVC=$(($TX_IN1_LVC - $SEND_LVC1 - $SEND_LVC2 - $SEND_LVC3 - $SEND_LVC4 - $FEES_LVC))
+SEND_LVC1=2000000000
+SEND_LVC2=2000000000
+SEND_LVC3=2000000000
+SEND_LVC4=2000000000
+REFUND_LVC=$((1999800000 + 9902260891668 - $SEND_LVC1 - $SEND_LVC2 - $SEND_LVC3 - $SEND_LVC4 - $FEES_LVC))
 echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
 cardano-cli transaction build-raw \
   --alonzo-era \
-  --tx-in $TX_IN1 \
-  --tx-out $TO_ADDR+$SEND_LVC1 \
-  --tx-out $TO_ADDR+$SEND_LVC2 \
-  --tx-out $TO_ADDR+$SEND_LVC3 \
-  --tx-out $TO_ADDR+$SEND_LVC4 \
-  --tx-out $REFUND_ADDR+$REFUND_LVC \
+  --tx-in "65fb041aa48fedeec58343693b9fdd6273201131a41cc21d49c20fc6e762d6b6#0" \
+  --tx-in "cd1617f8203a886fcf74b8a3fba2bc4f4eefee2d79c5f3bf2d9432044a7033f6#4" \
+  --tx-out $TO_ADDR1+$SEND_LVC1 \
+  --tx-out $TO_ADDR1+$SEND_LVC2 \
+  --tx-out $TO_ADDR1+$SEND_LVC3 \
+  --tx-out $TO_ADDR1+$SEND_LVC4 \
+  --tx-out $PAYMENT_ADDR0+$REFUND_LVC \
   --fee $FEES_LVC \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
@@ -88,21 +85,19 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 7 | sort
 
-TX_IN1="167e0eb0259f84e6995c679f05ef0ad2978c28244766e3fdfb275b7a4be2d5f2#0"
-TX_IN1_LVC="10000000"
-
-TO_ADDR=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
+TO_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
 
 # Calculate the change to send back to PAYMENT_ADDR
 FEES_LVC=200000
-SEND_LVC=$(($TX_IN1_LVC - $FEES_LVC))
+SEND_LVC=$((2*1000000000 - $FEES_LVC))
 echo "$SEND_LVC Lovelace"
 
 # Build, sign and submit the transaction
 cardano-cli transaction build-raw \
   --alonzo-era \
-  --tx-in $TX_IN1 \
-  --tx-out $TO_ADDR+$SEND_LVC \
+  --tx-in "cd1617f8203a886fcf74b8a3fba2bc4f4eefee2d79c5f3bf2d9432044a7033f6#0" \
+  --tx-in "cd1617f8203a886fcf74b8a3fba2bc4f4eefee2d79c5f3bf2d9432044a7033f6#1" \
+  --tx-out $TO_ADDR0+$SEND_LVC \
   --fee $FEES_LVC \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
