@@ -27,9 +27,7 @@ import           PlutusTx.Prelude as P hiding (Semigroup (..), unless)
 
 
 {-
-  The "hello world" message as a data item - converted to
-  an Integer and shortened to fit within the 8-byte limit
-  for an "int" datum.
+  The "Hello!" message as a data item - converted to an Integer.
 
   See HelloWorldByteStringParametric.hs for an example of how to
   check a bytestring datume by passing a parameter to a validator.
@@ -45,7 +43,7 @@ hello = I 0x48656c6c6f21
 {-# INLINABLE helloWorld #-}
 
 helloWorld :: Data -> Data -> Data -> ()
-helloWorld datum redeemer context = if datum P.== hello then () else (P.error ())
+helloWorld datum _ _ = if datum P.== hello then () else P.error ()
 
 {-
     As a Validator
@@ -74,4 +72,3 @@ helloWorldSBS =  SBS.toShort . LBS.toStrict $ serialise helloWorldScript
 
 helloWorldSerialised :: PlutusScript PlutusScriptV1
 helloWorldSerialised = PlutusScriptSerialised helloWorldSBS
-
