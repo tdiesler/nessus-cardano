@@ -1,5 +1,5 @@
 
-* CentOS 8
+* Debian 10
 
 ### Setup the core user
 
@@ -7,11 +7,11 @@
 ssh root@vps
 
 # Update the system
-yum update -y
-yum install -y tar git epel-release
+apt-get update \
+  && apt-get full-upgrade -y
+  && apt-get install -y sudo curl
 
 # Check Time Service
-timedatectl set-local-rtc 0
 timedatectl
 
 NUSER=core
@@ -24,6 +24,31 @@ chown -R $NUSER.$NUSER /home/$NUSER/.ssh
 cat << EOF > /etc/sudoers.d/user-privs-$NUSER
 $NUSER ALL=(ALL:ALL) NOPASSWD: ALL
 EOF
+
+# Assign a random SSH port above 10000
+rnd=$RANDOM; echo $rnd
+while (($rnd <= 10000)); do rnd=$(($rnd + $RANDOM)); echo $rnd; done
+sed -i "s/#Port 22$/Port $rnd/" /etc/ssh/sshd_config
+
+# Disable password authentication
+sed -i "s/PasswordAuthentication yes$/PasswordAuthentication no/" /etc/ssh/sshd_config
+
+# Disable password authentication
+sed -i "s/ChallengeResponseAuthentication yes$/ChallengeResponseAuthentication no/" /etc/ssh/sshd_config
+
+# Disable root login
+sed -i "s/PermitRootLogin yes$/PermitRootLogin no/" /etc/ssh/sshd_config
+
+# Disable X11Forwarding
+sed -i "s/X11Forwarding yes$/X11Forwarding no/" /etc/ssh/sshd_config
+
+cat /etc/ssh/sshd_config | egrep "^Port"
+cat /etc/ssh/sshd_config | egrep "^PasswordAuthentication"
+cat /etc/ssh/sshd_config | egrep "^ChallengeResponseAuthentication"
+cat /etc/ssh/sshd_config | egrep "^PermitRootLogin"
+cat /etc/ssh/sshd_config | egrep "^X11Forwarding"
+
+systemctl restart sshd
 
 # ------------------------------------------------------------------------------
 # SSH login to core@xxx.xxx.xxx.xxx from some other terminal
@@ -87,25 +112,33 @@ source ~/.nix-profile/etc/profile.d/nix.sh
 nix-env -i niv
 
 # Configure Nix to use the binary cache from IOHK
-sudo mkdir -p /etc/nix
-cat <<EOF | sudo tee /etc/nix/nix.conf
-substituters = https://cache.nixos.org https://hydra.iohk.io https://iohk.cachix.org
-trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo=
+sudo mkdir /etc/nix
+cat << EOF | sudo tee /etc/nix/nix.conf
+trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+substituters = https://hydra.iohk.io https://cache.nixos.org
 EOF
 ```
 
 ### Install Docker
 
-https://docs.docker.com/engine/install/centos
+https://docs.docker.com/engine/install/debian
 
 ```
-sudo yum install -y yum-utils \
-  && sudo yum-config-manager --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
+sudo apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
+    lsb-release
 
-sudo yum install -y docker-ce docker-ce-cli containerd.io \
-  && sudo systemctl enable --now docker \
-  && sudo systemctl start docker
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update \
+  && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+  && sudo systemctl status docker
 
 sudo usermod -aG docker $USER
 
@@ -113,6 +146,17 @@ sudo usermod -aG docker $USER
 docker ps
 
 # Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64" \
-  -o /usr/local/bin/docker-compose
+sudo apt install -y python3-pip libffi-dev \
+  && sudo pip3 install docker-compose
+```
+
+### Install Cabal + GHC
+
+https://www.haskell.org/ghcup
+
+```
+sudo apt-get install -y build-essential libffi-dev libffi6 libgmp-dev \
+  libgmp10 libncurses-dev libncurses5 libtinfo5
+
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ```
