@@ -557,7 +557,69 @@ cardano-cli transaction build-raw \
   --testnet-magic 7
 ```
 
-5. Set up three new payment addresses: `payment.addr`, `wallet1.addr`, and `wallet2.addr` using the node CLI commands.  Transfer some ada to each of these addresses, and check that they have been funded.
+## 5a Set up new payment addresses for wallet1 & wallet2
+
+Set up three new payment addresses: `payment.addr`, `wallet1.addr`, and `wallet2.addr` using the node CLI commands.  
+
+```
+mkdir -p ~/cardano/keys/alonzo/wallets
+
+for x in 1 2; do
+  WALLET="wallet$x"
+  cardano-cli address key-gen \
+    --verification-key-file /var/cardano/local/keys/alonzo/wallets/${WALLET}.vkey \
+    --signing-key-file /var/cardano/local/keys/alonzo/wallets/${WALLET}.skey \
+  && cardano-cli address build \
+    --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/${WALLET}.vkey \
+    --out-file /var/cardano/local/keys/alonzo/wallets/${WALLET}.addr \
+    --testnet-magic 7
+done
+```
+
+Transfer some ada to each of these addresses, and check that they have been funded.
+
+```
+PAYMENT_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
+WALLET_ADDR1=$(cat ~/cardano/keys/alonzo/wallets/wallet1.addr)
+WALLET_ADDR2=$(cat ~/cardano/keys/alonzo/wallets/wallet1.addr)
+
+# Query UTOX
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR0 \
+  --testnet-magic 7
+
+# Calculate the change to send back to PAYMENT_ADDR
+FEES_LVC=200000
+SEND_LVC=2000000000
+REFUND_LVC=$((9888260291668 - 2*$SEND_LVC - $FEES_LVC))
+echo "$REFUND_LVC Lovelace"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build-raw \
+  --alonzo-era \
+  --tx-in "80de2f5178ca6b099e2eee3da8bfb2ad801ef8c2f85ddfb2a0fbd85fe37cf2a9#4" \
+  --tx-out $WALLET_ADDR1+$SEND_LVC \
+  --tx-out $WALLET_ADDR2+$SEND_LVC \
+  --tx-out $PAYMENT_ADDR0+$REFUND_LVC \
+  --fee $FEES_LVC \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/acc0/payment.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
+
+# Query UTOX
+cardano-cli query utxo \
+  --address $WALLET_ADDR1 \
+  --testnet-magic 7 \
+&& cardano-cli query utxo \
+  --address $WALLET_ADDR2 \
+  --testnet-magic 7
+
+```
 
 Produce a transaction that sends 100 ada from `wallet1.addr` to `wallet2.addr` provided the correct “secret spending key” is provided as a redeemer.
 
