@@ -33,12 +33,12 @@ DATUM_VALUE=29031918 \
   && DATUM_HASH=${DATUM_HASH:0:64} \
   && echo "DATUM_HASH=\"$DATUM_HASH\""
 
-# Query Script UTOX
+# Query Script UTxO
 cardano-cli query utxo \
   --address $SCRIPT_ADDR \
   --testnet-magic 7
 
-# Query UTOX
+# Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 7
@@ -75,12 +75,12 @@ cardano-cli transaction build-raw \
 The Plutus script technically controls how the funds can be withdrawn, but it always succeeds, so there is effectively no restriction.
 
 ```
-# Query Script UTOX
+# Query Script UTxO
 cardano-cli query utxo \
   --address $SCRIPT_ADDR \
   --testnet-magic 7
 
-# Query Payment UTOX
+# Query Payment UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 7
@@ -156,12 +156,12 @@ DATUM_VALUE=29031918 \
   && DATUM_HASH=${DATUM_HASH:0:64} \
   && echo "DATUM_HASH=\"$DATUM_HASH\""
 
-# Query Script UTOX
+# Query Script UTxO
 cardano-cli query utxo \
   --address $SCRIPT_ADDR \
   --testnet-magic 7
 
-# Query UTOX
+# Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 7
@@ -198,12 +198,12 @@ cardano-cli transaction build-raw \
 The Plutus script technically controls how the funds can be withdrawn, but it always fails.
 
 ```
-# Query Script UTOX
+# Query Script UTxO
 cardano-cli query utxo \
   --address $SCRIPT_ADDR \
   --testnet-magic 7
 
-# Query Payment UTOX
+# Query Payment UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 7

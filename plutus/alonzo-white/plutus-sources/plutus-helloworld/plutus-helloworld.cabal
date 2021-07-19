@@ -48,6 +48,7 @@ library
                       , Cardano.PlutusExample.HelloWorld4a
                       , Cardano.PlutusExample.HelloWorld4b
                       , Cardano.PlutusExample.HelloWorld4d
+                      , Cardano.PlutusExample.HelloWorld5a
                       , Cardano.PlutusExample.HelloWorldByteStringParametric
 
   build-depends:        bytestring
@@ -106,6 +107,19 @@ executable plutus-helloworld4d
                       , cardano-ledger-alonzo
                       , plutus-helloworld
                       , plutus-ledger-api
+                      , bytestring
+
+executable plutus-helloworld5a
+  import:               base, project-config
+  hs-source-dirs:       app
+  main-is:              plutus-helloworld5a.hs
+  ghc-options:          -threaded -rtsopts "-with-rtsopts=-T"
+
+  build-depends:        aeson
+                      , cardano-api
+                      , plutus-helloworld
+                      , plutus-ledger-api
+                      , plutus-tx
                       , bytestring
 
 executable plutus-helloworld-bytestring

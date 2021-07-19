@@ -11,7 +11,7 @@
 ```
 alias cardano-cli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
-  -v alonzo-ipc:/opt/cardano/ipc \
+  -v node-ipc:/opt/cardano/ipc \
   nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} cardano-cli"
 
 cardano-cli query protocol-parameters \
@@ -26,7 +26,7 @@ PAYMENT_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
 STAKE_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/stake.addr)
 echo "${STAKE_ADDR0} => ${PAYMENT_ADDR0}"
 
-# Query UTOX
+# Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR0 \
   --testnet-magic 7
@@ -40,7 +40,7 @@ cardano-cli query stake-address-info \
 ## Send some funds
 
 ```
-# Query UTOX
+# Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR0 \
   --testnet-magic 7
@@ -80,7 +80,7 @@ cardano-cli transaction build-raw \
 ## Send all funds
 
 ```
-# Query UTOX
+# Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 7 | sort
@@ -123,11 +123,11 @@ cardano-cli query utxo \
     --testnet-magic 7
 
 TX_IN1="7962075bc605010fcab7aec2d4aafa8f5c7460cc866ceb87e82359eb8594e0d6#1"
-UTOX_LVC=9998096244191
+UTXO_LVC=9998096244191
 REWARD_LVC=27892557277
 
 FEES_LVC=200000
-SEND_LVC=`expr $UTOX_LVC + $REWARD_LVC - $FEES_LVC`
+SEND_LVC=`expr $UTXO_LVC + $REWARD_LVC - $FEES_LVC`
 echo "$SEND_LVC Lovelace"
 
 # Build the transaction
