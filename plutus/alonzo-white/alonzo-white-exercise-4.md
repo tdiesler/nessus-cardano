@@ -432,9 +432,130 @@ cardano-cli transaction build-raw \
 ```
 
 c. To take a datum and a redeemer and to succeed if the redeemer is the same as the datum;
+
+### 4d1 Build the validator script
+
 d. To take a datum that represents a pair of integers and a redeemer that represents a list of integers and succeed if all elements in the redeemer are within the range specified by the values in the datum.
 
-Compile each of the Plutus transactions, build the corresponding Cardano transactions, and submit these to the blockchain.  Test your transactions on various inputs.
+```
+cd ~/git/nessus-cardano/plutus/alonzo-white/plutus-sources/plutus-helloworld \
+  && cabal run plutus-helloworld4d 1 helloworld4d.plutus \
+  && cp helloworld4d.plutus ../../plutus-scripts \
+  && mv helloworld4d.plutus ~/cardano/scripts \
+  && cardano-cli address build \
+    --payment-script-file /var/cardano/local/scripts/helloworld4d.plutus \
+    --out-file /var/cardano/local/scratch/helloworld4d.addr \
+    --testnet-magic 7 \
+  && SCRIPT_ADDR=$(cat ~/cardano/scratch/helloworld4d.addr) \
+  && echo "SCRIPT_ADDR=\"${SCRIPT_ADDR}\""
+
+ExBudget {_exBudgetCPU = ExCPU 32122000, _exBudgetMemory = ExMemory 7980}
+SCRIPT_ADDR="addr_test1wp8m6n3j2n9y9spy92sdmxwz8rlskmnav602l8h6ljqxg5gfpn8rv"
+```
+
+### 4d2 Lock some funds in the script
+
+```
+PAYMENT_ADDR1=$(cat ~/cardano/keys/alonzo/acc1/payment.addr)
+
+DATUM_VALUE='[1,5]' \
+  && DATUM_HASH="$(cardano-cli transaction hash-script-data --script-data-value $DATUM_VALUE)" \
+  && DATUM_HASH=${DATUM_HASH:0:64} \
+  && echo "DATUM_HASH=\"$DATUM_HASH\""
+
+# [BUG] - 'cardano-cli transaction hash-script-data' appends whitespace
+# https://github.com/input-output-hk/cardano-node/issues/2937
+
+# Query Script UTOX
+cardano-cli query utxo \
+  --address $SCRIPT_ADDR \
+  --testnet-magic 7
+
+# Query UTOX
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR1 \
+  --testnet-magic 7
+
+TX_IN1="7426215b627d4fdb57e3d6fafbdddc74e7c02b32a813e70a143970b826f1c58d#0"
+TX_IN1_LVC="411025800"
+
+# Calculate the change to send back to PAYMENT_ADDR
+FEES_LVC=200000
+SEND_LVC=10000000
+REFUND_LVC=$(($TX_IN1_LVC - SEND_LVC - $FEES_LVC))
+echo "$REFUND_LVC Lovelace"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build-raw \
+  --alonzo-era \
+  --fee $FEES_LVC \
+  --tx-in $TX_IN1 \
+  --tx-out $SCRIPT_ADDR+$SEND_LVC \
+  --tx-out-datum-hash $DATUM_HASH \
+  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/acc1/payment.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
+```
+
+### 4d3 Unlock the funds in the the script
+
+```
+# Query Script UTOX
+cardano-cli query utxo \
+  --address $SCRIPT_ADDR \
+  --testnet-magic 7
+
+# Query Payment UTOX
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR1 \
+  --testnet-magic 7
+
+TX_IN1="e72dd064d8003ae38627b979f1f2beb30bfef9ca636e87882f145a2e32600687#2"
+TX_IN1_LVC="2000000000"
+
+TX_COL="80de2f5178ca6b099e2eee3da8bfb2ad801ef8c2f85ddfb2a0fbd85fe37cf2a9#3"
+TX_COL_LVC="2000000000"
+
+TX_SCRIPT="ae6dfa3e38d133395418cf197cf74c2821a320784930d27d7eb4c56bf6751e64#0"
+TX_SCRIPT_LVC="10000000"
+
+# Calculate the change to send back to PAYMENT_ADDR
+ExCPU=32122000
+ExMem=7980
+ExFct=30
+UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
+FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
+SEND_LVC=$(($TX_IN1_LVC + $TX_SCRIPT_LVC - $FEES_LVC))
+echo "Send=$SEND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build-raw \
+  --alonzo-era \
+  --fee $FEES_LVC \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_SCRIPT \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld4d.plutus \
+  --tx-in-datum-value '[1,5]' \
+  --tx-in-redeemer-value '[1,2,3,4]' \
+  --tx-in-execution-units "$UNITS" \
+  --tx-in-collateral $TX_COL \
+  --tx-out $PAYMENT_ADDR1+$SEND_LVC \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/acc1/payment.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
+```
 
 5. Set up three new payment addresses: `payment.addr`, `wallet1.addr`, and `wallet2.addr` using the node CLI commands.  Transfer some ada to each of these addresses, and check that they have been funded.
 
