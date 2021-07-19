@@ -303,7 +303,134 @@ cardano-cli transaction build-raw \
   --testnet-magic 7
 ```
 
+### 4b1 Build the validator script
+
 b. To succeed if the redeemer is also your birthday;
+
+```
+cd ~/git/nessus-cardano/plutus/alonzo-white/plutus-sources/plutus-helloworld \
+  && cabal run plutus-helloworld4b 1 helloworld4b.plutus \
+  && cp helloworld4b.plutus ../../plutus-scripts \
+  && mv helloworld4b.plutus ~/cardano/scripts \
+  && cardano-cli address build \
+    --payment-script-file /var/cardano/local/scripts/helloworld4b.plutus \
+    --out-file /var/cardano/local/scratch/helloworld4b.addr \
+    --testnet-magic 7 \
+  && SCRIPT_ADDR=$(cat ~/cardano/scratch/helloworld4b.addr) \
+  && echo "SCRIPT_ADDR=\"${SCRIPT_ADDR}\""
+
+ExBudget {_exBudgetCPU = ExCPU 26857000, _exBudgetMemory = ExMemory 6630}
+"Datum value: {\"bytes\":\"4865696e7a\"}"
+SCRIPT_ADDR="addr_test1wque26j6xdnq2fmt90akjneqc4n2v887c3vqf4fmyl8zndqh2rps7"
+```
+
+### 4b2 Lock some funds in the script
+
+```
+PAYMENT_ADDR1=$(cat ~/cardano/keys/alonzo/acc1/payment.addr)
+
+DATUM_VALUE='Heinz' \
+  && DATUM_JSON=$(printf "{\"bytes\":\"%s\"}" $(echo -n $DATUM_VALUE | xxd -ps)) \
+  && echo "$DATUM_JSON" > ~/cardano/scratch/script-datum.json \
+  && echo $DATUM_JSON \
+  && DATUM_HASH="$(cardano-cli transaction hash-script-data --script-data-file /var/cardano/local/scratch/script-datum.json)" \
+  && DATUM_HASH=${DATUM_HASH:0:64} \
+  && echo "DATUM_HASH=\"$DATUM_HASH\""
+
+# [BUG] - 'cardano-cli transaction hash-script-data' appends whitespace
+# https://github.com/input-output-hk/cardano-node/issues/2937
+
+# Query Script UTOX
+cardano-cli query utxo \
+  --address $SCRIPT_ADDR \
+  --testnet-magic 7
+
+# Query UTOX
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR1 \
+  --testnet-magic 7
+
+TX_IN1="4bcce13d65305edf4aab619159d67b26e226d46d0952001d4500fc42c7367035#0"
+TX_IN1_LVC="1217634700"
+
+# Calculate the change to send back to PAYMENT_ADDR
+FEES_LVC=200000
+SEND_LVC=10000000
+REFUND_LVC=$(($TX_IN1_LVC - SEND_LVC - $FEES_LVC))
+echo "$REFUND_LVC Lovelace"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build-raw \
+  --alonzo-era \
+  --fee $FEES_LVC \
+  --tx-in $TX_IN1 \
+  --tx-out $SCRIPT_ADDR+$SEND_LVC \
+  --tx-out-datum-hash $DATUM_HASH \
+  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/acc1/payment.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
+```
+
+### 4b3 Unlock the funds in the the script
+
+```
+# Query Script UTOX
+cardano-cli query utxo \
+  --address $SCRIPT_ADDR \
+  --testnet-magic 7
+
+# Query Payment UTOX
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR1 \
+  --testnet-magic 7
+
+TX_IN1="1f7768d23f50e10cf8ae3beaec9f12ac4e195f67ef6b4addeb451f665528ef25#1"
+TX_IN1_LVC="1207434700"
+
+TX_COL="e72dd064d8003ae38627b979f1f2beb30bfef9ca636e87882f145a2e32600687#2"
+TX_COL_LVC="2000000000"
+
+TX_SCRIPT="1f7768d23f50e10cf8ae3beaec9f12ac4e195f67ef6b4addeb451f665528ef25#0"
+TX_SCRIPT_LVC="10000000"
+
+# Calculate the change to send back to PAYMENT_ADDR
+ExCPU=26857000
+ExMem=6630
+ExFct=30
+UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
+FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
+SEND_LVC=$(($TX_IN1_LVC + $TX_SCRIPT_LVC - $FEES_LVC))
+echo "Send=$SEND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build-raw \
+  --alonzo-era \
+  --fee $FEES_LVC \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_SCRIPT \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld4b.plutus \
+  --tx-in-datum-file /var/cardano/local/scratch/script-datum.json \
+  --tx-in-redeemer-value 29031918 \
+  --tx-in-execution-units "$UNITS" \
+  --tx-in-collateral $TX_COL \
+  --tx-out $PAYMENT_ADDR1+$SEND_LVC \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/acc1/payment.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
+```
+
 c. To take a datum and a redeemer and to succeed if the redeemer is the same as the datum;
 d. To take a datum that represents a pair of integers and a redeemer that represents a list of integers and succeed if all elements in the redeemer are within the range specified by the values in the datum.
 
