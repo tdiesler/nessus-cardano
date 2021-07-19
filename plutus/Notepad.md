@@ -50,181 +50,477 @@ https://atom-haskell.github.io
 apm install language-haskell ide-haskell ide-haskell-cabal ide-haskell-hls
 ```
 
-## Week 1
+## Running a Relay Node on the Testnet
 
-* Plutus contract comes in two parts: on chain, off chain (i.e. in the wallet)
-* Date types can be shared between on/off chain parts
-* Plutus script validates Tx and transfers funds locked by the script
-* Wallet must be able to create Tx the fulfil all the conditions
-
-Q: What is the ":: !" syntax in record data types?
-A: It forces non-lazy evaluation of the record field
+### Using inputoutput/cardano-node
 
 ```
-  data Auction = Auction
-      { aSeller   :: !PubKeyHash
-      , aDeadline :: !Slot
-      , aMinBid   :: !Integer
-      , aCurrency :: !CurrencySymbol
-      , aToken    :: !TokenName
-      } deriving (Show, Generic, ToJSON, FromJSON, ToSchema)
+docker rm -f alonzo-relay
+docker run --detach \
+  --name=alonzo-relay \
+  -p 3001:3001 \
+  -e NETWORK=alonzo-white \
+  -v alonzo-data:/data/db \
+  inputoutput/cardano-node:dev
+
+docker logs -f alonzo-relay
 ```
 
-## Week 2
-
-https://github.com/input-output-hk/plutus/blob/master/plutus-tx/src/PlutusTx/Data.hs
-
-* Three pieces of data that a Plutus script gets
-  1. Datum sitting at the UTXO
-  2. Redeemer coming from the input under validation
-  3. Context costing of the Tx inputs/outputs
-* All three are of the same low level data type 'PlutusTx.Data' in plutus-tx
+### Using nessusio/cardano-node
 
 ```
-[week02]$ cabal repl
+docker run --detach \
+    --name=alonzo-relay \
+    -p 3001:3001 \
+    -e CARDANO_NETWORK=alonzo-white \
+    -v alonzo-data:/opt/cardano/data \
+    -v alonzo-ipc:/opt/cardano/ipc \
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
 
-> import PlutusTx
-> :i Data
+docker logs -f alonzo-relay
 
-type Data :: *
-data Data
-  = Constr Integer [Data]
-  | Map [(Data, Data)]
-  | List [Data]
-  | I Integer
-  | B ByteString
+docker exec -it alonzo-relay gLiveView
 ```
 
-* We can trace error messages like this ...
+## Get protocol parameters
 
 ```
-mkValidator () (MyRedeemer b c) _ = traceIfFalse "wrong redeemer" $ b == c
+alias cardano-cli="docker run -it --rm \
+  -v ~/cardano:/var/cardano/local \
+  -v alonzo-ipc:/opt/cardano/ipc \
+  nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} cardano-cli"
+
+cardano-cli query protocol-parameters \
+  --out-file /var/cardano/local/scratch/protocol.json \
+  --testnet-magic 7
 ```
 
-## Week 3
+## Creating keys and addresses
 
-https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/Plutus/V1/Ledger/Contexts.hs
-https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/Plutus/V1/Ledger/Interval.hs
-https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/Plutus/V1/Ledger/Slot.hs
-
-
-* Lecture is concerned with 'Ledger.Contexts' in plutus-ledger-api
-* ScriptContext is a record with two fields of type TxInfo, ScriptPurpose
-* ScriptPurpose: Minting, Spending, Rewarding, Certifying
-
-To obtain the wallet pubKeyHash we do ...
+https://github.com/input-output-hk/cardano-node/blob/master/doc/stake-pool-operations/keys_and_addresses.md
 
 ```
-[week03]$ cabal repl
+OWNER="acc0"
 
-> import Wallet.Emulator
-> import Ledger
+# Payment keys
+cardano-cli address key-gen \
+  --verification-key-file /var/cardano/local/keys/alonzo/${OWNER}/payment.vkey \
+  --signing-key-file /var/cardano/local/keys/alonzo/${OWNER}/payment.skey
 
-> pubKeyHash $ walletPubKey $ Wallet 1
-21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9
+# Stake keys
+cardano-cli stake-address key-gen \
+  --verification-key-file /var/cardano/local/keys/alonzo/${OWNER}/stake.vkey \
+  --signing-key-file /var/cardano/local/keys/alonzo/${OWNER}/stake.skey  
 
-> pubKeyHash $ walletPubKey $ Wallet 2
-39f713d0a644253f04529421b9f51b9b08979d08295959c4f3990ee617f5139f
+# Payment address
+cardano-cli address build \
+  --payment-verification-key-file /var/cardano/local/keys/alonzo/${OWNER}/payment.vkey \
+  --stake-verification-key-file /var/cardano/local/keys/alonzo/${OWNER}/stake.vkey \
+  --out-file /var/cardano/local/keys/alonzo/${OWNER}/payment.addr \
+  --testnet-magic 7
+
+# Stake address
+cardano-cli stake-address build \
+  --stake-verification-key-file /var/cardano/local/keys/alonzo/${OWNER}/stake.vkey \
+  --out-file /var/cardano/local/keys/alonzo/${OWNER}/stake.addr \
+  --testnet-magic 7
 ```
 
-Q: Clarify the roles for the off/on chain code (i.e. can on chain rely on off chain validation)
-A: No, a Tx targeted for a script can be contructed in multiple ways
-
-Q: Validator seems to be executed multiple times, once for each input locked by the script.
-A: It gets called for every input locked by the script
-
-Q: How is the Datum first initialised
-A: Datum is associated with an Tx output targeting the script
+## Get funds from the Faucet
 
 ```
-==== Add slot 20 ====
-Contract instance for wallet 1: (ReceiveEndpointCall (RawJson "{\"value\":{\"unEndpointValue\":[]},\"tag\":\"grab\"}"))
-Contract instance for wallet 1: (ContractLog (RawJson "found 2 gift(s) to grab"))
-Validation failed: f366dc51a2f48b0a34b0800e0ff7a319081593ddb324edabf3d914e3fdd22df5
- (ScriptFailure (EvaluationError ["Beneficiary1 has signed: False","Beneficiary2 has signed: True","AfterDeadline: False"]))
-Validation failed: f366dc51a2f48b0a34b0800e0ff7a319081593ddb324edabf3d914e3fdd22df5
- (ScriptFailure (EvaluationError ["Beneficiary1 has signed: False","Beneficiary2 has signed: True","AfterDeadline: False"]))
+PAYMENT_ADDR=$(cat ~/cardano/keys/alonzo/${OWNER}/payment.addr)
+echo $PAYMENT_ADDR
+
+API_KEY="xxxxxx"
+curl -v -XPOST "https://faucet.alonzo-white.dev.cardano.org/send-money/${PAYMENT_ADDR}?apiKey=${API_KEY}"
 ```
 
-## Week 4
-
-https://github.com/tdiesler/plutus/blob/pioneer-program/plutus-contract/src/Plutus/Trace/Emulator.hs
-https://github.com/tdiesler/plutus/blob/pioneer-program/plutus-contract/src/Wallet/Emulator/Stream.hs (EmulatorConfig)
-https://github.com/tdiesler/plutus/blob/pioneer-program/plutus-contract/src/Plutus/Contract/Trace.hs (InitialDistribution)
-
-* Off chain Contract, Wallet Monad
-* Contract Monad defines codes that runs in a Wallet
-* defaultDist(For) gives the default InitialDistribution
-
-Q: [TODO] What is the difference between Contract.logInfo and Extras.logInfo
-A: ???
+## Register stake address on the blockchain
 
 ```
-[week04]$ cabal repl
+PAYMENT_ADDR=`cat ~/cardano/keys/alonzo/$OWNER/payment.addr`
+echo "$OWNER: $PAYMENT_ADDR"
 
-> import Plutus.Trace.Emulator
-> import Plutus.Contract.Trace
-> import Wallet.Emulator.Stream
+# Query UTOX
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR \
+  --testnet-magic 7
 
-> defaultDistFor [Wallet 1]
-fromList [(Wallet 1,Value (Map [(,Map [("",100000000)])]))]
+                           TxHash                                 TxIx        Amount
+--------------------------------------------------------------------------------------
+efafdac2325cca3153f7c2dc2f0c326afea47cf6c9c53f2e5deeb878e1ff058a     1        9999397232308 lovelace + TxOutDatumHashNone
 
-# Create an EmulatorConfig
-> ecfg = EmulatorConfig $ Left defaultDist
-> runEmulatorTrace ecfg $ return ()
+TX_IN="efafdac2325cca3153f7c2dc2f0c326afea47cf6c9c53f2e5deeb878e1ff058a#1"
 
-> runEmulatorTraceIO $ return ()
+UTOX_LVC=9999397232308
+
+cardano-cli stake-address registration-certificate \
+  --stake-verification-key-file /var/cardano/local/keys/alonzo/${OWNER}/stake.vkey \
+  --out-file /var/cardano/local/scratch/stake.cert
+
+cardano-cli transaction build-raw \
+  --tx-in ${TX_IN} \
+  --tx-out ${PAYMENT_ADDR}+0 \
+  --invalid-hereafter 0 \
+  --fee 0 \
+  --certificate-file /var/cardano/local/scratch/stake.cert \
+  --out-file /var/cardano/local/scratch/tx.draft
+
+cardano-cli transaction calculate-min-fee \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --tx-body-file /var/cardano/local/scratch/tx.draft \
+  --tx-in-count 1 \
+  --tx-out-count 1 \
+  --witness-count 2 \
+  --testnet-magic 7
+
+> 184817 Lovelace
+
+cat ~/cardano/scratch/protocol.json | grep stakeAddressDeposit
+
+DEPOSIT=2000000
+FEES_LVC=184817
+REFUND_LVC=`expr $UTOX_LVC - $DEPOSIT - $FEES_LVC`
+echo "$REFUND_LVC Lovelace"
+
+SLOT=`cardano-cli query tip --testnet-magic 7 | jq -c | jq ".slot"` \
+  && TTL=`expr $SLOT + 3600` \
+  && echo -e "Slot: $SLOT\nTTL:  $TTL"
+
+# Build raw Tx
+cardano-cli transaction build-raw \
+  --tx-in $TX_IN \
+  --tx-out $PAYMENT_ADDR+$REFUND_LVC \
+  --ttl $TTL \
+  --fee $FEES_LVC \
+  --certificate-file /var/cardano/local/scratch/stake.cert \
+  --out-file /var/cardano/local/scratch/tx.raw
+
+cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/$OWNER/payment.skey \
+  --signing-key-file /var/cardano/local/keys/alonzo/$OWNER/stake.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
+
+cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
 ```
 
-* For a simple trace see Trace.hs
-* For simple contracts see Contract.hs
-* OverloadedStrings allows you to use "string" as Text
-* TypeApplications allows to use @String "foo" instead of ("foo" :: String)
-* BlockchainActions doesn't have support for specific endpoints
-
-## Week 5
-
-https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/Plutus/V1/Ledger/Ada.hs
-https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/Plutus/V1/Ledger/Value.hs
-
-* Each Value is identified by a CurrecySymbol and a TokenName
-* An AssetClass is a wrapper around a CurrecySymbol and a TokenName
-
+## Generate Pool Keys and Certificates
 
 ```
-# Working with ADA
-> :set -XOverloadedStrings
-> import Plutus.V1.Ledger.Ada
-> import Plutus.V1.Ledger.Value
-> lovelaceValueOf 123
-Value (Map [(,Map [("",123)])])
-> lovelaceValueOf 123 `mappend` lovelaceValueOf 10
-> lovelaceValueOf 123 <> lovelaceValueOf 10
+cardano-cli node key-gen \
+  --cold-verification-key-file /var/cardano/local/keys/alonzo/pool/cold.vkey \
+  --cold-signing-key-file /var/cardano/local/keys/alonzo/pool/cold.skey \
+  --operational-certificate-issue-counter-file /var/cardano/local/keys/alonzo/pool/cold.counter
 
-# Working with Tokens
-> flattenValue $ singleton "af08" "abc" 10 <> singleton "af08" "abc" 7 <> lovelaceValueOf 123
-[(af08,"abc",17),(,"",123)]
+cardano-cli node key-gen-VRF \
+  --verification-key-file /var/cardano/local/keys/alonzo/pool/vrf.vkey \
+  --signing-key-file /var/cardano/local/keys/alonzo/pool/vrf.skey
 
+cardano-cli node key-gen-KES \
+  --verification-key-file /var/cardano/local/keys/alonzo/pool/kes.vkey \
+  --signing-key-file /var/cardano/local/keys/alonzo/pool/kes.skey
 ```
 
-## Week 6
+### Calculate KES period
 
-* Plutus of the given version may have to be build first (i.e. run nix-shell in plutus)
-* PubKeyHash of the contract owner is part of the Datum
-* There is a findDatum on TxInfo
-* Off-Chain startOracle mints the NFT
-* Checkout Plutus.Contract.mapError to error type in the Contract monad
-* pack :: String -> Text
+```
+docker cp alonzo-relay:/opt/cardano/config/mainnet-shelley-genesis.json ~/cardano/scratch/
+slotsPerKESPeriod=$(cat ~/cardano/scratch/mainnet-shelley-genesis.json | jq ".slotsPerKESPeriod")
 
-## Week 8
+slotNumber=$(cardano-cli query tip --testnet-magic 7 | jq ".slot")
+kesPeriod=$(expr $slotNumber / $slotsPerKESPeriod)
 
-* [Plutus API documentation](https://docs.plutus-community.com/docs/setup/buildDocumentation.html)
+echo "$slotNumber / $slotsPerKESPeriod => $kesPeriod"
 
-Q: [TODO] Can we provision a script address with funds in the EmulatorConfig?
-A:
+cardano-cli node issue-op-cert \
+  --kes-verification-key-file /var/cardano/local/keys/alonzo/pool/kes.vkey \
+  --cold-signing-key-file /var/cardano/local/keys/alonzo/pool/cold.skey \
+  --operational-certificate-issue-counter /var/cardano/local/keys/alonzo/pool/cold.counter \
+  --kes-period $kesPeriod \
+  --out-file /var/cardano/local/keys/alonzo/pool/node.cert
+```
 
-Q: [TODO] Can we assert intermediary wallet state in a test workflow?
-A:
+## Create delegation certificate
 
-Q: [TODO] How can we assert the final script UTxOs?
-A:
+To honor your pledge, create a delegation certificate:
+
+```
+cardano-cli stake-address delegation-certificate \
+  --stake-pool-verification-key-file /var/cardano/local/keys/alonzo/pool/cold.vkey \
+  --staking-verification-key-file /var/cardano/local/keys/alonzo/$OWNER/stake.vkey \
+  --out-file /var/cardano/local/keys/alonzo/$OWNER/delegation.cert
+```
+
+## Generate Stake Pool Registration Certificate
+
+```
+# Get the hash of your metadata JSON file
+
+curl -so ~/cardano/scratch/astorpool.json http://astorpool.net/astorpool.json \
+  && cat ~/cardano/scratch/astorpool.json
+
+cardano-cli stake-pool metadata-hash \
+  --pool-metadata-file /var/cardano/local/scratch/astorpool.json
+
+cardano-cli stake-pool registration-certificate \
+  --cold-verification-key-file /var/cardano/local/keys/alonzo/pool/cold.vkey \
+  --vrf-verification-key-file /var/cardano/local/keys/alonzo/pool/vrf.vkey \
+  --pool-pledge 1000000000 \
+  --pool-cost 340000000 \
+  --pool-margin 0.01 \
+  --pool-reward-account-verification-key-file /var/cardano/local/keys/alonzo/$OWNER/stake.vkey \
+  --pool-owner-stake-verification-key-file /var/cardano/local/keys/alonzo/$OWNER/stake.vkey \
+  --single-host-pool-relay relay01.astorpool.net \
+  --pool-relay-port 3001 \
+  --metadata-url http://astorpool.net/astorpool.json \
+  --metadata-hash "76a149ddde63485614d8c55cc86bd18dc6cd7f66a3d42dfdb27230ccd396840c" \
+  --out-file /var/cardano/local/scratch/pool-registration.cert \
+  --testnet-magic 7
+
+cat ~/cardano/scratch/pool-registration.cert
+```
+
+### Create the pool registration Tx
+
+```
+PAYMENT_ADDR=`cat ~/cardano/keys/alonzo/$OWNER/payment.addr`
+echo "$OWNER: $PAYMENT_ADDR"
+
+# Query UTOX
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR \
+  --testnet-magic 7
+
+  TxHash                                                          TxIx        Amount
+--------------------------------------------------------------------------------------
+efafdac2325cca3153f7c2dc2f0c326afea47cf6c9c53f2e5deeb878e1ff058a     1        9999397232308 lovelace + TxOutDatumHashNone
+
+TX_IN="efafdac2325cca3153f7c2dc2f0c326afea47cf6c9c53f2e5deeb878e1ff058a#1"
+
+UTOX_LVC=9999397232308
+
+# Draft
+cardano-cli transaction build-raw \
+  --tx-in $TX_IN \
+  --tx-out $PAYMENT_ADDR+0 \
+  --ttl 0 \
+  --fee 0 \
+  --certificate-file /var/cardano/local/scratch/pool-registration.cert \
+  --certificate-file /var/cardano/local/keys/alonzo/$OWNER/delegation.cert \
+  --out-file /var/cardano/local/scratch/tx.draft
+
+cardano-cli transaction calculate-min-fee \
+  --tx-body-file /var/cardano/local/scratch/tx.draft \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --tx-in-count 1 \
+  --tx-out-count 1 \
+  --witness-count 1 \
+  --testnet-magic 7
+
+> 184641 Lovelace
+
+cat ~/cardano/scratch/protocol.json | grep stakePoolDeposit
+
+DEPOSIT=0
+FEES_LVC=188117
+REFUND_LVC=`expr $UTOX_LVC - $DEPOSIT - $FEES_LVC`
+echo "$REFUND_LVC Lovelace"
+
+SLOT=`cardano-cli query tip --testnet-magic 7 | jq -c | jq ".slot"` \
+  && TTL=`expr $SLOT + 3600` \
+  && echo -e "Slot: $SLOT\nTTL:  $TTL"
+
+# Build raw Tx
+cardano-cli transaction build-raw \
+  --tx-in $TX_IN \
+  --tx-out $PAYMENT_ADDR+$REFUND_LVC \
+  --ttl $TTL \
+  --fee $FEES_LVC \
+  --certificate-file /var/cardano/local/scratch/pool-registration.cert \
+  --certificate-file /var/cardano/local/keys/alonzo/$OWNER/delegation.cert \
+  --out-file /var/cardano/local/scratch/tx.raw
+
+# Sign the transaction
+cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/$OWNER/payment.skey \
+  --signing-key-file /var/cardano/local/keys/alonzo/$OWNER/stake.skey \
+  --signing-key-file /var/cardano/local/keys/alonzo/pool/cold.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
+
+# Submit the transaction
+cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 7
+```
+
+## Verify that your stake pool registration was successful
+
+```
+# Query UTOX
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR \
+  --testnet-magic 7
+
+POOLID=$(cardano-cli stake-pool id \
+  --cold-verification-key-file /var/cardano/local/keys/alonzo/pool/cold.vkey)
+
+echo ${POOLID}
+```
+
+<!--
+  Run the Relay Node ==================================================================================================
+-->
+
+## Run the Relay Node
+
+```
+RELAY_IP="relay02.astorpool.net"
+BPROD_IP="xxx.domain.net"
+
+# Setup the Producer topology
+# The Producer connects to the Relay (only)
+
+cat << EOF > ~/cardano/config/alonzo-relay-topology.json
+{
+  "Producers": [
+    {
+      "addr": "relays.alonzo-white.dev.cardano.org",
+      "port": 3001,
+      "valency": 1
+    },
+    {
+      "addr": "${BPROD_IP}",
+      "port": 3001,
+      "valency": 1
+    }
+  ]
+}
+EOF
+
+docker volume rm -f alonzo-relay-config
+docker run --name=tmp -v alonzo-relay-config:/var/cardano/config centos
+docker cp ~/cardano/config/alonzo-relay-topology.json tmp:/var/cardano/config/alonzo-white-topology.json
+docker rm -f tmp
+
+# Run the Relay node
+
+docker stop alonzo-relay
+docker rm alonzo-relay
+
+docker run --detach \
+    --name=alonzo-relay \
+    --hostname=alonzo-relay \
+    --restart=always \
+    -p 3001:3001 \
+    -e CARDANO_NETWORK=alonzo-white \
+    -e CARDANO_UPDATE_TOPOLOGY=true \
+    -e CARDANO_PUBLIC_IP="${RELAY_IP}" \
+    -e CARDANO_CUSTOM_PEERS="${BPROD_IP}:3001" \
+    -e CARDANO_TOPOLOGY="/var/cardano/config/alonzo-white-topology.json" \
+    -v alonzo-relay-config:/var/cardano/config  \
+    -v alonzo-data:/opt/cardano/data \
+    -v alonzo-ipc:/opt/cardano/ipc \
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
+
+docker logs -n=200 -f alonzo-relay
+
+docker exec -it alonzo-relay gLiveView
+
+docker exec -it alonzo-relay tail -n 12 /opt/cardano/logs/topologyUpdateResult
+docker exec -it alonzo-relay cat /var/cardano/config/alonzo-white-topology.json
+
+docker exec -it alonzo-relay tail -n 80 -f /opt/cardano/logs/debug.log
+docker exec -it alonzo-relay lnav /opt/cardano/logs/debug.log
+
+# Access the EKG metric
+docker exec -it alonzo-relay curl -H 'Accept: application/json' 127.0.0.1:12788 | jq
+
+# Access the Prometheus metrics
+docker exec -it alonzo-relay curl 127.0.0.1:12798/metrics | sort
+```
+
+<!--
+  Run the Block Producer ==============================================================================================
+-->
+
+## Run the Block Producer
+
+```
+# Setup the Producer topology
+# The Producer connects to the Relay (only)
+
+cat << EOF > ~/cardano/config/alonzo-bprod-topology.json
+{
+  "Producers": [
+    {
+      "addr": "${RELAY_IP}",
+      "port": 3001,
+      "valency": 1
+    }
+  ]
+}
+EOF
+
+docker volume rm -f alonzo-bprod-config
+docker run --name=tmp -v alonzo-bprod-config:/var/cardano/config centos
+docker cp ~/cardano/config/alonzo-bprod-topology.json tmp:/var/cardano/config/alonzo-white-topology.json
+docker rm -f tmp
+
+# Setup Block Producer keys
+
+chmod 600 ~/cardano/keys/alonzo/pool/*
+
+docker volume rm -f alonzo-bprod-keys
+docker run --name=tmp -v alonzo-bprod-keys:/var/cardano/config/keys centos
+docker cp ~/cardano/keys/alonzo/pool/node.cert tmp:/var/cardano/config/keys
+docker cp ~/cardano/keys/alonzo/pool/kes.skey tmp:/var/cardano/config/keys
+docker cp ~/cardano/keys/alonzo/pool/vrf.skey tmp:/var/cardano/config/keys
+docker rm -f tmp
+
+docker run -it --rm \
+  -v alonzo-bprod-keys:/var/cardano/config/keys \
+  -v alonzo-bprod-config:/var/cardano/config \
+  centos find /var/cardano/config -type f | sort
+
+# Run the Producer node
+
+docker stop alonzo-bprod
+docker rm alonzo-bprod
+
+docker run --detach \
+    --name=alonzo-bprod \
+    --hostname=alonzo-bprod \
+    --restart=always \
+    -p 3001:3001 \
+    -e CARDANO_NETWORK=alonzo-white \
+    -e CARDANO_BLOCK_PRODUCER=true \
+    -e CARDANO_TOPOLOGY="/var/cardano/config/alonzo-white-topology.json" \
+    -e CARDANO_SHELLEY_KES_KEY="/var/cardano/config/keys/kes.skey" \
+    -e CARDANO_SHELLEY_VRF_KEY="/var/cardano/config/keys/vrf.skey" \
+    -e CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/node.cert" \
+    -v alonzo-bprod-keys:/var/cardano/config/keys  \
+    -v alonzo-bprod-config:/var/cardano/config  \
+    -v alonzo-data:/opt/cardano/data \
+    -v alonzo-ipc:/opt/cardano/ipc \
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
+
+docker logs -n=200 -f alonzo-bprod
+
+docker exec -it alonzo-bprod gLiveView
+
+docker exec -it alonzo-bprod tail -n 80 -f /opt/cardano/logs/debug.log
+docker exec -it alonzo-bprod lnav /opt/cardano/logs/debug.log
+
+# Access the EKG metric
+docker exec -it bprod curl -H 'Accept: application/json' 127.0.0.1:12788 | jq
+
+# Access the Prometheus metrics
+docker exec -it bprod curl 127.0.0.1:12798/metrics | sort
+```

@@ -6,11 +6,11 @@ if [[ -n $NETWORK ]]; then
 
 elif [[ $1 == "run" ]]; then
 
-  exec /usr/local/bin/run-node $@
+  exec /usr/local/bin/run-node "$@"
 
 elif [[ $1 == "cardano-cli" ]]; then
 
-  exec /usr/local/bin/run-cli $@
+  exec /usr/local/bin/run-cli "$@"
 
 else
 

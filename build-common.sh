@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CARDANO_BUILD_VER="1.27.0"
-CARDANO_VER="alonzo-white-1.0"
+CARDANO_VER="alonzo-white-1.2"
 NESSUS_REV="dev"
 
 DEBIAN_VER="10"
