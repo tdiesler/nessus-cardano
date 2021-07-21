@@ -1,3 +1,23 @@
+# v1.28.0-rev1
+
+Released: 21-Jul-2021
+
+This is a major feature update and bug fix release.
+
+* Add support for cncli on arm64 ([#61][61])
+* Add support for Log Navigator ([#62][62])
+* Upgrade to cardano-node-1.28.0 ([#63][63])
+* Upgrade to gLiveView-1.20.10 ([#64][64])
+* Upgrade to cncli-3.1.4 ([#65][65])
+
+[61]: https://github.com/tdiesler/nessus-cardano/issues/61
+[62]: https://github.com/tdiesler/nessus-cardano/issues/62
+[63]: https://github.com/tdiesler/nessus-cardano/issues/63
+[64]: https://github.com/tdiesler/nessus-cardano/issues/64
+[65]: https://github.com/tdiesler/nessus-cardano/issues/65
+
+For details see [v1.28.0-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.28.0-rev1)
+
 # v1.27.0-rev3
 
 Released: 15-Jun-2021
