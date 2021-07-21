@@ -17,8 +17,8 @@ MONIT_REV="-rev4"
 MMONIT_VER="3.7.7"
 MMONIT_REV="-rev4"
 
-# gLiveView version to 1.20.6
-GLVIEW_VER="1.20.6"
+# https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L57
+GLVIEW_VER="1.20.10"
 
 # https://github.com/AndrewWestberg/cncli
 CNCLI_VER="2.1.1"
