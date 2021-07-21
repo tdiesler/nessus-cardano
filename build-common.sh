@@ -21,7 +21,7 @@ MMONIT_REV="-rev4"
 GLVIEW_VER="1.20.10"
 
 # https://github.com/AndrewWestberg/cncli
-CNCLI_VER="2.1.1"
+CNCLI_VER="3.1.4"
 
 CABAL_VER="3.2.0.0"
 GHC_VER="8.10.4"
