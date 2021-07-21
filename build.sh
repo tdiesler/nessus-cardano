@@ -90,15 +90,15 @@ function buildImage () {
 
   if [[ $shortName == "cardano-node" || $shortName == "cardano-tools" ]]; then
     VERSION_MAJOR=${CARDANO_VER}
-    VERSION_MINOR=${NESSUS_REV}
+    VERSION_REV=${CARDANO_REV}
 
   elif [[ $shortName == "mmonit" ]]; then
     VERSION_MAJOR=${MMONIT_VER}
-    VERSION_MINOR=${MMONIT_REV}
+    VERSION_REV=${MMONIT_REV}
 
   elif [[ $shortName == "monit" ]]; then
     VERSION_MAJOR=${MONIT_VER}
-    VERSION_MINOR=${MONIT_REV}
+    VERSION_REV=${MONIT_REV}
 
   else
       echo "[Error] Illegal argument: $1"
@@ -106,7 +106,7 @@ function buildImage () {
       exit 1
   fi
 
-  FULL_ARCH_VERSION="${VERSION_MAJOR}-${VERSION_MINOR}-${ARCH_SUFFIX}"
+  FULL_ARCH_VERSION="${VERSION_MAJOR}${VERSION_REV}-${ARCH_SUFFIX}"
 
   IMAGE_NAME="nessusio/${shortName}"
   FULL_IMAGE_NAME="${IMAGE_NAME}:${FULL_ARCH_VERSION}"
@@ -130,7 +130,7 @@ function buildImage () {
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/node \
       --argstr cardanoBuildVersion ${CARDANO_BUILD_VER} \
       --argstr cardanoVersion ${CARDANO_VER} \
-      --argstr nessusRevision ${NESSUS_REV} \
+      --argstr cardanoRev ${CARDANO_REV} \
       --argstr debianVersion ${DEBIAN_VER} \
       --argstr cabalVersion ${CABAL_VER} \
       --argstr ghcVersion ${GHC_VER} \
@@ -140,7 +140,7 @@ function buildImage () {
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/tools \
       --argstr cardanoBuildVersion ${CARDANO_BUILD_VER} \
       --argstr cardanoVersion ${CARDANO_VER} \
-      --argstr nessusRevision ${NESSUS_REV} \
+      --argstr cardanoRev ${CARDANO_REV} \
       --argstr debianVersion ${DEBIAN_VER} \
       --argstr cncliVersion ${CNCLI_VER} \
       --argstr cabalVersion ${CABAL_VER} \
@@ -168,7 +168,7 @@ function buildImage () {
   echo "Loading image ..."
   docker load -i ${IMAGEPATH}
 
-  if [[ ${VERSION_MINOR} != "dev" ]]; then
+  if [[ ${VERSION_REV} != "dev" ]]; then
 
     MAJOR_ARCH_VERSION="${VERSION_MAJOR}-${ARCH_SUFFIX}"
     LATEST_ARCH_VERSION="latest-${ARCH_SUFFIX}"

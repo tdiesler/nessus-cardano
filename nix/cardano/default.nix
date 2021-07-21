@@ -8,7 +8,7 @@
 
   # Required version args
   cardanoVersion,
-  nessusRevision,
+  cardanoRev,
   cabalVersion,
   ghcVersion,
 
@@ -17,7 +17,7 @@
 
 let
 
-  fullVersion = "${cardanoVersion}-${nessusRevision}";
+  fullVersion = "${cardanoVersion}${cardanoRev}";
 
   gitSources = builtins.fetchGit {
     url = "https://github.com/input-output-hk/cardano-node.git";
@@ -46,7 +46,7 @@ in
         libsodium
       ];
 
-      inherit cardanoVersion nessusRevision libsodium;
+      inherit cardanoVersion cardanoRev libsodium;
       inherit cabalVersion ghcVersion;
 
       builder = ./builder-x86_64.sh;
@@ -70,9 +70,7 @@ in
         libsodium
       ];
 
-      inherit cardanoVersion;
-      inherit nessusRevision;
-      inherit libsodium;
+      inherit cardanoVersion cardanoRev libsodium;
 
       builder = ./builder-aarch64.sh;
     }

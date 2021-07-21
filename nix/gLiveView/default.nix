@@ -12,10 +12,6 @@
 # https://github.com/cardano-community/guild-operators
 {
   pkgs ? import <nixpkgs> {},
-
-  # Required version args
-  cardanoVersion,
-  nessusRevision
 }:
 
 pkgs.stdenv.mkDerivation {

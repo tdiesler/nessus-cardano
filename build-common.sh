@@ -1,20 +1,28 @@
 #!/bin/bash
 
-# CARDANO_BUILD_VER="1.27.0"
+# CARDANO_BUILD_VER="1.28.0"
 
-CARDANO_VER="1.27.0"
-NESSUS_REV="dev"
+CARDANO_VER="1.28.0"
+CARDANO_REV="-rev1"
 
+# https://github.com/tstack/lnav
 DEBIAN_VER="10"
 LNAV_VER="0.9.0"
 
+# https://mmonit.com/monit/#download
 MONIT_VER="5.28.0"
-MONIT_REV="rev4"
+MONIT_REV="-rev4"
 
+# https://mmonit.com/download
 MMONIT_VER="3.7.7"
-MMONIT_REV="rev4"
+MMONIT_REV="-rev4"
 
+# gLiveView version to 1.20.6
+GLVIEW_VER="1.20.6"
+
+# https://github.com/AndrewWestberg/cncli
 CNCLI_VER="2.1.1"
+
 CABAL_VER="3.2.0.0"
 GHC_VER="8.10.4"
 

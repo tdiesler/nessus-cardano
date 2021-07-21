@@ -39,15 +39,15 @@ function buildImage () {
 
   if [[ $shortName == "cardano-node" || $shortName == "cardano-tools" ]]; then
     VERSION_MAJOR=${CARDANO_VER}
-    VERSION_MINOR=${NESSUS_REV}
+    VERSION_REV=${CARDANO_REV}
 
   elif [[ $shortName == "mmonit" ]]; then
     VERSION_MAJOR=${MMONIT_VER}
-    VERSION_MINOR=${MMONIT_REV}
+    VERSION_REV=${MMONIT_REV}
 
   elif [[ $shortName == "monit" ]]; then
     VERSION_MAJOR=${MONIT_VER}
-    VERSION_MINOR=${MONIT_REV}
+    VERSION_REV=${MONIT_REV}
 
   else
       echo "[Error] Illegal argument: $1"
@@ -55,7 +55,7 @@ function buildImage () {
       exit 1
   fi
 
-  FULL_VERSION="${VERSION_MAJOR}-${VERSION_MINOR}"
+  FULL_VERSION="${VERSION_MAJOR}${VERSION_REV}"
 
   if [[ ${VERSION_MINOR} != "dev" ]]; then
 

@@ -5,7 +5,7 @@ source $stdenv/setup
 HOME="$TMPDIR/home"
 
 CARDANO_VER="${cardanoVersion}"
-NESSUS_REV="${nessusRevision}"
+CARDANO_REV="${cardanoRev}"
 
 if [ "$system" = "x86_64-linux" ] || [ "$system" = "x86_64-darwin" ]; then
   ARCH="x86_64";
@@ -18,7 +18,7 @@ else
   exit 1;
 fi
 
-FULL_VERSION="$CARDANO_VER-$NESSUS_REV-$ARCH_TAG"
+FULL_VERSION="$CARDANO_VER$CARDANO_REV-$ARCH_TAG"
 ARCH_VERSION="$CARDANO_VER-$ARCH_TAG"
 LATEST_VERSION="latest-$ARCH_TAG"
 

@@ -16,7 +16,7 @@
 
   # Required version args
   cardanoVersion,
-  nessusRevision,
+  cardanoRev,
   debianVersion,
   cncliVersion,
 
@@ -50,7 +50,7 @@ in
   pkgs.dockerTools.buildImage {
 
     name = imageName;
-    tag = "${cardanoVersion}-${nessusRevision}-${imageArch}";
+    tag = "${cardanoVersion}${cardanoRev}-${imageArch}";
 
     # Set creation date to build time. Breaks reproducibility
     created = "now";
