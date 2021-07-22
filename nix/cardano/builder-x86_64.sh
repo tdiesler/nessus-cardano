@@ -84,5 +84,5 @@ cp $src/configuration/cardano/mainnet-* $out/config/
 
 echo "Copy binaries ..."
 mkdir -p $out/bin
-cp ./dist-newstyle/build/${ARCH}-linux/ghc-${ghcVersion}/cardano-node-${CARDANO_VER}/x/cardano-node/build/cardano-node/cardano-node $out/bin
-cp ./dist-newstyle/build/${ARCH}-linux/ghc-${ghcVersion}/cardano-cli-${CARDANO_VER}/x/cardano-cli/build/cardano-cli/cardano-cli $out/bin
+cp $(find ./dist-newstyle/build -type f -name "cardano-node") $out/bin
+cp $(find ./dist-newstyle/build -type f -name "cardano-cli") $out/bin

@@ -21,8 +21,8 @@
   cabalVersion,
   ghcVersion,
 
-  # https://hydra.iohk.io/build/6782523/download/1/index.html
-  hydraBuild ? "6782523",
+  # https://hydra.iohk.io/build/6928147/download/1/index.html
+  hydraBuild ? "6928147",
 
   baseImage ? import ../baseImage { inherit debianVersion; },
   cardano ? import ../../cardano { inherit cardanoVersion cardanoRev cabalVersion ghcVersion; },
@@ -36,6 +36,7 @@ let
 
   # curl -o "./nix/docker/node/context/config/mainnet-config.json" "https://hydra.iohk.io/build/${hydraBuild}/download/1/mainnet-config.json"
   # curl -o "./nix/docker/node/context/config/testnet-config.json" "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-config.json"
+  # curl -o "./nix/docker/node/context/config/alonzo-white-config.json" "https://hydra.iohk.io/build/${hydraBuild}/download/1/alonzo-white-config.json"
 
   # The mainet configs for the cardano-node
   mainnet-config = ./context/config/mainnet-config.json;
@@ -50,6 +51,13 @@ let
   testnet-byron-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-byron-genesis.json";
   testnet-shelley-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-shelley-genesis.json";
   testnet-alonzo-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/testnet-alonzo-genesis.json";
+
+  # The alonzo-white configs for the cardano-node
+  alonzo-white-config = ./context/config/alonzo-white-config.json;
+  alonzo-white-topology = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/alonzo-white-topology.json";
+  alonzo-white-byron-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/alonzo-white-byron-genesis.json";
+  alonzo-white-shelley-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/alonzo-white-shelley-genesis.json";
+  alonzo-white-alonzo-genesis = builtins.fetchurl "https://hydra.iohk.io/build/${hydraBuild}/download/1/alonzo-white-alonzo-genesis.json";
 
   # Custom mainnet-config.json
 
@@ -123,6 +131,12 @@ in
       cp ${testnet-byron-genesis} opt/cardano/config/testnet-byron-genesis.json
       cp ${testnet-shelley-genesis} opt/cardano/config/testnet-shelley-genesis.json
       cp ${testnet-alonzo-genesis} opt/cardano/config/testnet-alonzo-genesis.json
+
+      cp ${alonzo-white-config} opt/cardano/config/alonzo-white-config.json
+      cp ${alonzo-white-topology} opt/cardano/config/alonzo-white-topology.json
+      cp ${alonzo-white-byron-genesis} opt/cardano/config/alonzo-white-byron-genesis.json
+      cp ${alonzo-white-shelley-genesis} opt/cardano/config/alonzo-white-shelley-genesis.json
+      cp ${alonzo-white-alonzo-genesis} opt/cardano/config/alonzo-white-alonzo-genesis.json
 
       # gLiveView scripts
       cp -r ${gLiveView}/cnode-helper-scripts cnode-helper-scripts

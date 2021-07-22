@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# CARDANO_BUILD_VER="1.28.0"
-
-CARDANO_VER="1.28.0"
-CARDANO_REV="-rev1"
+CARDANO_VER="alonzo-white-1.1"
+CARDANO_REV=""
 
 # https://github.com/tstack/lnav
 DEBIAN_VER="10"
@@ -35,10 +33,4 @@ elif [[ ${ARCH} == "aarch64" ]]; then ARCH_SUFFIX="arm64"
 else
   echo "[ERROR] Unsupported platform architecture: ${ARCH}"
   exit 1
-fi
-
-# CARDANO_BUILD_VER is a possible stale source version
-# CARDANO_VER is the source tag that we build
-if [[ -z $CARDANO_BUILD_VER ]]; then
-  CARDANO_BUILD_VER=${CARDANO_VER}
 fi
