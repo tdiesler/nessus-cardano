@@ -58,10 +58,6 @@
     [
       "StdoutSK",
       "stdout"
-    ],
-    [
-      "FileSK",
-      "/opt/cardano/logs/debug.log"
     ]
   ],
   "hasEKG": [

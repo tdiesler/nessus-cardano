@@ -47,11 +47,12 @@ fi
 # -A64m                               Set the allocation area size used by the garbage collector. (default 1m)
 # -qg                                 Turn off the parallel GC completely
 # -qb                                 Disable load-balancing in the parallel GC
+# -c                                  Use a compacting algorithm for collecting the oldest generation
 # --disable-delayed-os-memory-return  More accurate memory usage stats in memory usage reporting tools
 #
 if [[ -z $CARDANO_RTS_OPTS ]]; then
   # CARDANO_RTS_OPTS="-N2 -A16m -qg -qb --disable-delayed-os-memory-return"
-  CARDANO_RTS_OPTS="-N4 -A64m"
+  CARDANO_RTS_OPTS="-N4 -A64m -c"
 fi
 
 if [[ -z $CARDANO_BLOCK_PRODUCER ]]; then
