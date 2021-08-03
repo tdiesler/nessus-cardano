@@ -40,6 +40,20 @@ if [[ -z $CARDANO_PORT ]]; then
   CARDANO_PORT=3001
 fi
 
+# https://github.com/input-output-hk/cardano-node/blob/master/nix/nixos/cardano-node-service.nix#L401
+# https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/runtime_control.html
+#
+# -N4                                 Default to multi-core machine
+# -A64m                               Set the allocation area size used by the garbage collector. (default 1m)
+# -qg                                 Turn off the parallel GC completely
+# -qb                                 Disable load-balancing in the parallel GC
+# --disable-delayed-os-memory-return  More accurate memory usage stats in memory usage reporting tools
+#
+if [[ -z $CARDANO_RTS_OPTS ]]; then
+  # CARDANO_RTS_OPTS="-N2 -A16m -qg -qb --disable-delayed-os-memory-return"
+  CARDANO_RTS_OPTS="-N4 -A64m"
+fi
+
 if [[ -z $CARDANO_BLOCK_PRODUCER ]]; then
   CARDANO_BLOCK_PRODUCER=false
 fi
@@ -112,6 +126,7 @@ printRunEnv () {
   echo "CARDANO_CUSTOM_PEERS=$CARDANO_CUSTOM_PEERS"
   echo "CARDANO_UPDATE_TOPOLOGY=$CARDANO_UPDATE_TOPOLOGY"
   echo "CARDANO_BLOCK_PRODUCER=$CARDANO_BLOCK_PRODUCER"
+  echo "CARDANO_RTS_OPTS=$CARDANO_RTS_OPTS"
 
   if [[ $CARDANO_BLOCK_PRODUCER == true ]]; then
 
@@ -207,6 +222,7 @@ runRelayNode () {
     --port $CARDANO_PORT)
 
   effopts+=(${options[@]})
+  effopts+=("+RTS" ${rtsopts[@]} "-RTS")
 
   echo "cardano-node run ${effopts[@]}"
   exec /usr/local/bin/cardano-node run "${effopts[@]}"
@@ -228,6 +244,7 @@ runBlockProducerNode () {
     --shelley-operational-certificate $CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE)
 
   effopts+=(${options[@]})
+  effopts+=("+RTS" ${rtsopts[@]} "-RTS")
 
   echo "cardano-node run ${effopts[@]}"
   exec /usr/local/bin/cardano-node run "${effopts[@]}"
@@ -311,6 +328,9 @@ if [[ -z $CARDANO_PUBLIC_IP && -n $KUBERNETES_SERVICE_HOST ]]; then
     echo "[Warning] Cannot access the Pod's service account"
   fi
 fi
+
+# Read the RTS options into an array
+read -ra rtsopts <<< ${CARDANO_RTS_OPTS}
 
 printRunEnv
 writeRootEnv
