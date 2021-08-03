@@ -1,6 +1,6 @@
 cabal-version: 2.4
 
-name:                   plutus-alwaysfails
+name:                   plutus-example
 version:                1.27.0
 description:            End to end examples of creating and executing Plutus scripts.
 author:                 IOHK
@@ -45,7 +45,8 @@ library
 
   hs-source-dirs:       src
 
-  exposed-modules:      Cardano.PlutusExample.AlwaysFails
+  exposed-modules:      Cardano.PlutusExample.LockingScript
+                        Cardano.PlutusExample.MintingScript
 
   build-depends:        bytestring
                       , cardano-api
@@ -57,17 +58,29 @@ library
                       , plutus-tx-plugin
                       , serialise
 
-executable plutus-alwaysfails
+  ghc-options: -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+
+executable plutus-example
   import:               base, project-config
   hs-source-dirs:       app
-  main-is:              plutus-alwaysfails.hs
+  main-is:              plutus-example.hs
   ghc-options:          -threaded -rtsopts "-with-rtsopts=-T"
 
   build-depends:        cardano-api
                       , cardano-ledger-alonzo
-                      , plutus-alwaysfails
+                      , plutus-example
                       , plutus-ledger-api
+
+executable plutus-minting-example
+  import:               base, project-config
+  hs-source-dirs:       app
+  main-is:              plutus-minting-example.hs
+  ghc-options:          -threaded -rtsopts "-with-rtsopts=-T"
+
+  build-depends:        aeson
+                      , cardano-api
+                      , cardano-ledger-alonzo
+                      , plutus-example
+                      , plutus-ledger-api
+                      , plutus-tx
                       , bytestring
-
-
-
