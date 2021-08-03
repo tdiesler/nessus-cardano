@@ -209,7 +209,7 @@ runRelayNode () {
   effopts+=(${options[@]})
 
   echo "cardano-node run ${effopts[@]}"
-  exec /usr/local/bin/cardano-node run ${effopts[@]}
+  exec /usr/local/bin/cardano-node run "${effopts[@]}"
 }
 
 #####################################################################
@@ -230,7 +230,7 @@ runBlockProducerNode () {
   effopts+=(${options[@]})
 
   echo "cardano-node run ${effopts[@]}"
-  exec /usr/local/bin/cardano-node run ${effopts[@]}
+  exec /usr/local/bin/cardano-node run "${effopts[@]}"
 }
 
 # Shift the first option by one index
