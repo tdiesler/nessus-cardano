@@ -94,8 +94,8 @@ RUN echo "  flags: -external-libsodium-vrf" >> cabal.project.local
 
 RUN cabal build all
 
-RUN cp dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-node-${CARDANO_VER}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
-RUN cp dist-newstyle/build/${ARCH}-linux/ghc-${GHC_VER}/cardano-cli-${CARDANO_VER}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
+RUN cp $(find ./dist-newstyle/build -type f -name "cardano-node") /usr/local/bin/
+RUN cp $(find ./dist-newstyle/build -type f -name "cardano-cli") /usr/local/bin/
 
 WORKDIR /root
 

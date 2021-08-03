@@ -26,10 +26,8 @@ docker run --detach \
   --name=mmonit \
   -p 8080:8080 \
   --restart=always \
-  -v $HOME/mmonit/conf/license.xml:${LICENSE} \
+  -v ~/mmonit/conf/license.xml:${LICENSE} \
   nessusio/mmonit -i
-
-docker exec -it mmonit cat ${LICENSE}
 
 docker logs -f mmonit
 

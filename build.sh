@@ -21,12 +21,11 @@ function buildCardanoNodeArm64 () {
     CABAL_VER="3.4.0.0"
 
     docker build \
-      --build-arg CARDANO_BUILD_VER=${CARDANO_BUILD_VER} \
-      --build-arg CARDANO_VER=${CARDANO_VER} \
-      --build-arg CABAL_VER=${CABAL_VER} \
-      --build-arg GHC_VER=${GHC_VER} \
-      --build-arg ARCH=${ARCH} \
-      --tag ${AUX_IMAGE_NAME} \
+      --build-arg CARDANO_VER="${CARDANO_VER}" \
+      --build-arg CABAL_VER="${CABAL_VER}" \
+      --build-arg GHC_VER="${GHC_VER}" \
+      --build-arg ARCH="${ARCH}" \
+      --tag "${AUX_IMAGE_NAME}" \
       ./nix/cardano
 
     if [ $? -ne 0 ]; then
@@ -65,8 +64,8 @@ function buildBaseImage () {
   if [[ ! -f ${dockerSaveFile} ]]; then
 
     docker build \
-      --build-arg LNAV_VER=${LNAV_VER} \
-      --tag ${AUX_IMAGE_NAME} \
+      --build-arg LNAV_VER="${LNAV_VER}" \
+      --tag "${AUX_IMAGE_NAME}" \
       ./nix/docker/baseImage
 
     if [ $? -ne 0 ]; then
@@ -89,16 +88,16 @@ function buildImage () {
   push=$2
 
   if [[ $shortName == "cardano-node" || $shortName == "cardano-tools" ]]; then
-    VERSION_MAJOR=${CARDANO_VER}
-    VERSION_REV=${CARDANO_REV}
+    VERSION_MAJOR="${CARDANO_VER}"
+    VERSION_REV="${CARDANO_REV}"
 
   elif [[ $shortName == "mmonit" ]]; then
-    VERSION_MAJOR=${MMONIT_VER}
-    VERSION_REV=${MMONIT_REV}
+    VERSION_MAJOR="${MMONIT_VER}"
+    VERSION_REV="${MMONIT_REV}"
 
   elif [[ $shortName == "monit" ]]; then
-    VERSION_MAJOR=${MONIT_VER}
-    VERSION_REV=${MONIT_REV}
+    VERSION_MAJOR="${MONIT_VER}"
+    VERSION_REV="${MONIT_REV}"
 
   else
       echo "[Error] Illegal argument: $1"
@@ -106,7 +105,8 @@ function buildImage () {
       exit 1
   fi
 
-  FULL_ARCH_VERSION="${VERSION_MAJOR}${VERSION_REV}-${ARCH_SUFFIX}"
+  FULL_VERSION="${VERSION_MAJOR}${VERSION_REV}"
+  FULL_ARCH_VERSION="${FULL_VERSION}-${ARCH_SUFFIX}"
 
   IMAGE_NAME="nessusio/${shortName}"
   FULL_IMAGE_NAME="${IMAGE_NAME}:${FULL_ARCH_VERSION}"
@@ -128,36 +128,34 @@ function buildImage () {
     fi
 
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/node \
-      --argstr cardanoBuildVersion ${CARDANO_BUILD_VER} \
-      --argstr cardanoVersion ${CARDANO_VER} \
-      --argstr cardanoRev ${CARDANO_REV} \
-      --argstr debianVersion ${DEBIAN_VER} \
-      --argstr cabalVersion ${CABAL_VER} \
-      --argstr ghcVersion ${GHC_VER} \
-      --argstr imageArch ${ARCH_SUFFIX}`
+      --argstr cardanoVersion "${CARDANO_VER}" \
+      --argstr cardanoRev "${CARDANO_REV}" \
+      --argstr debianVersion "${DEBIAN_VER}" \
+      --argstr cabalVersion "${CABAL_VER}" \
+      --argstr ghcVersion "${GHC_VER}" \
+      --argstr imageArch "${ARCH_SUFFIX}"`
 
   elif [[ $shortName == "cardano-tools" ]]; then
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/tools \
-      --argstr cardanoBuildVersion ${CARDANO_BUILD_VER} \
-      --argstr cardanoVersion ${CARDANO_VER} \
-      --argstr cardanoRev ${CARDANO_REV} \
-      --argstr debianVersion ${DEBIAN_VER} \
-      --argstr cncliVersion ${CNCLI_VER} \
-      --argstr cabalVersion ${CABAL_VER} \
-      --argstr ghcVersion ${GHC_VER} \
-      --argstr imageArch ${ARCH_SUFFIX}`
+      --argstr cardanoVersion "${CARDANO_VER}" \
+      --argstr cardanoRev "${CARDANO_REV}" \
+      --argstr debianVersion "${DEBIAN_VER}" \
+      --argstr cncliVersion "${CNCLI_VER}" \
+      --argstr cabalVersion "${CABAL_VER}" \
+      --argstr ghcVersion "${GHC_VER}" \
+      --argstr imageArch "${ARCH_SUFFIX}"`
 
   elif [[ $shortName == "mmonit" ]]; then
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/mmonit \
-      --argstr mmonitVersion ${MMONIT_VER} \
-      --argstr mmonitRevision ${MMONIT_REV} \
-      --argstr imageArch ${ARCH_SUFFIX}`
+      --argstr mmonitVersion "${MMONIT_VER}" \
+      --argstr mmonitRevision "${MMONIT_REV}" \
+      --argstr imageArch "${ARCH_SUFFIX}"`
 
   elif [[ $shortName == "monit" ]]; then
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/monit \
-      --argstr monitVersion ${MONIT_VER} \
-      --argstr monitRevision ${MONIT_REV} \
-      --argstr imageArch ${ARCH_SUFFIX}`
+      --argstr monitVersion "${MONIT_VER}" \
+      --argstr monitRevision "${MONIT_REV}" \
+      --argstr imageArch "${ARCH_SUFFIX}"`
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -168,10 +166,40 @@ function buildImage () {
   echo "Loading image ..."
   docker load -i ${IMAGEPATH}
 
-  if [[ ${VERSION_REV} != "dev" ]]; then
+  MAJOR_ARCH_VERSION="${VERSION_MAJOR}-${ARCH_SUFFIX}"
+  LATEST_ARCH_VERSION="latest-${ARCH_SUFFIX}"
+  DEV_ARCH_VERSION="dev-${ARCH_SUFFIX}"
 
-    MAJOR_ARCH_VERSION="${VERSION_MAJOR}-${ARCH_SUFFIX}"
-    LATEST_ARCH_VERSION="latest-${ARCH_SUFFIX}"
+  if [[ "${VERSION_REV}" == "" ]]; then
+
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:dev"
+
+    echo "Tagged image: ${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:dev"
+
+    if [[ $push == true ]]; then
+      docker push "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:dev"
+    fi
+
+  elif [[ "${VERSION_REV}" == "dev" ]]; then
+
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:dev"
+
+    echo "Tagged image: ${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:dev"
+
+    if [[ $push == true ]]; then
+      docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:dev"
+    fi
+
+  else
 
     # Tag with arch suffix
     docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
@@ -186,21 +214,6 @@ function buildImage () {
       docker push "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
       docker push "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
       docker push "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
-    fi
-
-  else
-
-    DEV_ARCH_VERSION="dev-${ARCH_SUFFIX}"
-
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:dev"
-
-    echo "Tagged image: ${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-    echo "Tagged image: ${IMAGE_NAME}:dev"
-
-    if [[ $push == true ]]; then
-      docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-      docker push "${IMAGE_NAME}:dev"
     fi
   fi
 }

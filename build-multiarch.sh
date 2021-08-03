@@ -55,17 +55,21 @@ function buildImage () {
       exit 1
   fi
 
-  FULL_VERSION="${VERSION_MAJOR}${VERSION_REV}"
+  if [[ "${VERSION_REV}" == "" ]]; then
 
-  if [[ ${VERSION_MINOR} != "dev" ]]; then
-
-    buildManifest ${shortName} ${FULL_VERSION}
     buildManifest ${shortName} ${VERSION_MAJOR}
-    buildManifest ${shortName} "latest"
+    buildManifest ${shortName} "dev"
+
+  elif [[ "${VERSION_REV}" == "dev" ]]; then
+
+    buildManifest ${shortName} "dev"
 
   else
 
-    buildManifest ${shortName} "dev"
+    FULL_VERSION="${VERSION_MAJOR}${VERSION_REV}"
+
+    buildManifest ${shortName} ${FULL_VERSION}
+    buildManifest ${shortName} "latest"
 
   fi
 }
