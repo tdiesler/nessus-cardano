@@ -27,7 +27,7 @@ function buildManifest() {
       exit 1
   fi
 
-  if [[ $PUSH == true ]]; then
+  if [[ $push == true ]]; then
     echo "docker manifest push ${IMAGE_NAME}:${IMAGE_TAG}"
     docker manifest push "${IMAGE_NAME}:${IMAGE_TAG}"
   fi
@@ -51,37 +51,42 @@ function buildImage () {
 
   else
       echo "[Error] Illegal argument: $1"
-      echo "Usage: $0 [cardano-node|cardano-tools|mmonit|monit] [push]"
+      echo "Usage: $0 [all|cardano-node|cardano-tools|mmonit|monit] [push]"
       exit 1
   fi
 
   if [[ "${VERSION_REV}" == "" ]]; then
+    FULL_VERSION="${VERSION_MAJOR}"
+    LATEST_VERSION="latest"
 
-    buildManifest ${shortName} ${VERSION_MAJOR}
-    buildManifest ${shortName} "dev"
-
-  elif [[ "${VERSION_REV}" == "dev" ]]; then
-
-    buildManifest ${shortName} "dev"
+  elif [[ "${VERSION_REV}" == "-dev" ]]; then
+    FULL_VERSION="${VERSION_MAJOR}-dev"
+    LATEST_VERSION="dev"
 
   else
-
     FULL_VERSION="${VERSION_MAJOR}${VERSION_REV}"
+    LATEST_VERSION="latest"
+  fi
 
-    buildManifest ${shortName} ${FULL_VERSION}
-    buildManifest ${shortName} "latest"
+  if [[ "${VERSION_REV}" == "" || "${VERSION_REV}" == "-dev" ]]; then
+    buildManifest ${shortName} "${FULL_VERSION}"
+    buildManifest ${shortName} "${LATEST_VERSION}"
 
+  else
+    buildManifest ${shortName} "${FULL_VERSION}"
+    buildManifest ${shortName} "${VERSION_MAJOR}"
+    buildManifest ${shortName} "${LATEST_VERSION}"
   fi
 }
 
 if (( $# < 1 )); then
     echo "[Error] Illegal number of arguments."
-    echo "Usage: $0 [cardano-node|cardano-tools|mmonit|monit] [push]"
+    echo "Usage: $0 [all|cardano-node|cardano-tools|mmonit|monit] [push]"
     exit 1
 fi
 
 shortName=$1
-PUSH=$2
+push=$2
 
 if [[ $shortName == "all" ]]; then
   buildImage "cardano-node"

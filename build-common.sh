@@ -1,12 +1,7 @@
 #!/bin/bash
 
 CARDANO_VER="1.28.0"
-#CARDANO_REV="-rev2"
-CARDANO_REV=""
-
-# https://github.com/tstack/lnav
-DEBIAN_VER="10"
-LNAV_VER="0.9.0"
+CARDANO_REV="-dev"
 
 # https://mmonit.com/monit/#download
 MONIT_VER="5.28.0"
@@ -15,6 +10,10 @@ MONIT_REV="-rev4"
 # https://mmonit.com/download
 MMONIT_VER="3.7.7"
 MMONIT_REV="-rev4"
+
+# https://github.com/tstack/lnav
+DEBIAN_VER="10"
+LNAV_VER="0.9.0"
 
 # https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L57
 GLVIEW_VER="1.20.10"

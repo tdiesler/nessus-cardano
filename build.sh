@@ -101,12 +101,25 @@ function buildImage () {
 
   else
       echo "[Error] Illegal argument: $1"
-      echo "Usage: $0 [cardano-node|cardano-tools|mmonit|monit] [push]"
+      echo "Usage: $0 [all|cardano-node|cardano-tools|mmonit|monit] [push]"
       exit 1
   fi
 
-  FULL_VERSION="${VERSION_MAJOR}${VERSION_REV}"
+  if [[ "${VERSION_REV}" == "" ]]; then
+    FULL_VERSION="${VERSION_MAJOR}"
+    LATEST_VERSION="latest"
+
+  elif [[ "${VERSION_REV}" == "-dev" ]]; then
+    FULL_VERSION="${VERSION_MAJOR}-dev"
+    LATEST_VERSION="dev"
+
+  else
+    FULL_VERSION="${VERSION_MAJOR}${VERSION_REV}"
+    LATEST_VERSION="latest"
+  fi
+
   FULL_ARCH_VERSION="${FULL_VERSION}-${ARCH_SUFFIX}"
+  LATEST_ARCH_VERSION="${LATEST_VERSION}-${ARCH_SUFFIX}"
 
   IMAGE_NAME="nessusio/${shortName}"
   FULL_IMAGE_NAME="${IMAGE_NAME}:${FULL_ARCH_VERSION}"
@@ -166,61 +179,57 @@ function buildImage () {
   echo "Loading image ..."
   docker load -i ${IMAGEPATH}
 
-  MAJOR_ARCH_VERSION="${VERSION_MAJOR}-${ARCH_SUFFIX}"
-  LATEST_ARCH_VERSION="latest-${ARCH_SUFFIX}"
-  DEV_ARCH_VERSION="dev-${ARCH_SUFFIX}"
+  if [[ "${VERSION_REV}" == "" || "${VERSION_REV}" == "-dev" ]]; then
 
-  if [[ "${VERSION_REV}" == "" ]]; then
+    # Tag images aliases
+    # docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${FULL_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${LATEST_VERSION}"
 
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:dev"
-
-    echo "Tagged image: ${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
-    echo "Tagged image: ${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-    echo "Tagged image: ${IMAGE_NAME}:dev"
+    echo "Tagged image: ${IMAGE_NAME}:${FULL_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:${LATEST_VERSION}"
 
     if [[ $push == true ]]; then
-      docker push "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
-      docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-      docker push "${IMAGE_NAME}:dev"
-    fi
-
-  elif [[ "${VERSION_REV}" == "dev" ]]; then
-
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:dev"
-
-    echo "Tagged image: ${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-    echo "Tagged image: ${IMAGE_NAME}:dev"
-
-    if [[ $push == true ]]; then
-      docker push "${IMAGE_NAME}:${DEV_ARCH_VERSION}"
-      docker push "${IMAGE_NAME}:dev"
+      docker push "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:${FULL_VERSION}"
+      docker push "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:${LATEST_VERSION}"
     fi
 
   else
 
-    # Tag with arch suffix
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
-    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:latest"
+    MAJOR_ARCH_VERSION="${VERSION_MAJOR}-${ARCH_SUFFIX}"
 
+    # Tag images aliases
+    # docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${FULL_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${VERSION_MAJOR}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
+    docker tag ${FULL_IMAGE_NAME} "${IMAGE_NAME}:${LATEST_VERSION}"
+
+    echo "Tagged image: ${IMAGE_NAME}:${FULL_VERSION}"
     echo "Tagged image: ${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+    echo "Tagged image: ${IMAGE_NAME}:${VERSION_MAJOR}"
     echo "Tagged image: ${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
-    echo "Tagged image: ${IMAGE_NAME}:latest"
+    echo "Tagged image: ${IMAGE_NAME}:${LATEST_VERSION}"
 
     if [[ $push == true ]]; then
       docker push "${IMAGE_NAME}:${FULL_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:${FULL_VERSION}"
       docker push "${IMAGE_NAME}:${MAJOR_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:${VERSION_MAJOR}"
       docker push "${IMAGE_NAME}:${LATEST_ARCH_VERSION}"
+      docker push "${IMAGE_NAME}:${LATEST_VERSION}"
     fi
   fi
 }
 
 if (( $# < 1 )); then
     echo "[Error] Illegal number of arguments."
-    echo "Usage: $0 [cardano-node|cardano-tools|mmonit|monit] [push]"
+    echo "Usage: $0 [all|cardano-node|cardano-tools|mmonit|monit] [push]"
     exit 1
 fi
 
