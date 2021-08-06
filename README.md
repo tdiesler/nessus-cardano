@@ -6,7 +6,7 @@ This is our contribution to "Making The World Work Better For All".
 
 Initially, we focus on a "container first" approach for the Cardano node.
 
-## Running a Relay Node
+## Running a Node
 
 To get up and running with [Cardano](https://cardano.org), you can spin up a node like this ...
 
@@ -15,6 +15,7 @@ docker run --detach \
     --name=relay \
     -p 3001:3001 \
     -v node-data:/opt/cardano/data \
+    -v node-ipc:/opt/cardano/ipc \
     nessusio/cardano-node run
 
 docker logs -f relay
@@ -22,9 +23,10 @@ docker logs -f relay
 
 This works on [x86_64](https://hub.docker.com/r/nessusio/cardano-node/tags?name=amd64) and [arm64](https://hub.docker.com/r/nessusio/cardano-node/tags?name=arm64).
 
-The [nessusio/cardano-node](https://hub.docker.com/r/nessusio/cardano-node) image is built from source in a multiple stages like [this](node/docker/Dockerfile).
+The [nessusio/cardano-node](https://hub.docker.com/r/nessusio/cardano-node) image is built from source in multiple stages like [this](nix/cardano/Dockerfile) and then
+with [Nix](https://nixos.org) like [this](nix/docker/node/default.nix).
 
-## Running a Relay Node on the Testnet
+## Running a Node on the Testnet
 
 ```
 docker run --detach \
