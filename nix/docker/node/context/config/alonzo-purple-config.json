@@ -1,18 +1,25 @@
 {
-  "AlonzoGenesisFile": "mainnet-alonzo-genesis.json",
+  "AlonzoGenesisFile": "alonzo-purple-alonzo-genesis.json",
   "AlonzoGenesisHash": "44d65c89cce5f717e839a86fed28af924252ff46eca5aaf15b47ec0dd6a59578",
   "ApplicationName": "cardano-sl",
-  "ApplicationVersion": 1,
-  "ByronGenesisFile": "mainnet-byron-genesis.json",
-  "ByronGenesisHash": "5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb",
+  "ApplicationVersion": 0,
+  "ByronGenesisFile": "alonzo-purple-byron-genesis.json",
+  "ByronGenesisHash": "6d58e8c626cb355ac2a4b040e1adb8266753a69f63593274e4558d6bd0c41eac",
   "LastKnownBlockVersion-Alt": 0,
-  "LastKnownBlockVersion-Major": 3,
-  "LastKnownBlockVersion-Minor": 0,
-  "MaxKnownMajorProtocolVersion": 2,
+  "LastKnownBlockVersion-Major": 5,
+  "LastKnownBlockVersion-Minor": 1,
+  "MaxKnownMajorProtocolVersion": 5,
+  "PBftSignatureThreshold": 1.1,
   "Protocol": "Cardano",
-  "RequiresNetworkMagic": "RequiresNoMagic",
-  "ShelleyGenesisFile": "mainnet-shelley-genesis.json",
-  "ShelleyGenesisHash": "1a3be38bcbb7911969283716ad7aa550250226b76a61fc51cc9a9a35d9276d81",
+  "RequiresNetworkMagic": "RequiresMagic",
+  "ShelleyGenesisFile": "alonzo-purple-shelley-genesis.json",
+  "ShelleyGenesisHash": "b143c75727f4b2fb372db713e719f9b958bb428e305a668bda6190443db4c191",
+  "TestAllegraHardForkAtEpoch": 2,
+  "TestAlonzoHardForkAtEpoch": 4,
+  "TestEnableDevelopmentHardForkEras": true,
+  "TestEnableDevelopmentNetworkProtocols": true,
+  "TestMaryHardForkAtEpoch": 3,
+  "TestShelleyHardForkAtEpoch": 1,
   "TraceBlockFetchClient": false,
   "TraceBlockFetchDecisions": false,
   "TraceBlockFetchProtocol": false,
@@ -58,6 +65,10 @@
     [
       "StdoutSK",
       "stdout"
+    ],
+    [
+      "FileSK",
+      "/opt/cardano/logs/debug.log"
     ]
   ],
   "hasEKG": [
@@ -68,7 +79,7 @@
     "0.0.0.0",
     12798
   ],
-  "minSeverity": "Info",
+  "minSeverity": "Debug",
   "options": {
     "mapBackends": {
       "cardano.node.metrics": [

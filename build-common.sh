@@ -1,6 +1,7 @@
 #!/bin/bash
 
-CARDANO_VER="1.28.0"
+# Also change HaskellNix in nix/sources.json
+CARDANO_VER="alonzo-purple-1.0.1"
 CARDANO_REV="-dev"
 
 # https://mmonit.com/monit/#download
