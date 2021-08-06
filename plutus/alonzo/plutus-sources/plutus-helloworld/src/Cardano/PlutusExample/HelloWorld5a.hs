@@ -32,8 +32,8 @@ import           PlutusTx.Prelude     as P hiding (Semigroup (..), unless)
 
 globalMapping :: [(PubKeyHash, P.ByteString)]
 globalMapping = [
-  ("cd117d5746886fc8359c09856414783b726d2868a6f43d65ef9f57ff", "secret1"),
-  ("b1dfb0f0df030c0af70f26eaf5928637bdb3fe169f6fd045e59ce95a", "secret2")]
+  ("e0448e90c094d9a7aeed6ee3cd0a468110928696e38a9d654f1940f0", "secret1"),
+  ("8360ed22cc176a40179ec8e8e75c13e798b31223adf789837e65c358", "secret2")]
 
 {-
    The Hello World validator script

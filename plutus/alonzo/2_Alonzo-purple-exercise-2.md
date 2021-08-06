@@ -1,8 +1,8 @@
-# Alonzo White Testnet Exercise 2 (Optional): "The Hard Fork to Alonzo"
+# Alonzo Purple Testnet Exercise 2 (Optional): "The Hard Fork to Alonzo"
 
 7. Additional Exercise (Moderate)
 
-	Use some of your test ada to build and submit a simple transaction before and after the hard fork (eg a funds transfer from your original payment address to a new address that you have created - don’t try to run a Plutus script yet – we will do that in [Exercise Sheet 3](3_Alonzo-white-exercise-3.md)!).  Do you notice any differences between the two transactions (inspect the files that are built by the transaction build-raw and transaction sign commands)?  How do you check whether your transactions have succeeded?
+	Use some of your test ada to build and submit a simple transaction before and after the hard fork (eg a funds transfer from your original payment address to a new address that you have created - don’t try to run a Plutus script yet – we will do that in [Exercise Sheet 3](3_Alonzo-purple-exercise-3.md)!).  Do you notice any differences between the two transactions (inspect the files that are built by the transaction build-raw and transaction sign commands)?  How do you check whether your transactions have succeeded?
 
   Now that we have gone through the hard fork into Alonzo, the next exercise will involve building, signing and submitting simple Plutus transactions using your own node.  
 
@@ -16,7 +16,7 @@ alias cardano-cli="docker run -it --rm \
 
 cardano-cli query protocol-parameters \
   --out-file /var/cardano/local/scratch/protocol.json \
-  --testnet-magic 7
+  --testnet-magic 8
 ```
 
 ## Query account balance
@@ -29,12 +29,12 @@ echo "${STAKE_ADDR0} => ${PAYMENT_ADDR0}"
 # Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR0 \
-  --testnet-magic 7
+  --testnet-magic 8
 
 # Query rewards
 cardano-cli query stake-address-info \
     --address $STAKE_ADDR0 \
-    --testnet-magic 7
+    --testnet-magic 8
 ```
 
 ## Send some funds
@@ -43,7 +43,7 @@ cardano-cli query stake-address-info \
 # Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR0 \
-  --testnet-magic 7
+  --testnet-magic 8
 
 TO_ADDR1=$(cat ~/cardano/keys/alonzo/acc1/payment.addr)
 
@@ -53,14 +53,13 @@ SEND_LVC1=2000000000
 SEND_LVC2=2000000000
 SEND_LVC3=2000000000
 SEND_LVC4=2000000000
-REFUND_LVC=$((1999800000 + 9902260891668 - $SEND_LVC1 - $SEND_LVC2 - $SEND_LVC3 - $SEND_LVC4 - $FEES_LVC))
+REFUND_LVC=$((999497600000 - $SEND_LVC1 - $SEND_LVC2 - $SEND_LVC3 - $SEND_LVC4 - $FEES_LVC))
 echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
 cardano-cli transaction build-raw \
   --alonzo-era \
-  --tx-in "65fb041aa48fedeec58343693b9fdd6273201131a41cc21d49c20fc6e762d6b6#0" \
-  --tx-in "cd1617f8203a886fcf74b8a3fba2bc4f4eefee2d79c5f3bf2d9432044a7033f6#4" \
+  --tx-in "245411cbf0de4daee0a476946b1cd82b0073a0b89c0d8590a8f6689e37954974#0" \
   --tx-out $TO_ADDR1+$SEND_LVC1 \
   --tx-out $TO_ADDR1+$SEND_LVC2 \
   --tx-out $TO_ADDR1+$SEND_LVC3 \
@@ -74,7 +73,7 @@ cardano-cli transaction build-raw \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 7
+  --testnet-magic 8
 ```
 
 ## Send all funds
@@ -83,7 +82,7 @@ cardano-cli transaction build-raw \
 # Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
-  --testnet-magic 7 | sort
+  --testnet-magic 8 | sort
 
 TO_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
 
@@ -106,7 +105,7 @@ cardano-cli transaction build-raw \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 7
+  --testnet-magic 8
 ```
 
 ## Withdraw rewards
@@ -115,12 +114,12 @@ cardano-cli transaction build-raw \
 # Query rewards
 cardano-cli query stake-address-info \
     --address $STAKE_ADDR \
-    --testnet-magic 7
+    --testnet-magic 8
 
 # Query payment addr
 cardano-cli query utxo \
     --address $PAYMENT_ADDR \
-    --testnet-magic 7
+    --testnet-magic 8
 
 TX_IN1="7962075bc605010fcab7aec2d4aafa8f5c7460cc866ceb87e82359eb8594e0d6#1"
 UTXO_LVC=9998096244191
@@ -149,7 +148,7 @@ cardano-cli transaction sign \
 # Submit the transaction
 cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 7
+  --testnet-magic 8
 ```
 
 ## Check the balances
@@ -157,16 +156,16 @@ cardano-cli transaction submit \
 ```
 # Query payment addr
 cardano-cli query utxo \
-  --address $PAYMENT_ADDR \
-  --testnet-magic 7
+  --address $PAYMENT_ADDR0 \
+  --testnet-magic 8
 
 # Query target addr
 cardano-cli query utxo \
-  --address $TO_ADDR \
-  --testnet-magic 7
+  --address $TO_ADDR1 \
+  --testnet-magic 8
 
 # Query rewards
 cardano-cli query stake-address-info \
-  --address $STAKE_ADDR \
-  --testnet-magic 7
+  --address $STAKE_ADDR0 \
+  --testnet-magic 8
 ```

@@ -1,14 +1,14 @@
-# Alonzo White Testnet Exercise Sheet 6: "Simple DApps" #
+# Alonzo Purple Testnet Exercise Sheet 6: "Simple DApps" #
 
 In the previous set of exercises, you interacted with native tokens. In this set of exercises, you will build some more substantial applications.
 
 ## Prerequisites ##
 
-1. Complete [Exercise Sheet 5](5_Alonzo-white-exercise-5.md)
+1. Complete [Exercise Sheet 5](5_Alonzo-purple-exercise-5.md)
 
 2. Start a passive Cardano Node if you need to, and make sure that it has synced with the Testnet.
 
-3. Make sure you have some Alonzo White Test Ada
+3. Make sure you have some Alonzo Purple Test Ada
 
 ## Objectives ##
 
@@ -44,6 +44,8 @@ In this set of exercises, we will make sure that you can:
 - Via the Discord channels for general questions.
 
 - Via the issue tracker at [https://github.com/input-output-hk/cardano-node/issues](https://github.com/input-output-hk/cardano-node/issues) for any bugs in the node etc.  Please tag them as Alonzo-related.
+
+- Via the issue tracker at [https://github.com/input-output-hk/plutus/issues](https://github.com/input-output-hk/plutus/issues) for any bugs or feature requests with plutus, playground, PAB etc.
 
 - Via the issue tracker at [https://github.com/input-output-hk/Alonzo-testnet/issues](https://github.com/input-output-hk/Alonzo-testnet/issues) for any issues with the exercises.
 

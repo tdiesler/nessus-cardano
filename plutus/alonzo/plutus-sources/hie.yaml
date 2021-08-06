@@ -5,6 +5,12 @@
 #
 cradle:
   cabal:
+    - path: "plutus-alwayssucceeds/src"
+      component: "lib:plutus-alwayssucceeds"
+
+    - path: "plutus-alwayssucceeds/app/plutus-alwayssucceeds.hs"
+      component: "plutus-alwayssucceeds:exe:plutus-alwayssucceeds"
+
     - path: "plutus-helloworld/src"
       component: "lib:plutus-helloworld"
 

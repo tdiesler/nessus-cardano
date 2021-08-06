@@ -31,7 +31,7 @@ import           PlutusTx.Prelude as P hiding (Semigroup (..), unless)
 
 
 {-
-  Some expected message as a bytestring
+  The "hello world" message as a bytestring
 -}
 
 helloMessage :: P.ByteString

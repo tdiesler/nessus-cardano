@@ -21,20 +21,21 @@ import qualified Data.ByteString.Short as SBS
 import qualified Data.ByteString.Lazy  as LBS
 
 import qualified Plutus.V1.Ledger.Scripts as Plutus
-import           PlutusTx (Data (..))
 import qualified PlutusTx
 import           PlutusTx.Prelude as P hiding (Semigroup (..), unless)
 
 
 {-
-  The "Hello!" message as a data item - converted to an Integer.
+  The "hello world" message as a data item - converted to
+  an Integer and shortened to fit within the 8-byte limit
+  for an "int" datum.
 
   See HelloWorldByteStringParametric.hs for an example of how to
   check a bytestring datume by passing a parameter to a validator.
 -}
 
-hello :: Data
-hello = I 0x48656c6c6f21
+hello :: BuiltinData
+hello = PlutusTx.toBuiltinData (0x48656c6c6f21 :: Integer)
 
 {-
    The Hello World validator script
@@ -42,7 +43,7 @@ hello = I 0x48656c6c6f21
 
 {-# INLINABLE helloWorld #-}
 
-helloWorld :: Data -> Data -> Data -> ()
+helloWorld :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 helloWorld datum _ _ = if datum P.== hello then () else P.error ()
 
 {-
