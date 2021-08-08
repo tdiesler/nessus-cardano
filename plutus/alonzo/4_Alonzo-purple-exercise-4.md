@@ -562,9 +562,9 @@ cardano-cli transaction build-raw \
   --testnet-magic 8
 ```
 
-## 5a Set up new payment addresses for wallet1 & wallet2
+## 5 Set up new payment addresses for wallet1 & wallet2
 
-5. Set up three new payment addresses: `payment.addr`, `wallet1.addr`, and `wallet2.addr` using the node CLI commands.  
+Set up three new payment addresses: `payment.addr`, `wallet1.addr`, and `wallet2.addr` using the node CLI commands.  
 
 ```
 mkdir -p ~/cardano/keys/alonzo/wallets
@@ -791,7 +791,127 @@ cardano-cli query utxo \
 
 6. Produce a second transaction that sends some ada from `wallet2.addr` to `wallet1.addr` guarded by a different “secret spending key”.  Practice sending Ada between the “wallets” and observe the effect on the corresponding UTxO entries.
 
-`cardano-cli query utxo …`
+### 6a1 Lock some funds in the script
+
+Wallet2 locks 1000 ADA in the script
+
+```
+DATUM_HASH="$(cardano-cli transaction hash-script-data --script-data-value 0)" \
+  && DATUM_HASH=${DATUM_HASH:0:64} \
+  && echo "DATUM_HASH=\"$DATUM_HASH\""
+
+# Query Script UTxO
+cardano-cli query utxo \
+  --address $SCRIPT_ADDR \
+  --testnet-magic 8
+
+# Query UTxO
+cardano-cli query utxo \
+  --address $WALLET_ADDR2 \
+  --testnet-magic 8
+
+# Calculate the change to send back to PAYMENT_ADDR
+FEES_LVC=200000
+SEND_LVC=10000000
+REFUND_LVC=$((2000000000 + 10000000 - SEND_LVC - $FEES_LVC))
+echo "$REFUND_LVC Lovelace"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build-raw \
+  --alonzo-era \
+  --fee $FEES_LVC \
+  --tx-in "09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#1" \
+  --tx-in "3ada602358619cc701b7420d49cb1a7b7bd6e208a4ba7f1aff79c35261643cd4#0" \
+  --tx-out $SCRIPT_ADDR+$SEND_LVC \
+  --tx-out-datum-hash $DATUM_HASH \
+  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/wallet2.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+```
+
+### 6.2 Unlock the funds in the the script
+
+Wallet2 sends 1000 ADA from the script to wallet1
+
+```
+WALLET_ADDR1=$(cat ~/cardano/keys/alonzo/wallets/wallet1.addr)
+WALLET_ADDR2=$(cat ~/cardano/keys/alonzo/wallets/wallet2.addr)
+
+SECRET_VALUE='secret1' \
+  && SECRET_JSON=$(printf "{\"bytes\":\"%s\"}" $(echo -n $SECRET_VALUE | xxd -ps)) \
+  && echo "$SECRET_JSON" > ~/cardano/scratch/redeemer-secret2.json \
+  && echo $SECRET_JSON
+
+# Query Script UTxO
+cardano-cli query utxo \
+  --address $SCRIPT_ADDR \
+  --testnet-magic 8
+
+# Query Payment UTxO
+cardano-cli query utxo \
+  --address $WALLET_ADDR2 \
+  --testnet-magic 8
+
+TX_IN1="5f1d1def76880668f70a79965e9e01b058d47deadee4e2386a3c775d7e760b16#2"
+TX_IN1_LVC="2000000000"
+
+TX_COL="5f1d1def76880668f70a79965e9e01b058d47deadee4e2386a3c775d7e760b16#3"
+TX_COL_LVC="2000000000"
+
+TX_SCRIPT="d0527c31c1c4e502dc933f3769043e2a2dc1c0a2935ddb864bfab68292569fe1#0"
+TX_SCRIPT_LVC="10000000"
+
+# Calculate the change to send back to PAYMENT_ADDR
+ExCPU=29392000
+ExMem=7280
+ExFct=30
+UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
+FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
+REFUND_LVC=$(($TX_IN1_LVC - $FEES_LVC))
+SEND_LVC=$TX_SCRIPT_LVC
+echo "Send=$SEND_LVC, Refund=$REFUND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build-raw \
+  --alonzo-era \
+  --fee $FEES_LVC \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_SCRIPT \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld5a.plutus \
+  --tx-in-datum-value 0 \
+  --tx-in-redeemer-file /var/cardano/local/scratch/redeemer-secret2.json \
+  --tx-in-execution-units "$UNITS" \
+  --tx-in-collateral $TX_COL \
+  --tx-out $WALLET_ADDR1+$SEND_LVC \
+  --tx-out $WALLET_ADDR2+$REFUND_LVC \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/wallet2.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+```
+
+Check that the funds have been transferred correctly between the wallets.
+
+```
+# Query UTxO
+cardano-cli query utxo \
+  --address $WALLET_ADDR1 \
+  --testnet-magic 8 \
+&& cardano-cli query utxo \
+  --address $WALLET_ADDR2 \
+  --testnet-magic 8
+```
 
 7. Optional Exercise (Easy)
 
