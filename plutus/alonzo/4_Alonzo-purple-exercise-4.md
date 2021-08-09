@@ -24,7 +24,7 @@ In the fourth set of exercises, we will make sure that you can:
 ### 1.1 Compile AlwaysSucceeds
 
 ```
-cd ~/git/nessus-cardano/plutus/alonzo-purple/plutus-sources/plutus-alwayssucceeds \
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-alwayssucceeds \
   && cabal run plutus-alwayssucceeds 1 alwayssucceeds.plutus \
   && cp alwayssucceeds.plutus ../../plutus-scripts \
   && mv alwayssucceeds.plutus ~/cardano/scripts \
@@ -52,7 +52,7 @@ You may also want to inspect the Plutus Core form – this is a representation o
 ### 2.1 Compile HelloWorld (Static Value)
 
 ```
-cd ~/git/nessus-cardano/plutus/alonzo-purple/plutus-sources/plutus-helloworld \
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-helloworld \
   && cabal run plutus-helloworld 1 helloworld.plutus \
   && cp helloworld.plutus ../../plutus-scripts \
   && mv helloworld.plutus ~/cardano/scripts \
@@ -97,23 +97,18 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="902501acfd1706d60f476949ab4aee405bab422511f6b4ad0b1a3c9ec384c04a#0"
-TX_IN1_LVC="1942286100"
+TX_IN1="8869a7fd2b09021c06f262d4611e5a23b31640b1943db3aaefd79e45b8cd7c4a#1"
 
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
 SEND_LVC=100000000
-REFUND_LVC=$(($TX_IN1_LVC - SEND_LVC - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-out $SCRIPT_ADDR+$SEND_LVC \
   --tx-out-datum-hash $DATUM_HASH \
-  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -137,36 +132,26 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="07ec52f8afba48341bf956ffa2c053fe29ebf161f2767b165f11a615ec4eb196#1"
-TX_IN1_LVC="1842086100"
+TX_SCRIPT="74de20abf20fde79fa02215369764339fad60bef5a923b972140e103d9f50f4b#1"
+
+TX_IN1="74de20abf20fde79fa02215369764339fad60bef5a923b972140e103d9f50f4b#0"
 
 TX_COL="1479fbe7e80e672e6c75897185dca0ff6771e17d91cd7da175694e4b5b1c24e0#3"
-TX_COL_LVC="2000000000"
 
-TX_SCRIPT="07ec52f8afba48341bf956ffa2c053fe29ebf161f2767b165f11a615ec4eb196#0"
-TX_SCRIPT_LVC="100000000"
-
-# Calculate the change to send back to PAYMENT_ADDR
-ExCPU=2443000
-ExMem=370
-ExFct=3
-UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
-FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
-SEND_LVC=$(($TX_IN1_LVC + $TX_SCRIPT_LVC - $FEES_LVC))
-echo "Send=$SEND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+SEND_LVC=100000000
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
   --tx-in-script-file /var/cardano/local/scripts/helloworld.plutus \
   --tx-in-redeemer-value 0 \
   --tx-in-datum-value $DATUM_VALUE \
-  --tx-in-execution-units "$UNITS" \
   --tx-in-collateral $TX_COL \
   --tx-out $PAYMENT_ADDR1+$SEND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
@@ -185,7 +170,7 @@ a. To succeed if  the datum is your name
 ### 4a1 Build the validator script
 
 ```
-cd ~/git/nessus-cardano/plutus/alonzo-purple/plutus-sources/plutus-helloworld \
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-helloworld \
   && cabal run plutus-helloworld4a 1 helloworld4a.plutus \
   && cp helloworld4a.plutus ../../plutus-scripts \
   && mv helloworld4a.plutus ~/cardano/scripts \
@@ -227,23 +212,18 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="5f8cf0944f0b46909de35e316362c3067cbc51b4b34eba8b6b8643e0a9e374d0#0"
-TX_IN1_LVC="1934255990"
+TX_IN1="9a400f4711e06c2fe2e1d864dc657378600b2b80af9b353a10245696362dba21#1"
 
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
 SEND_LVC=10000000
-REFUND_LVC=$(($TX_IN1_LVC - SEND_LVC - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-out $SCRIPT_ADDR+$SEND_LVC \
   --tx-out-datum-hash $DATUM_HASH \
-  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -254,7 +234,7 @@ cardano-cli transaction build-raw \
   --testnet-magic 8
 ```
 
-### 4a3 Unlock the funds in the the script
+### 4a3 Unlock the funds in the script
 
 ```
 # Query Script UTxO
@@ -267,36 +247,26 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="be0ab2d6e22143943988af33685c6152ff7f14a191ead4a0283edc02722c4f67#1"
-TX_IN1_LVC="1924055990"
+TX_SCRIPT="07190bd04288987dc2058a0dd52c202716601d9853bed6cea2fdbb0ba2ed434c#1"
+
+TX_IN1="07190bd04288987dc2058a0dd52c202716601d9853bed6cea2fdbb0ba2ed434c#0"
 
 TX_COL="1479fbe7e80e672e6c75897185dca0ff6771e17d91cd7da175694e4b5b1c24e0#2"
-TX_COL_LVC="2000000000"
 
-TX_SCRIPT="be0ab2d6e22143943988af33685c6152ff7f14a191ead4a0283edc02722c4f67#0"
-TX_SCRIPT_LVC="10000000"
-
-# Calculate the change to send back to PAYMENT_ADDR
-ExCPU=24166000
-ExMem=5940
-ExFct=30
-UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
-FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
-SEND_LVC=$(($TX_IN1_LVC + $TX_SCRIPT_LVC - $FEES_LVC))
-echo "Send=$SEND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+SEND_LVC=10000000
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
   --tx-in-script-file /var/cardano/local/scripts/helloworld4a.plutus \
   --tx-in-datum-file /var/cardano/local/scratch/script-datum.json \
   --tx-in-redeemer-value '""' \
-  --tx-in-execution-units "$UNITS" \
   --tx-in-collateral $TX_COL \
   --tx-out $PAYMENT_ADDR1+$SEND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
@@ -313,7 +283,7 @@ cardano-cli transaction build-raw \
 b. To succeed if the redeemer is also your birthday;
 
 ```
-cd ~/git/nessus-cardano/plutus/alonzo-purple/plutus-sources/plutus-helloworld \
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-helloworld \
   && cabal run plutus-helloworld4b 1 helloworld4b.plutus \
   && cp helloworld4b.plutus ../../plutus-scripts \
   && mv helloworld4b.plutus ~/cardano/scripts \
@@ -355,23 +325,18 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="bf7034853984be0495c0fca4212945893bd25649ea04363fab1ac69a1be84d6b#0"
-TX_IN1_LVC="1208397790"
+TX_IN1="30603e9d409236bb5f64ecde37ad1f1110b0e5aafb4998f18f1b9d4b81ec9025#0"
 
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
 SEND_LVC=10000000
-REFUND_LVC=$(($TX_IN1_LVC - SEND_LVC - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-out $SCRIPT_ADDR+$SEND_LVC \
   --tx-out-datum-hash $DATUM_HASH \
-  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -382,7 +347,7 @@ cardano-cli transaction build-raw \
   --testnet-magic 8
 ```
 
-### 4b3 Unlock the funds in the the script
+### 4b3 Unlock the funds in the script
 
 ```
 # Query Script UTxO
@@ -395,36 +360,25 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="4cc71a6afb4c6afb362d8ce25f32fb025f9fac54afee81e635e9f3216c74f1e4#1"
-TX_IN1_LVC="1198197790"
+TX_SCRIPT="77203d68be18b8288805db3e67294636db65be7f9e28a0779d5c34b530f842e8#1"
+
+TX_IN1="77203d68be18b8288805db3e67294636db65be7f9e28a0779d5c34b530f842e8#0"
 
 TX_COL="1479fbe7e80e672e6c75897185dca0ff6771e17d91cd7da175694e4b5b1c24e0#3"
-TX_COL_LVC="2000000000"
 
-TX_SCRIPT="4cc71a6afb4c6afb362d8ce25f32fb025f9fac54afee81e635e9f3216c74f1e4#0"
-TX_SCRIPT_LVC="10000000"
-
-# Calculate the change to send back to PAYMENT_ADDR
-ExCPU=24634000
-ExMem=6060
-ExFct=30
-UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
-FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
-SEND_LVC=$(($TX_IN1_LVC + $TX_SCRIPT_LVC - $FEES_LVC))
-echo "Send=$SEND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+SEND_LVC=10000000
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
   --tx-in-script-file /var/cardano/local/scripts/helloworld4b.plutus \
   --tx-in-datum-file /var/cardano/local/scratch/script-datum.json \
   --tx-in-redeemer-value 29031918 \
-  --tx-in-execution-units "$UNITS" \
   --tx-in-collateral $TX_COL \
-  --tx-out $PAYMENT_ADDR1+$SEND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
@@ -443,7 +397,7 @@ c. To take a datum and a redeemer and to succeed if the redeemer is the same as 
 d. To take a datum that represents a pair of integers and a redeemer that represents a list of integers and succeed if all elements in the redeemer are within the range specified by the values in the datum.
 
 ```
-cd ~/git/nessus-cardano/plutus/alonzo-purple/plutus-sources/plutus-helloworld \
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-helloworld \
   && cabal run plutus-helloworld4d 1 helloworld4d.plutus \
   && cp helloworld4d.plutus ../../plutus-scripts \
   && mv helloworld4d.plutus ~/cardano/scripts \
@@ -481,23 +435,18 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="35616f8989a16128c86278d7f6d20d07a5c7ba9fc51b20362e4518cedeb1292e#0"
-TX_IN1_LVC="468495990"
+TX_IN1="9a400f4711e06c2fe2e1d864dc657378600b2b80af9b353a10245696362dba21#0"
 
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
 SEND_LVC=10000000
-REFUND_LVC=$(($TX_IN1_LVC - SEND_LVC - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-out $SCRIPT_ADDR+$SEND_LVC \
   --tx-out-datum-hash $DATUM_HASH \
-  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -508,7 +457,7 @@ cardano-cli transaction build-raw \
   --testnet-magic 8
 ```
 
-### 4d3 Unlock the funds in the the script
+### 4d3 Unlock the funds in the script
 
 ```
 # Query Script UTxO
@@ -521,36 +470,25 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="2710f90eb095f20583b0985694ca057db614dc3fa455637c60ab0eeb34e6b1b2#1"
-TX_IN1_LVC="458295990"
+TX_SCRIPT="06bd7251809e35f273af283a6a754c41180fd543a83a0d913d1db254a2fc1322#1"
+
+TX_IN1="cd871ba907ae54a18ae1033dd0a54645348331bfda7f7aaf7e83c0483f6b9953#0"
 
 TX_COL="1479fbe7e80e672e6c75897185dca0ff6771e17d91cd7da175694e4b5b1c24e0#3"
-TX_COL_LVC="2000000000"
 
-TX_SCRIPT="2710f90eb095f20583b0985694ca057db614dc3fa455637c60ab0eeb34e6b1b2#0"
-TX_SCRIPT_LVC="10000000"
-
-# Calculate the change to send back to PAYMENT_ADDR
-ExCPU=29509000
-ExMem=7310
-ExFct=30
-UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
-FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
-SEND_LVC=$(($TX_IN1_LVC + $TX_SCRIPT_LVC - $FEES_LVC))
-echo "Send=$SEND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+SEND_LVC=10000000
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
   --tx-in-script-file /var/cardano/local/scripts/helloworld4d.plutus \
   --tx-in-datum-value '[1,5]' \
   --tx-in-redeemer-value '[1,2,3,4]' \
-  --tx-in-execution-units "$UNITS" \
   --tx-in-collateral $TX_COL \
-  --tx-out $PAYMENT_ADDR1+$SEND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
@@ -609,17 +547,13 @@ cardano-cli query utxo \
   --testnet-magic 8
 
 TX_IN1="09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#2"
-TX_IN1_LVC="987497200000"
 
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
 SEND_LVC=2000000000
-REFUND_LVC=$(($TX_IN1_LVC - 6*$SEND_LVC - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-out $WALLET_ADDR1+$SEND_LVC \
   --tx-out $WALLET_ADDR1+$SEND_LVC \
@@ -627,8 +561,7 @@ cardano-cli transaction build-raw \
   --tx-out $WALLET_ADDR2+$SEND_LVC \
   --tx-out $WALLET_ADDR2+$SEND_LVC \
   --tx-out $WALLET_ADDR2+$SEND_LVC \
-  --tx-out $PAYMENT_ADDR0+$REFUND_LVC \
-  --fee $FEES_LVC \
+  --change-address $PAYMENT_ADDR0 \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -650,7 +583,7 @@ cardano-cli query utxo \
 Produce a transaction that sends 100 ada from `wallet1.addr` to `wallet2.addr` provided the correct “secret spending key” is provided as a redeemer and submit this.
 
 ```
-cd ~/git/nessus-cardano/plutus/alonzo-purple/plutus-sources/plutus-helloworld \
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-helloworld \
   && cabal run plutus-helloworld5a 1 helloworld5a.plutus \
   && cp helloworld5a.plutus ../../plutus-scripts \
   && mv helloworld5a.plutus ~/cardano/scripts \
@@ -684,23 +617,18 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="af41245a1e28831452fbe7cf43b39086cdf383e749e4abf724c306f6f8a8bb2c#0"
-TX_IN1_LVC="1582306690"
+TX_IN1="480802dbfdc48b094f43699ff48278474404ead038adc884d6f6febef5f659ce#0"
 
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
 SEND_LVC=10000000
-REFUND_LVC=$(($TX_IN1_LVC - SEND_LVC - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-out $SCRIPT_ADDR+$SEND_LVC \
   --tx-out-datum-hash $DATUM_HASH \
-  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -711,7 +639,7 @@ cardano-cli transaction build-raw \
   --testnet-magic 8
 ```
 
-### 5a2 Unlock the funds in the the script
+### 5a2 Unlock the funds in the script
 
 ```
 WALLET_ADDR1=$(cat ~/cardano/keys/alonzo/wallets/wallet1.addr)
@@ -734,14 +662,14 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR \
   --testnet-magic 8
 
-TX_IN1="5f1d1def76880668f70a79965e9e01b058d47deadee4e2386a3c775d7e760b16#0"
-TX_IN1_LVC="2000000000"
+TX_SCRIPT="dc17f12d92e6cd94279f84800933e6074d4c338373d30d2125d9f6c7fba06f10#1"
+TX_SCRIPT_LVC="10000000"
+
+TX_IN1="3ada602358619cc701b7420d49cb1a7b7bd6e208a4ba7f1aff79c35261643cd4#1"
+TX_IN1_LVC="1117521600"
 
 TX_COL="09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#0"
 TX_COL_LVC="2000000000"
-
-TX_SCRIPT="8869a7fd2b09021c06f262d4611e5a23b31640b1943db3aaefd79e45b8cd7c4a#0"
-TX_SCRIPT_LVC="10000000"
 
 # Calculate the change to send back to PAYMENT_ADDR
 ExCPU=29392000
@@ -775,6 +703,38 @@ cardano-cli transaction build-raw \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
   --testnet-magic 8
+
+// DOES NOT WORK LIKE THIS ???
+
+TX_SCRIPT="dc17f12d92e6cd94279f84800933e6074d4c338373d30d2125d9f6c7fba06f10#1"
+
+TX_IN1="3ada602358619cc701b7420d49cb1a7b7bd6e208a4ba7f1aff79c35261643cd4#1"
+
+TX_COL="09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#0"
+
+SEND_LVC=10000000
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic 8 \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_SCRIPT \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld5a.plutus \
+  --tx-in-datum-value 0 \
+  --tx-in-redeemer-file /var/cardano/local/scratch/redeemer-secret2.json \
+  --tx-in-collateral $TX_COL \
+  --tx-out $TO_ADDR+$SEND_LVC \
+  --change-address $PAYMENT_ADDR \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/wallet1.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
 ```
 
 Check that the funds have been transferred correctly between the wallets.
@@ -789,7 +749,9 @@ cardano-cli query utxo \
   --testnet-magic 8
 ```
 
-6. Produce a second transaction that sends some ada from `wallet2.addr` to `wallet1.addr` guarded by a different “secret spending key”.  Practice sending Ada between the “wallets” and observe the effect on the corresponding UTxO entries.
+## 6 Produce a second transaction that sends some ada from `wallet2.addr` to `wallet1.addr` guarded by a different “secret spending key”.  
+
+Practice sending Ada between the “wallets” and observe the effect on the corresponding UTxO entries.
 
 ### 6a1 Lock some funds in the script
 
@@ -817,9 +779,9 @@ REFUND_LVC=$((2000000000 + 10000000 - SEND_LVC - $FEES_LVC))
 echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in "09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#1" \
   --tx-in "3ada602358619cc701b7420d49cb1a7b7bd6e208a4ba7f1aff79c35261643cd4#0" \
   --tx-out $SCRIPT_ADDR+$SEND_LVC \
@@ -835,7 +797,7 @@ cardano-cli transaction build-raw \
   --testnet-magic 8
 ```
 
-### 6.2 Unlock the funds in the the script
+### 6a2 Unlock the funds in the script
 
 Wallet2 sends 1000 ADA from the script to wallet1
 
@@ -878,9 +840,9 @@ SEND_LVC=$TX_SCRIPT_LVC
 echo "Send=$SEND_LVC, Refund=$REFUND_LVC, Fees=$FEES_LVC, Units=$UNITS"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
   --tx-in-script-file /var/cardano/local/scripts/helloworld5a.plutus \
@@ -913,22 +875,21 @@ cardano-cli query utxo \
   --testnet-magic 8
 ```
 
-7. Optional Exercise (Easy)
+## 7 Optional Exercise (Easy)
 
 Extend your transactions from Q5/6 so that each “wallet” always maintains a minimum balance.
 
-8. Optional Exercise (Moderate)
+## 8 Optional Exercise (Moderate)
 
 Produce a Plutus “slot machine” that pays out a Lovelace “jackpot” if it is given a specific set of symbols as a redeemer (e.g. three Bells pays 100 Lovelace).  The machine takes a fixed fee in lovelace and pays any winnings from a pre-funded spending “pot”.  It should not pay out the jackpot if there are insufficient funds in the “pot”. Test your slot machines by exchanging scripts with other testnet users.
 
-9. Optional Exercise (Easy)
+## 9 Optional Exercise (Easy)
 
 Extend the slot machine from Q8 to pay different jackpots for different winning combinations.
 
 The next exercise will involve compiling and submitting some more complex Plutus scripts using your own node.
 
 ## Feedback
-
 
 **Please let us know of any problems that you have encountered**
 

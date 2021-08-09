@@ -32,7 +32,7 @@ We will first use a pre-built Plutus validator script that always returns `True`
 1. Download the pre-built [AlwaysSucceeds.plutus](/resources/plutus-scripts/AlwaysSucceeds.plutus) Plutus script, and obtain the script address.
 
 ```
-cd ~/git/nessus-cardano/plutus/alonzo-purple/plutus-sources/plutus-alwayssucceeds \
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-alwayssucceeds \
   && cabal run plutus-alwayssucceeds 1 AlwaysSucceeds.plutus \
   && cp AlwaysSucceeds.plutus ~/cardano/scripts \
   && mv AlwaysSucceeds.plutus ../../plutus-scripts/ \

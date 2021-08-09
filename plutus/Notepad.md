@@ -354,6 +354,24 @@ POOLID=$(cardano-cli stake-pool id \
 && echo "POOLID=${POOLID}"
 ```
 
+## Query owner account
+
+```
+PAYMENT_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
+STAKE_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/stake.addr)
+echo "${STAKE_ADDR0} => ${PAYMENT_ADDR0}"
+
+# Query UTxO
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR0 \
+  --testnet-magic 8
+
+# Query rewards
+cardano-cli query stake-address-info \
+    --address $STAKE_ADDR0 \
+    --testnet-magic 8
+```
+
 <!--
   Run the Relay Node ==================================================================================================
 -->
