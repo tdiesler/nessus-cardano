@@ -1,20 +1,6 @@
 # Alonzo Purple Testnet Exercise Sheet 5: "Multi-Asset Tokens"
 
-
 In the fourth exercise, you wrote some simple transactions using datums and redeemers. In this exercise, we will practice managing multi-asset tokens.
-
-## Prerequisites ##
-
-1. Complete [Exercise Sheet 4](4_Alonzo-purple-exercise-4.md)
-
-2. Start a passive Cardano Node if you need to, and make sure that it has synced with the Testnet.
-
-3. Make sure you have some Alonzo Purple Test Ada
-
-1. Read the tutorial information on:
-
-    1. Native tokens and Mary-era _minting policies_
-    2. How to manage native tokens with Plutus, including Plutus _minting scripts_
 
 ## Objectives ##
 
@@ -27,9 +13,90 @@ In the fifth set of exercises, we will make sure that you can:
 
 ## Exercises ##
 
-1. Create a set of private/public signing keys, _shelley_, and two _payment addresses, mary_ and _percy_. Fund the addresses with some test Ada.
+### 5.1. Create a set of private/public signing keys
 
-2. Define a Mary-era _minting script_ (a "multi-signature" script) that allows _shelley_ to create new **Ozymandian** tokens. Define a _minting policy_ for the **Shelley** currency that uses this _minting script_. **Do not use Plutus scripts at this stage.**
+Create a set of private/public signing keys, _shelley_, and two _payment addresses, mary_ and _percy_. Fund the addresses with some test Ada.
+
+```
+cardano-cli address key-gen \
+  --verification-key-file /var/cardano/local/keys/alonzo/wallets/shelley.vkey \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
+&& cardano-cli address build \
+  --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/shelley.vkey \
+  --out-file /var/cardano/local/keys/alonzo/wallets/shelley.addr \
+  --testnet-magic 8 \
+&& cardano-cli address key-gen \
+  --verification-key-file /var/cardano/local/keys/alonzo/wallets/mary.vkey \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/mary.skey \
+&& cardano-cli address build \
+  --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/mary.vkey \
+  --out-file /var/cardano/local/keys/alonzo/wallets/mary.addr \
+  --testnet-magic 8 \
+&& cardano-cli address key-gen \
+  --verification-key-file /var/cardano/local/keys/alonzo/wallets/percy.vkey \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/percy.skey \
+&& cardano-cli address build \
+  --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/percy.vkey \
+  --out-file /var/cardano/local/keys/alonzo/wallets/percy.addr \
+  --testnet-magic 8
+```
+
+Transfer some ada to each of these addresses, and check that they have been funded.
+
+```
+PAYMENT_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
+WALLET_SHELLEY=$(cat ~/cardano/keys/alonzo/wallets/shelley.addr)
+WALLET_MARY=$(cat ~/cardano/keys/alonzo/wallets/mary.addr)
+WALLET_PERCY=$(cat ~/cardano/keys/alonzo/wallets/percy.addr)
+
+# Query UTxO
+cardano-cli query utxo \
+  --address $PAYMENT_ADDR0 \
+  --testnet-magic 8
+
+TX_IN1="5f1d1def76880668f70a79965e9e01b058d47deadee4e2386a3c775d7e760b16#4"
+
+SEND_LVC=2000000000
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic 8 \
+  --tx-in $TX_IN1 \
+  --tx-out $WALLET_SHELLEY+$SEND_LVC \
+  --tx-out $WALLET_SHELLEY+$SEND_LVC \
+  --tx-out $WALLET_SHELLEY+$SEND_LVC \
+  --tx-out $WALLET_MARY+$SEND_LVC \
+  --tx-out $WALLET_MARY+$SEND_LVC \
+  --tx-out $WALLET_MARY+$SEND_LVC \
+  --tx-out $WALLET_PERCY+$SEND_LVC \
+  --tx-out $WALLET_PERCY+$SEND_LVC \
+  --tx-out $WALLET_PERCY+$SEND_LVC \
+  --change-address $PAYMENT_ADDR0 \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/acc0/payment.skey \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+
+# Query UTxO
+cardano-cli query utxo \
+  --address $WALLET_SHELLEY \
+  --testnet-magic 8 \
+&& cardano-cli query utxo \
+  --address $WALLET_MARY \
+  --testnet-magic 8 \
+&& cardano-cli query utxo \
+  --address $WALLET_PERCY \
+  --testnet-magic 8
+```
+
+### 5.2. Define a Mary-era minting script
+
+Define a Mary-era _minting script_ (a "multi-signature" script) that allows _shelley_ to create new **Ozymandian** tokens. Define a _minting policy_ for the **Shelley** currency that uses this _minting script_. **Do not use Plutus scripts at this stage.**
 
 3. Mint 1000 new **Ozymandians** in the _percy_ address by building and submitting a transaction. Check that they have been successfully minted.
 
@@ -58,7 +125,7 @@ cardano-cli query utxo –address $(cat percy)
 12. **Optional Exercise (Moderate)**
 
 	Implement a token "factory".  You should accept the token, the _minting policy_ and the required number of tokens as parameters to your script and mint the required number of tokens.  Does your solution work for both *fungible* and *non-fungible* tokens?  How do you deal with third-party signatories?  Test your solution by allowing another testnet user to mint new tokens using your factory.
-	
+
 ## Feedback
 
 
@@ -71,5 +138,3 @@ cardano-cli query utxo –address $(cat percy)
 - Via the issue tracker at [https://github.com/input-output-hk/plutus/issues](https://github.com/input-output-hk/plutus/issues) for any bugs or feature requests with plutus, playground, PAB etc.
 
 - Via the issue tracker at [https://github.com/input-output-hk/Alonzo-testnet/issues](https://github.com/input-output-hk/Alonzo-testnet/issues) for any issues with the exercises.
-
-

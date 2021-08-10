@@ -146,9 +146,9 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
-  --tx-in-script-file /var/cardano/local/scripts/helloworld.plutus \
-  --tx-in-redeemer-value 0 \
   --tx-in-datum-value $DATUM_VALUE \
+  --tx-in-redeemer-value 0 \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld.plutus \
   --tx-in-collateral $TX_COL \
   --tx-out $PAYMENT_ADDR1+$SEND_LVC \
   --change-address $PAYMENT_ADDR1 \
@@ -261,9 +261,9 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
-  --tx-in-script-file /var/cardano/local/scripts/helloworld4a.plutus \
   --tx-in-datum-file /var/cardano/local/scratch/script-datum.json \
   --tx-in-redeemer-value '""' \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld4a.plutus \
   --tx-in-collateral $TX_COL \
   --tx-out $PAYMENT_ADDR1+$SEND_LVC \
   --change-address $PAYMENT_ADDR1 \
@@ -374,9 +374,9 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
-  --tx-in-script-file /var/cardano/local/scripts/helloworld4b.plutus \
   --tx-in-datum-file /var/cardano/local/scratch/script-datum.json \
   --tx-in-redeemer-value 29031918 \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld4b.plutus \
   --tx-in-collateral $TX_COL \
   --change-address $PAYMENT_ADDR1 \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
@@ -484,9 +484,9 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
-  --tx-in-script-file /var/cardano/local/scripts/helloworld4d.plutus \
   --tx-in-datum-value '[1,5]' \
   --tx-in-redeemer-value '[1,2,3,4]' \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld4d.plutus \
   --tx-in-collateral $TX_COL \
   --change-address $PAYMENT_ADDR1 \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
@@ -500,7 +500,7 @@ cardano-cli transaction build \
   --testnet-magic 8
 ```
 
-## 5 Set up new payment addresses for wallet1 & wallet2
+### 5.1 Set up new payment addresses for wallet1 & wallet2
 
 Set up three new payment addresses: `payment.addr`, `wallet1.addr`, and `wallet2.addr` using the node CLI commands.  
 
@@ -546,7 +546,7 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR0 \
   --testnet-magic 8
 
-TX_IN1="09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#2"
+TX_IN1="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#0"
 
 SEND_LVC=2000000000
 
@@ -580,6 +580,8 @@ cardano-cli query utxo \
   --testnet-magic 8
 ```
 
+### 5.2 Produce a transaction that sends 100 ada from `wallet1.addr` to `wallet2.addr`
+
 Produce a transaction that sends 100 ada from `wallet1.addr` to `wallet2.addr` provided the correct “secret spending key” is provided as a redeemer and submit this.
 
 ```
@@ -598,7 +600,7 @@ ExBudget {_exBudgetCPU = ExCPU 29392000, _exBudgetMemory = ExMemory 7280}
 SCRIPT_ADDR=addr_test1wp5aunhx9x7k0v86agmsfpcsm9w9vj6u9gwde4gxzk8a3gq95cqrw
 ```
 
-### 5a1 Lock some funds in the script
+### 5.3 Lock some funds in the script
 
 ```
 PAYMENT_ADDR1=$(cat ~/cardano/keys/alonzo/acc1/payment.addr)
@@ -617,7 +619,7 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8
 
-TX_IN1="480802dbfdc48b094f43699ff48278474404ead038adc884d6f6febef5f659ce#0"
+TX_IN1="ad52994300ff23f20143368271e9764094724900bf77a86f5545e7a63052a17b#0"
 
 SEND_LVC=10000000
 
@@ -639,7 +641,7 @@ cardano-cli transaction build \
   --testnet-magic 8
 ```
 
-### 5a2 Unlock the funds in the script
+### 5.4 Unlock the funds in the script
 
 ```
 WALLET_ADDR1=$(cat ~/cardano/keys/alonzo/wallets/wallet1.addr)
@@ -647,9 +649,9 @@ WALLET_ADDR2=$(cat ~/cardano/keys/alonzo/wallets/wallet2.addr)
 PAYMENT_ADDR=${WALLET_ADDR1}
 TO_ADDR=${WALLET_ADDR2}
 
-SECRET_VALUE='secret2' \
+SECRET_VALUE='secret1' \
   && SECRET_JSON=$(printf "{\"bytes\":\"%s\"}" $(echo -n $SECRET_VALUE | xxd -ps)) \
-  && echo "$SECRET_JSON" > ~/cardano/scratch/redeemer-secret2.json \
+  && echo "$SECRET_JSON" > ~/cardano/scratch/redeemer-secret1.json \
   && echo $SECRET_JSON
 
 # Query Script UTxO
@@ -663,52 +665,8 @@ cardano-cli query utxo \
   --testnet-magic 8
 
 TX_SCRIPT="dc17f12d92e6cd94279f84800933e6074d4c338373d30d2125d9f6c7fba06f10#1"
-TX_SCRIPT_LVC="10000000"
 
-TX_IN1="3ada602358619cc701b7420d49cb1a7b7bd6e208a4ba7f1aff79c35261643cd4#1"
-TX_IN1_LVC="1117521600"
-
-TX_COL="09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#0"
-TX_COL_LVC="2000000000"
-
-# Calculate the change to send back to PAYMENT_ADDR
-ExCPU=29392000
-ExMem=7280
-ExFct=30
-UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
-FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
-REFUND_LVC=$(($TX_IN1_LVC - $FEES_LVC))
-SEND_LVC=$TX_SCRIPT_LVC
-echo "Send=$SEND_LVC, Refund=$REFUND_LVC, Fees=$FEES_LVC, Units=$UNITS"
-
-# Build, sign and submit the transaction
-cardano-cli transaction build-raw \
-  --alonzo-era \
-  --fee $FEES_LVC \
-  --tx-in $TX_IN1 \
-  --tx-in $TX_SCRIPT \
-  --tx-in-script-file /var/cardano/local/scripts/helloworld5a.plutus \
-  --tx-in-datum-value 0 \
-  --tx-in-redeemer-file /var/cardano/local/scratch/redeemer-secret2.json \
-  --tx-in-execution-units "$UNITS" \
-  --tx-in-collateral $TX_COL \
-  --tx-out $TO_ADDR+$SEND_LVC \
-  --tx-out $PAYMENT_ADDR+$REFUND_LVC \
-  --protocol-params-file /var/cardano/local/scratch/protocol.json \
-  --out-file /var/cardano/local/scratch/tx.raw \
-&& cardano-cli transaction sign \
-  --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/wallet1.skey \
-  --out-file /var/cardano/local/scratch/tx.signed \
-&& cardano-cli transaction submit \
-  --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
-
-// DOES NOT WORK LIKE THIS ???
-
-TX_SCRIPT="dc17f12d92e6cd94279f84800933e6074d4c338373d30d2125d9f6c7fba06f10#1"
-
-TX_IN1="3ada602358619cc701b7420d49cb1a7b7bd6e208a4ba7f1aff79c35261643cd4#1"
+TX_IN1="5f1d1def76880668f70a79965e9e01b058d47deadee4e2386a3c775d7e760b16#1"
 
 TX_COL="09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#0"
 
@@ -720,9 +678,9 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
-  --tx-in-script-file /var/cardano/local/scripts/helloworld5a.plutus \
   --tx-in-datum-value 0 \
-  --tx-in-redeemer-file /var/cardano/local/scratch/redeemer-secret2.json \
+  --tx-in-redeemer-file /var/cardano/local/scratch/redeemer-secret1.json \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld5a.plutus \
   --tx-in-collateral $TX_COL \
   --tx-out $TO_ADDR+$SEND_LVC \
   --change-address $PAYMENT_ADDR \
@@ -749,15 +707,19 @@ cardano-cli query utxo \
   --testnet-magic 8
 ```
 
-## 6 Produce a second transaction that sends some ada from `wallet2.addr` to `wallet1.addr` guarded by a different “secret spending key”.  
+### 6.1 Produce a second transaction that sends some ada from `wallet2.addr` to `wallet1.addr` guarded by a different “secret spending key”.  
 
 Practice sending Ada between the “wallets” and observe the effect on the corresponding UTxO entries.
 
-### 6a1 Lock some funds in the script
+### 6.2 Lock some funds in the script
 
 Wallet2 locks 1000 ADA in the script
 
 ```
+WALLET_ADDR1=$(cat ~/cardano/keys/alonzo/wallets/wallet1.addr)
+WALLET_ADDR2=$(cat ~/cardano/keys/alonzo/wallets/wallet2.addr)
+PAYMENT_ADDR=${WALLET_ADDR2}
+
 DATUM_HASH="$(cardano-cli transaction hash-script-data --script-data-value 0)" \
   && DATUM_HASH=${DATUM_HASH:0:64} \
   && echo "DATUM_HASH=\"$DATUM_HASH\""
@@ -772,21 +734,17 @@ cardano-cli query utxo \
   --address $WALLET_ADDR2 \
   --testnet-magic 8
 
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
 SEND_LVC=10000000
-REFUND_LVC=$((2000000000 + 10000000 - SEND_LVC - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
 
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
   --testnet-magic 8 \
-  --tx-in "09a0e6c42682440dbd71cf1db0ddb5b35701d2dc8e8f2aee837db64e71b0ab85#1" \
-  --tx-in "3ada602358619cc701b7420d49cb1a7b7bd6e208a4ba7f1aff79c35261643cd4#0" \
+  --tx-in "36944b03d640b6022f0773f78d3eed3f18da0e8006db0387ffa46fb8766997ae#0" \
+  --tx-in "66da08eca83f74fad4ac453b1db7633db0a48b6e4a6c7d393daa206275a24cdb#0" \
   --tx-out $SCRIPT_ADDR+$SEND_LVC \
   --tx-out-datum-hash $DATUM_HASH \
-  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
+  --change-address $PAYMENT_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -797,15 +755,17 @@ cardano-cli transaction build \
   --testnet-magic 8
 ```
 
-### 6a2 Unlock the funds in the script
+### 6.3 Unlock the funds in the script
 
 Wallet2 sends 1000 ADA from the script to wallet1
 
 ```
 WALLET_ADDR1=$(cat ~/cardano/keys/alonzo/wallets/wallet1.addr)
 WALLET_ADDR2=$(cat ~/cardano/keys/alonzo/wallets/wallet2.addr)
+PAYMENT_ADDR=${WALLET_ADDR2}
+TO_ADDR=${WALLET_ADDR1}
 
-SECRET_VALUE='secret1' \
+SECRET_VALUE='secret2' \
   && SECRET_JSON=$(printf "{\"bytes\":\"%s\"}" $(echo -n $SECRET_VALUE | xxd -ps)) \
   && echo "$SECRET_JSON" > ~/cardano/scratch/redeemer-secret2.json \
   && echo $SECRET_JSON
@@ -820,24 +780,13 @@ cardano-cli query utxo \
   --address $WALLET_ADDR2 \
   --testnet-magic 8
 
-TX_IN1="5f1d1def76880668f70a79965e9e01b058d47deadee4e2386a3c775d7e760b16#2"
-TX_IN1_LVC="2000000000"
+TX_SCRIPT="6da937e57b4b49921e10d293bb3236f5bf2bb1512248ac4492dfd05eeaea2c75#1"
+
+TX_IN1="d604bf2e1da2fb1b69db58be9e0e92c5ff8fb7d32133ab65f901d4fd350a00fc#4"
 
 TX_COL="5f1d1def76880668f70a79965e9e01b058d47deadee4e2386a3c775d7e760b16#3"
-TX_COL_LVC="2000000000"
 
-TX_SCRIPT="d0527c31c1c4e502dc933f3769043e2a2dc1c0a2935ddb864bfab68292569fe1#0"
-TX_SCRIPT_LVC="10000000"
-
-# Calculate the change to send back to PAYMENT_ADDR
-ExCPU=29392000
-ExMem=7280
-ExFct=30
-UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
-FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
-REFUND_LVC=$(($TX_IN1_LVC - $FEES_LVC))
-SEND_LVC=$TX_SCRIPT_LVC
-echo "Send=$SEND_LVC, Refund=$REFUND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+SEND_LVC=10000000
 
 # Build, sign and submit the transaction
 cardano-cli transaction build \
@@ -845,13 +794,12 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_SCRIPT \
-  --tx-in-script-file /var/cardano/local/scripts/helloworld5a.plutus \
   --tx-in-datum-value 0 \
   --tx-in-redeemer-file /var/cardano/local/scratch/redeemer-secret2.json \
-  --tx-in-execution-units "$UNITS" \
+  --tx-in-script-file /var/cardano/local/scripts/helloworld5a.plutus \
   --tx-in-collateral $TX_COL \
-  --tx-out $WALLET_ADDR1+$SEND_LVC \
-  --tx-out $WALLET_ADDR2+$REFUND_LVC \
+  --tx-out $TO_ADDR+$SEND_LVC \
+  --change-address $PAYMENT_ADDR \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
@@ -875,15 +823,15 @@ cardano-cli query utxo \
   --testnet-magic 8
 ```
 
-## 7 Optional Exercise (Easy)
+### 7 Optional Exercise (Easy)
 
 Extend your transactions from Q5/6 so that each “wallet” always maintains a minimum balance.
 
-## 8 Optional Exercise (Moderate)
+### 8 Optional Exercise (Moderate)
 
 Produce a Plutus “slot machine” that pays out a Lovelace “jackpot” if it is given a specific set of symbols as a redeemer (e.g. three Bells pays 100 Lovelace).  The machine takes a fixed fee in lovelace and pays any winnings from a pre-funded spending “pot”.  It should not pay out the jackpot if there are insufficient funds in the “pot”. Test your slot machines by exchanging scripts with other testnet users.
 
-## 9 Optional Exercise (Easy)
+### 9 Optional Exercise (Easy)
 
 Extend the slot machine from Q8 to pay different jackpots for different winning combinations.
 
