@@ -82,7 +82,7 @@ cardano-cli transaction build \
   --tx-file /var/cardano/local/scratch/tx.signed \
   --testnet-magic 8
 
-# Query UTxO
+# Query wallet UTxOs
 cardano-cli query utxo \
   --address $WALLET_SHELLEY_ADDR \
   --testnet-magic 8 \
@@ -141,15 +141,12 @@ cardano-cli query utxo \
   --address $WALLET_SHELLEY_ADDR \
   --testnet-magic 8
 
-TX_IN1="a3c121fbb70b3c448a1a36d5cf0a41310c25f8dc89d892eee6ab5eae8710f61b#1"
+TX_IN1="8265b186c9013bb092d7c05b354dc538e095d9c072389e20e386661b6b2f8b3f#1"
 
 SEND_AMOUNT=1500000
 
 ASSET_NAME=Ozymandians
 ASSET_AMOUNT=1000
-
-# [TODO] transaction build calculates insufficient fees for mint
-# https://github.com/input-output-hk/cardano-node/issues/3070
 
 # Build, sign and submit the transaction
 cardano-cli transaction build \
@@ -159,36 +156,8 @@ cardano-cli transaction build \
   --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ONE_ID.$ASSET_NAME" \
   --mint "$ASSET_AMOUNT $POLICY_ONE_ID.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script \
+  --witness-override 2 \
   --change-address $WALLET_SHELLEY_ADDR \
-  --out-file /var/cardano/local/scratch/tx.raw \
-&& cardano-cli transaction sign \
-  --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.skey \
-  --testnet-magic 8 \
-  --out-file /var/cardano/local/scratch/tx.signed \
-&& cardano-cli transaction submit \
-  --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
-
-#
-# [TODO] remove the transaction build-raw case when the above is fixed
-#
-
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
-REFUND_LVC=$((1994428427 - $SEND_AMOUNT - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
-
-# Build, sign and submit the transaction
-cardano-cli transaction build-raw \
-  --alonzo-era \
-  --fee $FEES_LVC \
-  --tx-in $TX_IN1 \
-  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ONE_ID.$ASSET_NAME" \
-  --tx-out "$WALLET_SHELLEY_ADDR+$REFUND_LVC" \
-  --mint "$ASSET_AMOUNT $POLICY_ONE_ID.$ASSET_NAME" \
-  --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -243,32 +212,23 @@ cardano-cli query utxo \
   --address $WALLET_SHELLEY_ADDR \
   --testnet-magic 8
 
-TX_IN1="e743e3d23e5e0568f65e8073b8580c950b0fcd8f244060ad396e3f018cf0798a#1"
-TX_IN1_LVC=1996128427
+TX_IN1="132b80875f6da8a004c7fbf465a96afe7a7b9fdcf234b64de87eabbc383db11c#0"
 
 SEND_AMOUNT=1500000
 
 ASSET_NAME=SkyLark
 ASSET_AMOUNT=100
 
-#
-# [TODO] replace with transaction build
-#
-
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
-REFUND_LVC=$(($TX_IN1_LVC - $SEND_AMOUNT - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
-
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
+  --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_TWO_ID.$ASSET_NAME" \
-  --tx-out "$WALLET_SHELLEY_ADDR+$REFUND_LVC" \
   --mint "$ASSET_AMOUNT $POLICY_TWO_ID.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.script \
+  --witness-override 2 \
+  --change-address $WALLET_SHELLEY_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -278,6 +238,21 @@ cardano-cli transaction build-raw \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+```
+
+send 75 **SkyLark** tokens to _mary._
+
+```
+# Query wallet UTxOs
+cardano-cli query utxo \
+  --address $WALLET_SHELLEY_ADDR \
+  --testnet-magic 8 \
+&& cardano-cli query utxo \
+  --address $WALLET_MARY_ADDR \
+  --testnet-magic 8 \
+&& cardano-cli query utxo \
+  --address $WALLET_PERCY_ADDR \
   --testnet-magic 8
 ```
 
