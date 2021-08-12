@@ -132,9 +132,9 @@ POLICY_ONE_ID=$(cardano-cli transaction policyid \
 POLICY_ONE_ID="86cd90d1ebe6bb35931f4a8f9a69714721fad0bbfe01ebdf70816cd1"
 ```
 
-### 5.3. Mint 1000 new Ozymandians in the percy address
+### 5.3. Mint 1000 new Ozymandian in the percy address
 
-Mint 1000 new **Ozymandians** in the _percy_ address by building and submitting a transaction. Check that they have been successfully minted.
+Mint 1000 new **Ozymandian** in the _percy_ address by building and submitting a transaction. Check that they have been successfully minted.
 
 ```
 cardano-cli query utxo \
@@ -145,7 +145,7 @@ TX_IN1="8265b186c9013bb092d7c05b354dc538e095d9c072389e20e386661b6b2f8b3f#1"
 
 SEND_AMOUNT=1500000
 
-ASSET_NAME=Ozymandians
+ASSET_NAME=Ozymandian
 ASSET_AMOUNT=1000
 
 # Build, sign and submit the transaction
@@ -241,24 +241,90 @@ cardano-cli transaction build \
   --testnet-magic 8
 ```
 
-send 75 **SkyLark** tokens to _mary._
+send 75 **SkyLark** tokens from _percy_ to _mary_
 
 ```
 # Query wallet UTxOs
 cardano-cli query utxo \
-  --address $WALLET_SHELLEY_ADDR \
-  --testnet-magic 8 \
-&& cardano-cli query utxo \
-  --address $WALLET_MARY_ADDR \
-  --testnet-magic 8 \
-&& cardano-cli query utxo \
   --address $WALLET_PERCY_ADDR \
+  --testnet-magic 8 \
+&& cardano-cli query utxo \
+    --address $WALLET_MARY_ADDR \
+    --testnet-magic 8
+
+TX_IN1="b8d559d66b0bfed2f8efcf228fbbb7aaef597cf50b63d751adb70524fad9bfe4#1"
+TX_IN2="bc8f72d1c323fbf24a846767ee4007b007e62f3ec7eb5a2b3a8e1d5faf324def#2"
+
+SEND_AMOUNT=1500000
+
+ASSET_NAME=SkyLark
+ASSET_AMOUNT=75
+TOKEN_REFUND=$((100 - $ASSET_AMOUNT))
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic 8 \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_IN2 \
+  --tx-out "$WALLET_MARY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_TWO_ID.$ASSET_NAME" \
+  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$TOKEN_REFUND $POLICY_TWO_ID.$ASSET_NAME" \
+  --change-address $WALLET_PERCY_ADDR \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/percy.skey \
+  --testnet-magic 8 \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
   --testnet-magic 8
 ```
 
-5. What is the least amount of **Ada** that you need to keep in the _mary_ and _percy_ addresses? What is the least amount of **Ozymandians** or **SkyLarks** that you can keep in an address?
+### 5.5 What is the least amount that you need to keep
 
-6. You want to _burn_ some of your **Ozymandians** in the _percy_ address_._ How do you do this? What happens to your **Ada** balances when you burn your tokens?
+What is the least amount of **Ada** that you need to keep in the _mary_ and _percy_ addresses? What is the least amount of **Ozymandian** or **SkyLarks** that you can keep in an address?
+
+* A little over 1 ADA (minimum Tx value + a little for the token)
+* One token unit
+
+### 5.6 Burn some of your Ozymandian in the percy address
+
+You want to _burn_ some of your **Ozymandian** in the _percy_ address. How do you do this? What happens to your **Ada** balances when you burn your tokens?
+
+```
+cardano-cli query utxo \
+  --address $WALLET_PERCY_ADDR \
+  --testnet-magic 8
+
+TX_IN1="12bde5addc76127ea4f1531a18bf8b8c58af007fb68124c441f9b9eb339b814b#1"
+
+SEND_AMOUNT=1500000
+
+ASSET_NAME=Ozymandian
+ASSET_AMOUNT=1000
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic 8 \
+  --tx-in $TX_IN1 \
+  --tx-in "0ba918fa679af33237aa18415f82142a641395f43fb4a3087b9c75845a54708c#0" \
+  --mint "-$ASSET_AMOUNT $POLICY_ONE_ID.$ASSET_NAME" \
+  --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script \
+  --witness-override 2 \
+  --change-address $WALLET_PERCY_ADDR \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/percy.skey \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.skey \
+  --testnet-magic 8 \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+```
 
 7. Define a Plutus _minting script_ that allows you to mint a variable number of **Ozymandian** and **SkyLark** tokens (with the numbers supplied via a redeemer). Verify that this works as you expect.
 
