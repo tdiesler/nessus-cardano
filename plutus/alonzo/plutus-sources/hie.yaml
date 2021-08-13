@@ -31,3 +31,9 @@ cradle:
 
     - path: "plutus-helloworld/app/plutus-helloworld-bytestring.hs"
       component: "plutus-helloworld:exe:plutus-helloworld-bytestring"
+
+    - path: "plutus-tokens/src"
+      component: "lib:plutus-tokens"
+
+    - path: "plutus-tokens/app/plutus-tokens.hs"
+      component: "plutus-tokens:exe:plutus-tokens"

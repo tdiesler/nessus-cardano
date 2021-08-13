@@ -4,7 +4,7 @@ packages:
     plutus-example
     plutus-helloworld
     plutus-alwayssucceeds
-    -- plutus-alwaysfails
+    plutus-tokens
 
 
 package cryptonite

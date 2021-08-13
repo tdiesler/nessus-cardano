@@ -54,7 +54,7 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR0 \
   --testnet-magic 8
 
-TX_IN1="5f1d1def76880668f70a79965e9e01b058d47deadee4e2386a3c775d7e760b16#4"
+TX_IN1="d604bf2e1da2fb1b69db58be9e0e92c5ff8fb7d32133ab65f901d4fd350a00fc#0"
 
 SEND_LVC=2000000000
 
@@ -124,12 +124,12 @@ cat << EOF > ~/cardano/keys/alonzo/wallets/shelley-policy1.script
 EOF
 
 # Create Policy Id
-POLICY_ONE_ID=$(cardano-cli transaction policyid \
+POLICY_ID=$(cardano-cli transaction policyid \
   --script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script) \
-  && POLICY_ONE_ID=${POLICY_ONE_ID:0:56} \
-  && echo "POLICY_ONE_ID=\"$POLICY_ONE_ID\""
+  && POLICY_ID=${POLICY_ID:0:56} \
+  && echo "POLICY_ID=\"$POLICY_ID\""
 
-POLICY_ONE_ID="86cd90d1ebe6bb35931f4a8f9a69714721fad0bbfe01ebdf70816cd1"
+POLICY_ID="86cd90d1ebe6bb35931f4a8f9a69714721fad0bbfe01ebdf70816cd1"
 ```
 
 ### 5.3. Mint 1000 new Ozymandian in the percy address
@@ -153,8 +153,8 @@ cardano-cli transaction build \
   --alonzo-era \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
-  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ONE_ID.$ASSET_NAME" \
-  --mint "$ASSET_AMOUNT $POLICY_ONE_ID.$ASSET_NAME" \
+  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script \
   --witness-override 2 \
   --change-address $WALLET_SHELLEY_ADDR \
@@ -197,12 +197,12 @@ cat << EOF > ~/cardano/keys/alonzo/wallets/shelley-policy2.script
 EOF
 
 # Create Policy Id
-POLICY_TWO_ID=$(cardano-cli transaction policyid \
+POLICY_ID=$(cardano-cli transaction policyid \
   --script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.script) \
-  && POLICY_TWO_ID=${POLICY_TWO_ID:0:56} \
-  && echo "POLICY_TWO_ID=\"$POLICY_TWO_ID\""
+  && POLICY_ID=${POLICY_ID:0:56} \
+  && echo "POLICY_ID=\"$POLICY_ID\""
 
-POLICY_TWO_ID="7a4c4257082168b746c10fc355850d8b4442321afd34af864c1b9984"
+POLICY_ID="7a4c4257082168b746c10fc355850d8b4442321afd34af864c1b9984"
 ```
 
 Mint 100 **SkyLark** tokens and send them to _percy_
@@ -224,8 +224,8 @@ cardano-cli transaction build \
   --alonzo-era \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
-  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_TWO_ID.$ASSET_NAME" \
-  --mint "$ASSET_AMOUNT $POLICY_TWO_ID.$ASSET_NAME" \
+  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.script \
   --witness-override 2 \
   --change-address $WALLET_SHELLEY_ADDR \
@@ -267,8 +267,8 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in $TX_IN2 \
-  --tx-out "$WALLET_MARY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_TWO_ID.$ASSET_NAME" \
-  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$TOKEN_REFUND $POLICY_TWO_ID.$ASSET_NAME" \
+  --tx-out "$WALLET_MARY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$TOKEN_REFUND $POLICY_ID.$ASSET_NAME" \
   --change-address $WALLET_PERCY_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
@@ -310,7 +310,7 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in "0ba918fa679af33237aa18415f82142a641395f43fb4a3087b9c75845a54708c#0" \
-  --mint "-$ASSET_AMOUNT $POLICY_ONE_ID.$ASSET_NAME" \
+  --mint "-$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script \
   --witness-override 2 \
   --change-address $WALLET_PERCY_ADDR \
@@ -326,7 +326,97 @@ cardano-cli transaction build \
   --testnet-magic 8
 ```
 
-7. Define a Plutus _minting script_ that allows you to mint a variable number of **Ozymandian** and **SkyLark** tokens (with the numbers supplied via a redeemer). Verify that this works as you expect.
+### 5.7 Define a Plutus minting script
+
+Define a Plutus _minting script_ that allows you to mint a variable number of **Ozymandian** and **SkyLark** tokens (with the numbers supplied via a redeemer).
+
+```
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-tokens \
+  && cabal run plutus-tokens minttokens.plutus \
+  && cp minttokens.plutus ../../plutus-scripts \
+  && mv minttokens.plutus ~/cardano/scripts \
+  && POLICY_ID=$(cardano-cli transaction policyid \
+    --script-file /var/cardano/local/scripts/minttokens.plutus) \
+  && POLICY_ID=${POLICY_ID:0:56} \
+  && echo "POLICY_ID=\"$POLICY_ID\""
+
+POLICY_ID="f91a4655297977e3f4314d2abe4b74b0be1027a4cb9bd4890efe679b"
+```
+
+Verify that this works as you expect.
+
+```
+cardano-cli query utxo \
+  --address $WALLET_SHELLEY_ADDR \
+  --testnet-magic 8
+
+TX_IN1="072c432a2df6596b85269e7b5a6ccecdd777362532eb0452d28c7759cda4660f#0"
+
+TX_COL="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#3"
+
+SEND_AMOUNT=1500000
+
+ASSET_NAME=SkyLark
+ASSET_AMOUNT=1000
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic 8 \
+  --tx-in $TX_IN1 \
+  --tx-in-collateral $TX_COL \
+  --tx-out "$WALLET_SHELLEY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint-script-file /var/cardano/local/scripts/minttokens.plutus \
+  --mint-redeemer-value $ASSET_AMOUNT \
+  --change-address $WALLET_SHELLEY_ADDR \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
+  --testnet-magic 8 \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+```
+
+Burn those tokens again
+
+```
+cardano-cli query utxo \
+  --address $WALLET_SHELLEY_ADDR \
+  --testnet-magic 8
+
+TX_IN1="371a4e11ea1848e8e6b0d6c29ee2aa7319ebddcd1d80f1eeddb58abcbdd52e2d#1"
+
+TX_PAY="371a4e11ea1848e8e6b0d6c29ee2aa7319ebddcd1d80f1eeddb58abcbdd52e2d#0"
+
+TX_COL="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#3"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic 8 \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_PAY \
+  --tx-in-collateral $TX_COL \
+  --mint "-$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint-script-file /var/cardano/local/scripts/minttokens.plutus \
+  --mint-redeemer-value -$ASSET_AMOUNT \
+  --change-address $WALLET_SHELLEY_ADDR \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
+  --testnet-magic 8 \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+```
 
 8. Define a Plutus _minting script_ that allows you to mint a single instance of a _non-fungible token_. Your script should take a payment from a user-supplied address and pass this payment to an address of your choice.
 
