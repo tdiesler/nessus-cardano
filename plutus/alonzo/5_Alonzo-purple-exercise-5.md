@@ -39,6 +39,13 @@ cardano-cli address key-gen \
   --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/percy.vkey \
   --out-file /var/cardano/local/keys/alonzo/wallets/percy.addr \
   --testnet-magic 8
+&& cardano-cli address key-gen \
+  --verification-key-file /var/cardano/local/keys/alonzo/wallets/trash.vkey \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/trash.skey \
+&& cardano-cli address build \
+  --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/trash.vkey \
+  --out-file /var/cardano/local/keys/alonzo/wallets/trash.addr \
+  --testnet-magic 8
 ```
 
 Transfer some ada to each of these addresses, and check that they have been funded.
@@ -340,17 +347,17 @@ cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-tokens \
   && POLICY_ID=${POLICY_ID:0:56} \
   && echo "POLICY_ID=\"$POLICY_ID\""
 
-POLICY_ID="f91a4655297977e3f4314d2abe4b74b0be1027a4cb9bd4890efe679b"
+POLICY_ID="117342b10b569bb674190a12690052c2a6825d059a372a97f95aff8c"
 ```
 
-Verify that this works as you expect.
+Mint a variable number of **Ozymandian** and **SkyLark** tokens
 
 ```
 cardano-cli query utxo \
   --address $WALLET_SHELLEY_ADDR \
   --testnet-magic 8
 
-TX_IN1="072c432a2df6596b85269e7b5a6ccecdd777362532eb0452d28c7759cda4660f#0"
+TX_IN1="af0ab6dded5a084595501d2d20d3e5b236d738de4105b0f67796a61ac24c2777#0"
 
 TX_COL="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#3"
 
@@ -365,10 +372,10 @@ cardano-cli transaction build \
   --testnet-magic 8 \
   --tx-in $TX_IN1 \
   --tx-in-collateral $TX_COL \
-  --tx-out "$WALLET_SHELLEY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
   --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/scripts/minttokens.plutus \
   --mint-redeemer-value $ASSET_AMOUNT \
+  --tx-out "$WALLET_SHELLEY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
   --change-address $WALLET_SHELLEY_ADDR \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
@@ -389,9 +396,9 @@ cardano-cli query utxo \
   --address $WALLET_SHELLEY_ADDR \
   --testnet-magic 8
 
-TX_IN1="371a4e11ea1848e8e6b0d6c29ee2aa7319ebddcd1d80f1eeddb58abcbdd52e2d#1"
+TX_IN1="7bf03ece785bf7e1e70f79d7e113f88595ac9fc44bce8b4fe9541973a36e5162#1"
 
-TX_PAY="371a4e11ea1848e8e6b0d6c29ee2aa7319ebddcd1d80f1eeddb58abcbdd52e2d#0"
+TX_PAY="7bf03ece785bf7e1e70f79d7e113f88595ac9fc44bce8b4fe9541973a36e5162#0"
 
 TX_COL="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#3"
 
@@ -418,7 +425,96 @@ cardano-cli transaction build \
   --testnet-magic 8
 ```
 
-8. Define a Plutus _minting script_ that allows you to mint a single instance of a _non-fungible token_. Your script should take a payment from a user-supplied address and pass this payment to an address of your choice.
+### 5.8. Define a script that allows you to mint an NFT
+
+Define a Plutus _minting script_ that allows you to mint a single instance of a _non-fungible token_.
+
+```
+cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-tokens \
+  && cabal run plutus-nft mintnft.plutus \
+  && cp mintnft.plutus ../../plutus-scripts \
+  && mv mintnft.plutus ~/cardano/scripts \
+  && POLICY_ID=$(cardano-cli transaction policyid \
+    --script-file /var/cardano/local/scripts/mintnft.plutus) \
+  && POLICY_ID=${POLICY_ID:0:56} \
+  && echo "POLICY_ID=\"$POLICY_ID\""
+
+POLICY_ID="c2a6ea770995d6c91248f1b30d1be965201720c02e154882ce42b749"
+```
+
+Mint a single instance of a non-fungible token
+Your script should take a payment from a user-supplied address and pass this payment to an address of your choice.
+
+```
+cardano-cli query utxo \
+  --address $WALLET_SHELLEY_ADDR \
+  --testnet-magic 8
+
+TX_IN1="5754701732284813d8fd5f8fedb00bd510b7a1bfb83c573db29e29a83d4cdec5#0"
+
+TX_COL="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#3"
+
+SEND_AMOUNT=1500000
+
+ASSET_NAME=SkyLark
+ASSET_AMOUNT=1
+
+TO_ADDR=$WALLET_PERCY_ADDR
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic 8 \
+  --tx-in $TX_IN1 \
+  --tx-in-collateral $TX_COL \
+  --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint-script-file /var/cardano/local/scripts/mintnft.plutus \
+  --mint-redeemer-value $ASSET_AMOUNT \
+  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --change-address $WALLET_SHELLEY_ADDR \
+  --protocol-params-file /var/cardano/local/scratch/protocol.json \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
+  --testnet-magic 8 \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+```
+
+Send that NFT to the trash bin
+
+```
+cardano-cli query utxo \
+  --address $WALLET_PERCY_ADDR \
+  --testnet-magic 8
+
+TX_IN1="4582a84d11769b3db1db3b231a6bf54eb210b3437c7f88dd5f5d4825545d3708#1"
+
+TX_PAY="261e71fa198fbc5368dbde6a3de5e9a1a4604682b689f97ae33a871bccb4b45b#0"
+
+TRASH_ADDR=$(cat ~/cardano/keys/alonzo/wallets/trash.addr)
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic 8 \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_PAY \
+  --tx-out "$TRASH_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --change-address $WALLET_PERCY_ADDR \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/alonzo/wallets/percy.skey \
+  --testnet-magic 8 \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic 8
+```
 
 9. Adapt your solution from Exercise 8 so that you conduct a Dutch auction on your _non-fungible token._ For example, start the bidding at 1000 Ada and reduce the price by 1 Ada every second. Sell the non-fungible token to the first client that offers to pay at least the current price. When the price falls below your hidden _reserve_, reject all future bids.
 

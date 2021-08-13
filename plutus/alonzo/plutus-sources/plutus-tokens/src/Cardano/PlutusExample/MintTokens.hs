@@ -29,18 +29,22 @@ import           Ledger.Value           as Value
 
 {-# INLINABLE mintTokens #-}
 mintTokens :: Integer -> ScriptContext -> Bool
-mintTokens amt ctx = traceIfFalse "wrong amount minted" checkMintedAmount
+mintTokens amt ctx =
+    traceIfFalse "wrong currency symbol" checkMintedSymbol &&
+    traceIfFalse "wrong amount minted" checkMintedAmount
   where
     info :: TxInfo
     info = scriptContextTxInfo ctx
 
-    cs :: CurrencySymbol
-    cs = ownCurrencySymbol ctx
+    checkMintedSymbol :: Bool
+    checkMintedSymbol = case flattenValue (txInfoForge info) of
+        [(cs', _, _)] -> cs' == ownCurrencySymbol ctx
+        _             -> False
 
     checkMintedAmount :: Bool
     checkMintedAmount = case flattenValue (txInfoForge info) of
-        [(cs', _, amt')] -> cs' == cs && amt' == amt
-        _                  -> False
+        [(_, _, amt')] -> amt' == amt
+        _              -> False
 
 mintingPolicy :: Scripts.MintingPolicy
 mintingPolicy = mkMintingPolicyScript $$(PlutusTx.compile [|| Scripts.wrapMintingPolicy mintTokens ||])

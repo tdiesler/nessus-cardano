@@ -46,12 +46,10 @@ library
   hs-source-dirs:       src
 
   exposed-modules:      Cardano.PlutusExample.MintTokens
-                      , Cardano.PlutusExample.NFT
+                      , Cardano.PlutusExample.MintNFT
 
   build-depends:        bytestring
                       , cardano-api
-                      --, flat
-                      --, plutus-core
                       , plutus-ledger
                       , plutus-ledger-api
                       , plutus-tx
@@ -67,8 +65,17 @@ executable plutus-tokens
   ghc-options:          -threaded -rtsopts "-with-rtsopts=-T"
 
   build-depends:        cardano-api
-                      --, cardano-ledger-alonzo
-                      --, plutus-ledger
+                      , plutus-tokens
+                      , plutus-ledger-api
+                      , bytestring
+
+executable plutus-nft
+  import:               base, project-config
+  hs-source-dirs:       app
+  main-is:              plutus-nft.hs
+  ghc-options:          -threaded -rtsopts "-with-rtsopts=-T"
+
+  build-depends:        cardano-api
                       , plutus-tokens
                       , plutus-ledger-api
                       , bytestring
