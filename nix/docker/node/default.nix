@@ -56,6 +56,36 @@ let
   # The Docker context with static content
   context = ./context;
 
+  nonRootSetup = { user, uid, gid ? uid }: with pkgs; [
+    (
+    writeTextDir "etc/shadow" ''
+      root:!x:::::::
+      ${user}:!:::::::
+    ''
+    )
+    (
+    writeTextDir "etc/passwd" ''
+      root:x:0:0::/root:${runtimeShell}
+      ${user}:x:${toString uid}:${toString gid}::/home/${user}:
+    ''
+    )
+    (
+    writeTextDir "etc/group" ''
+      root:x:0:
+      ${user}:x:${toString gid}:
+    ''
+    )
+    (
+    writeTextDir "etc/gshadow" ''
+      root:x::
+      ${user}:x::
+    ''
+    )
+  ];
+
+  runAsUser = "node";
+  runAsUserId = 1000;
+
 in
   pkgs.dockerTools.buildImage {
 
@@ -91,22 +121,28 @@ in
       pkgs.netcat            # Networking utility for reading from and writing to network connections
       pkgs.procps            # Utilities that give information about processes using the /proc filesystem
       pkgs.tuptime           # Total uptime & downtime statistics utility
-    ];
+    ] ++ nonRootSetup { user = runAsUser; uid = runAsUserId; };
 
     # Set creation date to build time. Breaks reproducibility
     created = "now";
 
     # Requires 'system-features = kvm' in /etc/nix/nix.conf
     # https://discourse.nixos.org/t/cannot-build-docker-image/7445
-    # runAsRoot = '' do root stuff '';
+    runAsRoot = ''
+      mkdir -p /usr/local/bin
+      mkdir -p /opt/cardano/config
+      mkdir -p /opt/cardano/data
+      mkdir -p /opt/cardano/ipc
+      mkdir -p /opt/cardano/logs
+      mkdir -p /var/cardano 
+      chown -vR ${runAsUser}:${runAsUser} /usr/local/bin
+      chown -vR ${runAsUser}:${runAsUser} /opt/cardano
+      chown -vR ${runAsUser}:${runAsUser} /var/cardano
+      mkdir -p /tmp
+      chmod 777 /tmp
+    '';
 
     extraCommands = ''
-
-      mkdir -p usr/local/bin
-      mkdir -p opt/cardano/config
-      mkdir -p opt/cardano/data
-      mkdir -p opt/cardano/ipc
-      mkdir -p opt/cardano/logs
 
       # Entrypoint and helper scripts
       cp ${context}/bin/* usr/local/bin
@@ -139,5 +175,9 @@ in
       ];
       Entrypoint = [ "entrypoint" ];
       StopSignal = "SIGINT";
+      Volumes = {
+        "/opt/cardano" = {};
+      };
+      User = "${runAsUser}:${runAsUser}";
     };
   }
