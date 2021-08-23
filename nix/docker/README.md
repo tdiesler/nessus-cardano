@@ -23,7 +23,7 @@ substituters = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos
 
 # Needed when runAsRoot is used by dockerTools.buildImage
 # https://discourse.nixos.org/t/cannot-build-docker-image/7445
-# system-features = kvm
+system-features = kvm
 EOF
 ```
 
