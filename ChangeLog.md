@@ -1,3 +1,21 @@
+# v1.29.0-rev1
+
+Released: 31-Aug-2021
+
+This is a major feature update and bug fix release.
+
+* Upgrade to cardano-node-1.29.0 ([#73][73])
+* Additional RTS flags for optimization of memory usage ([#67][67])
+* Add support for RTS options in docker run ([#68][68])
+* cardano-cli cannot parse script-data-value with spaces ([#69][69])
+
+[67]: https://github.com/tdiesler/nessus-cardano/issues/67
+[68]: https://github.com/tdiesler/nessus-cardano/issues/68
+[69]: https://github.com/tdiesler/nessus-cardano/issues/69
+[73]: https://github.com/tdiesler/nessus-cardano/issues/73
+
+For details see [v1.29.0-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.29.0-rev1)
+
 # v1.28.0-rev1
 
 Released: 21-Jul-2021
