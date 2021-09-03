@@ -6,6 +6,22 @@
 
   Now that we have gone through the hard fork into Alonzo, the next exercise will involve building, signing and submitting simple Plutus transactions using your own node.  
 
+## Run the node
+
+```
+docker run --detach \
+    --name=testrl\
+    -p 3001:3001 \
+    -e CARDANO_NETWORK=testnet \
+    -v test-data:/opt/cardano/data \
+    -v node-ipc:/opt/cardano/ipc \
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
+
+docker logs -f testrl
+
+docker exec -it testrl gLiveView
+```
+
 ## Get protocol parameters
 
 ```
@@ -22,8 +38,8 @@ cardano-cli query protocol-parameters \
 ## Query account balance
 
 ```
-PAYMENT_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
-STAKE_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/stake.addr)
+PAYMENT_ADDR0=$(cat ~/cardano/keys/testnet/acc0/payment.addr)
+STAKE_ADDR0=$(cat ~/cardano/keys/testnet/acc0/stake.addr)
 echo "${STAKE_ADDR0} => ${PAYMENT_ADDR0}"
 
 # Query UTxO
@@ -45,7 +61,7 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR0 \
   --testnet-magic 8
 
-TO_ADDR1=$(cat ~/cardano/keys/alonzo/acc1/payment.addr)
+TO_ADDR1=$(cat ~/cardano/keys/testnet/acc1/payment.addr)
 
 # Calculate the change to send back to PAYMENT_ADDR
 FEES_LVC=200000
@@ -69,7 +85,7 @@ cardano-cli transaction build-raw \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/acc0/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc0/payment.skey \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
@@ -84,7 +100,7 @@ cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
   --testnet-magic 8 | sort
 
-TO_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
+TO_ADDR0=$(cat ~/cardano/keys/testnet/acc0/payment.addr)
 
 # Calculate the change to send back to PAYMENT_ADDR
 FEES_LVC=200000
@@ -101,7 +117,7 @@ cardano-cli transaction build-raw \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/acc1/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
@@ -141,8 +157,8 @@ cardano-cli transaction build-raw \
 # Sign the transaction
 cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/${OWNER}/payment.skey \
-  --signing-key-file /var/cardano/local/keys/alonzo/${OWNER}/stake.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.skey \
   --out-file /var/cardano/local/scratch/tx.signed
 
 # Submit the transaction
