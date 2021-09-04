@@ -40,7 +40,7 @@ cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-alwayssucceeds \
   && cardano-cli address build \
     --payment-script-file /var/cardano/local/scripts/AlwaysSucceeds.plutus \
     --out-file /var/cardano/local/scratch/alwayssucceeds.addr \
-    --testnet-magic 8 \
+    --testnet-magic $TESTNET_MAGIC \
   && SCRIPT_ADDR=$(cat ~/cardano/scratch/alwayssucceeds.addr) \
   && echo "SCRIPT_ADDR=\"${SCRIPT_ADDR}\""
 
@@ -59,8 +59,6 @@ All transaction outputs that are locked by non-native scripts must include
 the hash of an additional “datum”. **A non-native script-locked output that does not include a datum hash is unspendable**
 
 ```
-PAYMENT_ADDR1=$(cat ~/cardano/keys/alonzo/acc1/payment.addr)
-
 DATUM_VALUE=29031918 \
   && DATUM_HASH="$(cardano-cli transaction hash-script-data --script-data-value $DATUM_VALUE)" \
   && DATUM_HASH=${DATUM_HASH:0:64} \
@@ -69,38 +67,33 @@ DATUM_VALUE=29031918 \
 # Query Script UTxO
 cardano-cli query utxo \
   --address $SCRIPT_ADDR \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 
 # Query UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="18d0cc0a514ead01ce3ad525536e8a838f8375dcf80e790b1763b3f1fb8f0ec1#0"
-TX_IN1_LVC="1945766300"
+TX_IN="c83c36a899984387994aad4ef1e49c3dca161e5e593bae032959bd62c343fc63#0"
 
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
-SEND_LVC=100000000
-REFUND_LVC=$(($TX_IN1_LVC - SEND_LVC - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
+SEND_LVC=12300000
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --tx-in $TX_IN1 \
+  --testnet-magic $TESTNET_MAGIC \
+  --tx-in $TX_IN \
   --tx-out $SCRIPT_ADDR+$SEND_LVC \
   --tx-out-datum-hash $DATUM_HASH \
-  --tx-out $PAYMENT_ADDR1+$REFUND_LVC \
-  --fee $FEES_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/acc1/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ### Part 3:  Unlocking funds that are guarded by a Plutus script.
@@ -120,52 +113,39 @@ up, a greater fee will be charged - up to the maximum available funds, even if t
 # Query Script UTxO
 cardano-cli query utxo \
   --address $SCRIPT_ADDR \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 
 # Query Payment UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="c569575d69a81eff3cd57061da657ebf27e4b5e6fd9fbd81b5d6eb9562e4a620#1"
-TX_IN1_LVC="1845566300"
+TX_IN="c672773c3da58d1b05a7507cd9cee5580cca290442201783ee2fb5c7e062f3e1#0"
 
-TX_COL="1479fbe7e80e672e6c75897185dca0ff6771e17d91cd7da175694e4b5b1c24e0#3"
-TX_COL_LVC="2000000000"
+TX_SCRIPT="c672773c3da58d1b05a7507cd9cee5580cca290442201783ee2fb5c7e062f3e1#1"
 
-TX_SCRIPT="c569575d69a81eff3cd57061da657ebf27e4b5e6fd9fbd81b5d6eb9562e4a620#0"
-TX_SCRIPT_LVC="100000000"
-
-# Calculate the change to send back to PAYMENT_ADDR
-ExCPU=1390000
-ExMem=100
-ExFct=2
-UNITS="($(($ExFct*$ExCPU)),$(($ExFct*$ExMem)))"
-FEES_LVC=$(($ExFct * ($ExCPU + $ExMem) + 500000))
-SEND_LVC=$(($TX_IN1_LVC + $TX_SCRIPT_LVC - $FEES_LVC))
-echo "Send=$SEND_LVC, Fees=$FEES_LVC, Units=$UNITS"
+TX_COL="689abea1c788f21f191aa2f05cf8367687d0dff3f514cc41a3af8e9f2a0d5d8b#4"
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --fee $FEES_LVC \
-  --tx-in $TX_IN1 \
+  --testnet-magic $TESTNET_MAGIC \
+  --tx-in $TX_IN \
   --tx-in $TX_SCRIPT \
   --tx-in-script-file /var/cardano/local/scripts/AlwaysSucceeds.plutus \
   --tx-in-redeemer-value 0 \
   --tx-in-datum-value $DATUM_VALUE \
-  --tx-in-execution-units "$UNITS" \
   --tx-in-collateral $TX_COL \
-  --tx-out $PAYMENT_ADDR1+$SEND_LVC \
+  --change-address $PAYMENT_ADDR1 \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/acc1/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 Failure to provide the correct --tx-in-datum-value results in MissingRequiredDatums
