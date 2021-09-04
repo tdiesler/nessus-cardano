@@ -45,16 +45,20 @@ cabal install exe:haskell-language-server-wrapper --overwrite-policy=always
 ## Compile the Sources
 
 ```
-# Checkout Plutus version referenced by Alonzo-testnet
-cd .../plutus; git checkout 8c83c4abe211b4bbcaca3cdf1b2c0e38d0eb683f
+# Checkout the Plutus version referencenced in cabal.project
+cd ~/git/plutus \
+  && git checkout 8c83c4abe211b4bbcaca3cdf1b2c0e38d0eb683f \
+  && nix-shell
 
 # Start a Nix shell
 nix-shell
 
-# Change to .../Alonzo-testnet/resources/plutus-sources
-cd .../plutus-sources
+# Change to plutus alonzo sources
+cd ../nessus-cardano/plutus/alonzo/plutus-sources
 
 # Build the sources
+cabal clean
+cabal update
 cabal build plutus-helloworld
 
 # Generate the HLS cradle
@@ -84,7 +88,7 @@ apm install language-haskell ide-haskell ide-haskell-cabal ide-haskell-hls
 ```
 # Checkout the Plutus version referencenced in cabal.project
 cd ~/git/plutus \
-  && git checkout ae35c4b8fe66dd626679bd2951bd72190e09a123 \
+  && git checkout 8c83c4abe211b4bbcaca3cdf1b2c0e38d0eb683f \
   && nix-shell
 
 # Start the Plutus Playground Server
@@ -159,9 +163,9 @@ cardano-cli query protocol-parameters \
 https://github.com/input-output-hk/cardano-node/blob/master/doc/stake-pool-operations/keys_and_addresses.md
 
 ```
-OWNER="acc0"
+OWNER="acc1"
 
-# Payment keys
+# Owner payment keys
 mkdir -p ~/cardano/keys/testnet/${OWNER} \
 && cardano-cli address key-gen \
   --verification-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.vkey \
@@ -178,6 +182,23 @@ mkdir -p ~/cardano/keys/testnet/${OWNER} \
   --stake-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
   --out-file /var/cardano/local/keys/testnet/${OWNER}/stake.addr \
   --testnet-magic $TESTNET_MAGIC
+
+# User payment keys
+for i in 1 2 3; do
+  USER="acc$i"
+  mkdir -p ~/cardano/keys/testnet/${USER} \
+  && cardano-cli address key-gen \
+    --verification-key-file /var/cardano/local/keys/testnet/${USER}/payment.vkey \
+    --signing-key-file /var/cardano/local/keys/testnet/${USER}/payment.skey \
+  && cardano-cli address build \
+    --payment-verification-key-file /var/cardano/local/keys/testnet/${USER}/payment.vkey \
+    --out-file /var/cardano/local/keys/testnet/${USER}/payment.addr \
+    --testnet-magic $TESTNET_MAGIC \
+  && echo "$USER=$(cat ~/cardano/keys/testnet/${USER}/payment.addr)"
+done
+
+# Zip the keys for secure storage
+zip -re cardano-testnet-keys.zip ~/cardano/keys/testnet
 ```
 
 ## Get funds from the Faucet

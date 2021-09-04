@@ -30,58 +30,65 @@ alias cardano-cli="docker run -it --rm \
   -v node-ipc:/opt/cardano/ipc \
   nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} cardano-cli"
 
+TESTNET_MAGIC=$(docker exec testrl cat /opt/cardano/data/protocolMagicId) \
+  && echo "TESTNET_MAGIC=$TESTNET_MAGIC"
+
 cardano-cli query protocol-parameters \
   --out-file /var/cardano/local/scratch/protocol.json \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ## Query account balance
 
 ```
-PAYMENT_ADDR0=$(cat ~/cardano/keys/testnet/acc0/payment.addr)
-STAKE_ADDR0=$(cat ~/cardano/keys/testnet/acc0/stake.addr)
-echo "${STAKE_ADDR0} => ${PAYMENT_ADDR0}"
+PAYMENT_ADDR0=$(cat ~/cardano/keys/testnet/acc0/payment.addr) \
+&& PAYMENT_ADDR1=$(cat ~/cardano/keys/testnet/acc1/payment.addr) \
+&& PAYMENT_ADDR2=$(cat ~/cardano/keys/testnet/acc2/payment.addr) \
+&& PAYMENT_ADDR3=$(cat ~/cardano/keys/testnet/acc3/payment.addr) \
+&& echo "acc0: ${PAYMENT_ADDR0}" \
+&& echo "acc1: ${PAYMENT_ADDR1}" \
+&& echo "acc2: ${PAYMENT_ADDR2}" \
+&& echo "acc3: ${PAYMENT_ADDR3}"
 
-# Query UTxO
-cardano-cli query utxo \
-  --address $PAYMENT_ADDR0 \
-  --testnet-magic 8
+# Query balances
+for i in 0 1 2 3; do
+  USER="acc$i"
+  echo "[$USER] ==============================================================================="
+  cardano-cli query utxo \
+    --address $(cat ~/cardano/keys/testnet/$USER/payment.addr) \
+    --testnet-magic $TESTNET_MAGIC
+  echo
+done
 
 # Query rewards
 cardano-cli query stake-address-info \
-    --address $STAKE_ADDR0 \
-    --testnet-magic 8
+  --address $STAKE_ADDR0 \
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ## Send some funds
 
 ```
+FROM_ADDR=$PAYMENT_ADDR0
+TO_ADDR=$PAYMENT_ADDR1
+
+SEND_LVC=200000000
+
 # Query UTxO
 cardano-cli query utxo \
-  --address $PAYMENT_ADDR0 \
-  --testnet-magic 8
-
-TO_ADDR1=$(cat ~/cardano/keys/testnet/acc1/payment.addr)
-
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
-SEND_LVC1=2000000000
-SEND_LVC2=2000000000
-SEND_LVC3=2000000000
-SEND_LVC4=2000000000
-REFUND_LVC=$((999497600000 - $SEND_LVC1 - $SEND_LVC2 - $SEND_LVC3 - $SEND_LVC4 - $FEES_LVC))
-echo "$REFUND_LVC Lovelace"
+  --address $FROM_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --tx-in "245411cbf0de4daee0a476946b1cd82b0073a0b89c0d8590a8f6689e37954974#0" \
-  --tx-out $TO_ADDR1+$SEND_LVC1 \
-  --tx-out $TO_ADDR1+$SEND_LVC2 \
-  --tx-out $TO_ADDR1+$SEND_LVC3 \
-  --tx-out $TO_ADDR1+$SEND_LVC4 \
-  --tx-out $PAYMENT_ADDR0+$REFUND_LVC \
-  --fee $FEES_LVC \
+  --testnet-magic $TESTNET_MAGIC \
+  --tx-in "abd803156011411acda3654a2a12e2d9a7ac5cce9bb2090ac524f81a6a4fe752#0" \
+  --tx-out $TO_ADDR+$SEND_LVC \
+  --tx-out $TO_ADDR+$SEND_LVC \
+  --tx-out $TO_ADDR+$SEND_LVC \
+  --tx-out $TO_ADDR+$SEND_LVC \
+  --change-address $PAYMENT_ADDR0 \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
@@ -89,39 +96,35 @@ cardano-cli transaction build-raw \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ## Send all funds
 
 ```
+FROM_ADDR=$PAYMENT_ADDR0
+TO_ADDR=$PAYMENT_ADDR0
+
 # Query UTxO
 cardano-cli query utxo \
-  --address $PAYMENT_ADDR1 \
-  --testnet-magic 8 | sort
-
-TO_ADDR0=$(cat ~/cardano/keys/testnet/acc0/payment.addr)
-
-# Calculate the change to send back to PAYMENT_ADDR
-FEES_LVC=200000
-SEND_LVC=$((2*1000000000 - $FEES_LVC))
-echo "$SEND_LVC Lovelace"
+  --address $FROM_ADDR \
+  --testnet-magic $TESTNET_MAGIC | sort
 
 # Build, sign and submit the transaction
-cardano-cli transaction build-raw \
+cardano-cli transaction build \
   --alonzo-era \
-  --tx-in "cd1617f8203a886fcf74b8a3fba2bc4f4eefee2d79c5f3bf2d9432044a7033f6#0" \
-  --tx-in "cd1617f8203a886fcf74b8a3fba2bc4f4eefee2d79c5f3bf2d9432044a7033f6#1" \
-  --tx-out $TO_ADDR0+$SEND_LVC \
-  --fee $FEES_LVC \
+  --testnet-magic $TESTNET_MAGIC \
+  --tx-in "47638df05db2ca4ef9613977a27f8a606130e631c63c9c2f5ccf6c6776332d82#0" \
+  --tx-in "c06233327e078487f5338a706e7c29cdcfef7b18e4d40ac15fded0388bef94c2#0" \
+  --change-address $TO_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc0/payment.skey \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ## Withdraw rewards
@@ -130,12 +133,12 @@ cardano-cli transaction build-raw \
 # Query rewards
 cardano-cli query stake-address-info \
     --address $STAKE_ADDR \
-    --testnet-magic 8
+    --testnet-magic $TESTNET_MAGIC
 
 # Query payment addr
 cardano-cli query utxo \
     --address $PAYMENT_ADDR \
-    --testnet-magic 8
+    --testnet-magic $TESTNET_MAGIC
 
 TX_IN1="7962075bc605010fcab7aec2d4aafa8f5c7460cc866ceb87e82359eb8594e0d6#1"
 UTXO_LVC=9998096244191
@@ -164,24 +167,5 @@ cardano-cli transaction sign \
 # Submit the transaction
 cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
-```
-
-## Check the balances
-
-```
-# Query payment addr
-cardano-cli query utxo \
-  --address $PAYMENT_ADDR0 \
-  --testnet-magic 8
-
-# Query target addr
-cardano-cli query utxo \
-  --address $TO_ADDR1 \
-  --testnet-magic 8
-
-# Query rewards
-cardano-cli query stake-address-info \
-  --address $STAKE_ADDR0 \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
