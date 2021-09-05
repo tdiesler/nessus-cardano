@@ -30,10 +30,11 @@ import qualified PlutusTx
 import           PlutusTx.Prelude     as P hiding (Semigroup (..), unless)
 
 
-globalMapping :: [(PubKeyHash, P.ByteString)]
+globalMapping :: [(PubKeyHash, P.BuiltinByteString)]
 globalMapping = [
-  ("e0448e90c094d9a7aeed6ee3cd0a468110928696e38a9d654f1940f0", "secret1"),
-  ("8360ed22cc176a40179ec8e8e75c13e798b31223adf789837e65c358", "secret2")]
+  ("36deb53fa63e507df19b5cd69bc1f0d2a214e3d738b68883fb27e10f", "secret1"),
+  ("071c6180a8fd2b486b9f40a1363ac0717518ab305ec3db54f5268ae8", "secret2"),
+  ("f9d84b9ee7f753478b5b86be5fadfa8a2b1144ba087bc1b8a1023d18", "secret3")]
 
 {-
    The Hello World validator script
@@ -41,7 +42,7 @@ globalMapping = [
 
 {-# INLINABLE helloWorld #-}
 
-helloWorld :: [(PubKeyHash, P.ByteString)] -> Integer -> P.ByteString -> ScriptContext -> P.Bool
+helloWorld :: [(PubKeyHash, P.BuiltinByteString)] -> Integer -> P.BuiltinByteString -> ScriptContext -> P.Bool
 helloWorld mapping _ redeemer ctx = let
     info :: TxInfo
     info = scriptContextTxInfo ctx
@@ -60,10 +61,10 @@ helloWorld mapping _ redeemer ctx = let
 
   in isOutWallet1 P.&& isSecret1 P.|| isOutWallet2 P.&& isSecret2
 
-getPubKeyHashFromMapping :: [(PubKeyHash, P.ByteString)] -> Integer -> Maybe PubKeyHash
+getPubKeyHashFromMapping :: [(PubKeyHash, P.BuiltinByteString)] -> Integer -> Maybe PubKeyHash
 getPubKeyHashFromMapping mapping idx = Just $ P.fst $ mapping P.!! idx
 
-getSecretFromMapping :: [(PubKeyHash, P.ByteString)] -> Integer -> P.ByteString
+getSecretFromMapping :: [(PubKeyHash, P.BuiltinByteString)] -> Integer -> P.BuiltinByteString
 getSecretFromMapping mapping idx = P.snd $ mapping P.!! idx
 
 {-
@@ -73,14 +74,14 @@ getSecretFromMapping mapping idx = P.snd $ mapping P.!! idx
 data HelloWorld
 instance Scripts.ValidatorTypes HelloWorld where
     type instance DatumType HelloWorld = Integer
-    type instance RedeemerType HelloWorld = P.ByteString
+    type instance RedeemerType HelloWorld = P.BuiltinByteString
 
 helloWorldInstance :: Scripts.TypedValidator HelloWorld
 helloWorldInstance = Scripts.mkTypedValidator @HelloWorld
     ($$(PlutusTx.compile [|| helloWorld ||]) `PlutusTx.applyCode` PlutusTx.liftCode globalMapping)
     $$(PlutusTx.compile [|| wrap ||])
   where
-    wrap = Scripts.wrapValidator @Integer @P.ByteString
+    wrap = Scripts.wrapValidator @Integer @P.BuiltinByteString
 
 {-
     As a Validator

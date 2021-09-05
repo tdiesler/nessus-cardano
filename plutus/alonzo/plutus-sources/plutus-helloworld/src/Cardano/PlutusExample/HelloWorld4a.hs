@@ -21,20 +21,21 @@ import           Prelude hiding (($))
 import           Cardano.Api.Shelley (PlutusScript (..), PlutusScriptV1)
 
 import           Codec.Serialise
-import qualified Data.ByteString.Short as SBS
-import qualified Data.ByteString.Lazy  as LBS
 
-import           Ledger               hiding (singleton)
-import qualified Ledger.Typed.Scripts as Scripts
+import qualified Data.ByteString.Short  as SBS
+import qualified Data.ByteString.Lazy   as LBS
+
+import           Ledger                 hiding (singleton)
+import qualified Ledger.Typed.Scripts   as Scripts
 import qualified PlutusTx
-import           PlutusTx.Prelude as P hiding (Semigroup (..), unless)
+import           PlutusTx.Prelude       as P hiding (Semigroup (..), unless)
 
 
 {-
   The "hello world" message as a bytestring
 -}
 
-helloMessage :: P.ByteString
+helloMessage :: P.BuiltinByteString
 helloMessage = "Thomas"
 
 {-
@@ -43,7 +44,7 @@ helloMessage = "Thomas"
 
 {-# INLINABLE helloWorld #-}
 
-helloWorld :: P.ByteString -> P.ByteString -> P.ByteString -> ScriptContext -> P.Bool
+helloWorld :: P.BuiltinByteString -> P.BuiltinByteString -> P.BuiltinByteString -> ScriptContext -> P.Bool
 helloWorld keyword datum _ _ = keyword P.== datum
 
 {-
@@ -52,15 +53,15 @@ helloWorld keyword datum _ _ = keyword P.== datum
 
 data HelloWorld
 instance Scripts.ValidatorTypes HelloWorld where
-    type instance DatumType HelloWorld = P.ByteString
-    type instance RedeemerType HelloWorld = P.ByteString
+    type instance DatumType HelloWorld = P.BuiltinByteString
+    type instance RedeemerType HelloWorld = P.BuiltinByteString
 
 helloWorldInstance :: Scripts.TypedValidator HelloWorld
 helloWorldInstance = Scripts.mkTypedValidator @HelloWorld
     ($$(PlutusTx.compile [|| helloWorld ||]) `PlutusTx.applyCode` PlutusTx.liftCode helloMessage)
     $$(PlutusTx.compile [|| wrap ||])
   where
-    wrap = Scripts.wrapValidator @P.ByteString @P.ByteString
+    wrap = Scripts.wrapValidator @P.BuiltinByteString @P.BuiltinByteString
 
 {-
     As a Validator

@@ -25,6 +25,22 @@ This is the core of what is required to execute Plutus scripts on the Cardano bl
 
 ## Exercises
 
+## Get protocol parameters
+
+```
+alias cardano-cli="docker run -it --rm \
+  -v ~/cardano:/var/cardano/local \
+  -v node-ipc:/opt/cardano/ipc \
+  nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} cardano-cli"
+
+TESTNET_MAGIC=$(docker exec testrl cat /opt/cardano/data/protocolMagicId) \
+  && echo "TESTNET_MAGIC=$TESTNET_MAGIC"
+
+cardano-cli query protocol-parameters \
+  --out-file /var/cardano/local/scratch/protocol.json \
+  --testnet-magic $TESTNET_MAGIC
+```
+
 ### Part 2:  Submit a transaction to lock funds.
 
 We will first use a pre-built Plutus validator script that always returns `True`. This is the simplest possible validator script (though it is not very useful except as a placeholder/test script!).
@@ -38,9 +54,9 @@ cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-alwayssucceeds \
   && mv AlwaysSucceeds.plutus ../../plutus-scripts/ \
   && cat ~/cardano/scripts/AlwaysSucceeds.plutus \
   && cardano-cli address build \
+    --testnet-magic $TESTNET_MAGIC \
     --payment-script-file /var/cardano/local/scripts/AlwaysSucceeds.plutus \
     --out-file /var/cardano/local/scratch/alwayssucceeds.addr \
-    --testnet-magic $TESTNET_MAGIC \
   && SCRIPT_ADDR=$(cat ~/cardano/scratch/alwayssucceeds.addr) \
   && echo "SCRIPT_ADDR=\"${SCRIPT_ADDR}\""
 
@@ -110,14 +126,14 @@ up, a greater fee will be charged - up to the maximum available funds, even if t
 * The user specifies the UTxO entries containing funds sufficient to cover a percentage (usually 100 or more) of the total transaction fee. These inputs are only collected in the case of script validation failure, and are called collateral inputs `--tx-in-collateral`. In the case of script validation success, the fee specified in the fee field of the transaction is collected, but the collateral is not.
 
 ```
-# Query Script UTxO
-cardano-cli query utxo \
-  --address $SCRIPT_ADDR \
-  --testnet-magic $TESTNET_MAGIC
-
 # Query Payment UTxO
 cardano-cli query utxo \
   --address $PAYMENT_ADDR1 \
+  --testnet-magic $TESTNET_MAGIC
+
+# Query Script UTxO
+cardano-cli query utxo \
+  --address $SCRIPT_ADDR \
   --testnet-magic $TESTNET_MAGIC
 
 TX_IN="c672773c3da58d1b05a7507cd9cee5580cca290442201783ee2fb5c7e062f3e1#0"

@@ -6,11 +6,10 @@ import           Cardano.Api
 import           Cardano.Api.Shelley
 
 import           Data.Aeson (encode)
-import qualified Data.ByteString.Short as SBS
+import qualified Data.ByteString.Short  as SBS
 
-import qualified Plutus.V1.Ledger.Api as Plutus
-
-import           PlutusTx.Prelude as P (ByteString)
+import qualified Plutus.V1.Ledger.Api   as Plutus
+import           PlutusTx.Prelude       as P (BuiltinByteString)
 
 import           Cardano.PlutusExample.HelloWorld4a (helloMessage, helloWorldSBS, helloWorldSerialised)
 
@@ -24,7 +23,7 @@ main = do
 
 
 
-writePlutusScript :: P.ByteString -> FilePath -> PlutusScript PlutusScriptV1 -> SBS.ShortByteString -> IO ()
+writePlutusScript :: P.BuiltinByteString -> FilePath -> PlutusScript PlutusScriptV1 -> SBS.ShortByteString -> IO ()
 writePlutusScript datum filename scriptSerial scriptSBS =
   do
   case Plutus.defaultCostModelParams of

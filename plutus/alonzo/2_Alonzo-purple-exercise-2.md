@@ -70,7 +70,9 @@ cardano-cli query stake-address-info \
 
 ```
 FROM_ADDR=$PAYMENT_ADDR0
-TO_ADDR=$PAYMENT_ADDR1
+TO_ADDR1=$PAYMENT_ADDR1
+TO_ADDR2=$PAYMENT_ADDR2
+TO_ADDR3=$PAYMENT_ADDR3
 
 SEND_LVC=200000000
 
@@ -79,16 +81,20 @@ cardano-cli query utxo \
   --address $FROM_ADDR \
   --testnet-magic $TESTNET_MAGIC
 
+TX_IN1="076f062a8d038709ff78943339b03196636366c45439b89135949163a9138232#0"
+
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
   --testnet-magic $TESTNET_MAGIC \
-  --tx-in "abd803156011411acda3654a2a12e2d9a7ac5cce9bb2090ac524f81a6a4fe752#0" \
-  --tx-out $TO_ADDR+$SEND_LVC \
-  --tx-out $TO_ADDR+$SEND_LVC \
-  --tx-out $TO_ADDR+$SEND_LVC \
-  --tx-out $TO_ADDR+$SEND_LVC \
-  --change-address $PAYMENT_ADDR0 \
+  --tx-in $TX_IN1 \
+  --tx-out $TO_ADDR1+$SEND_LVC \
+  --tx-out $TO_ADDR1+$SEND_LVC \
+  --tx-out $TO_ADDR2+$SEND_LVC \
+  --tx-out $TO_ADDR2+$SEND_LVC \
+  --tx-out $TO_ADDR3+$SEND_LVC \
+  --tx-out $TO_ADDR3+$SEND_LVC \
+  --change-address $FROM_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \

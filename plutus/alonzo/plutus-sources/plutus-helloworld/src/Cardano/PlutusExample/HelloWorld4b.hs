@@ -34,7 +34,7 @@ import           PlutusTx.Prelude     as P hiding (Semigroup (..), unless)
   Some expected message as a bytestring
 -}
 
-helloMessage :: P.ByteString
+helloMessage :: P.BuiltinByteString
 helloMessage = "Heinz"
 
 birthday :: Integer
@@ -46,7 +46,7 @@ birthday = 29031918
 
 {-# INLINABLE helloWorld #-}
 
-helloWorld :: P.ByteString -> P.ByteString -> Integer -> ScriptContext -> P.Bool
+helloWorld :: P.BuiltinByteString -> P.BuiltinByteString -> Integer -> ScriptContext -> P.Bool
 helloWorld keyword datum redeemer _ = keyword P.== datum P.&& birthday P.== redeemer
 
 
@@ -56,7 +56,7 @@ helloWorld keyword datum redeemer _ = keyword P.== datum P.&& birthday P.== rede
 
 data HelloWorld
 instance Scripts.ValidatorTypes HelloWorld where
-    type instance DatumType HelloWorld = P.ByteString
+    type instance DatumType HelloWorld = P.BuiltinByteString
     type instance RedeemerType HelloWorld = Integer
 
 helloWorldInstance :: Scripts.TypedValidator HelloWorld
@@ -64,7 +64,7 @@ helloWorldInstance = Scripts.mkTypedValidator @HelloWorld
     ($$(PlutusTx.compile [|| helloWorld ||]) `PlutusTx.applyCode` PlutusTx.liftCode helloMessage)
     $$(PlutusTx.compile [|| wrap ||])
   where
-    wrap = Scripts.wrapValidator @P.ByteString @Integer
+    wrap = Scripts.wrapValidator @P.BuiltinByteString @Integer
 
 {-
     As a Validator
