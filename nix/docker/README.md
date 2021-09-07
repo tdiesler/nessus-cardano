@@ -95,7 +95,7 @@ cardano-cli query tip --mainnet
 ## Create Data Backup
 
 ```
-BACKUP_FILE=mainnet-data-e270.tgz
+BACKUP_FILE=mainnet-data-e288.tgz
 TMPDATA_DIR=$HOME/data
 DATA_VOLUME=node-data
 
@@ -112,7 +112,7 @@ docker rm tmp
 ## Restore Data Backup
 
 ```
-BACKUP_FILE=mainnet-data-e270.tgz
+BACKUP_FILE=mainnet-data-e288.tgz
 TMPDATA_DIR=$HOME/data
 DATA_VOLUME=node-data
 

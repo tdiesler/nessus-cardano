@@ -486,18 +486,9 @@ WALLET_ADDR2=${PAYMENT_ADDR2}
 WALLET_ADDR3=${PAYMENT_ADDR3}
 
 # Extract the PubKey Hashes
-cardano-cli address key-hash \
-  --payment-verification-key-file /var/cardano/local/keys/testnet/acc1/payment.vkey \
-  --out-file /var/cardano/local/scratch/wallet1-pubkey.hash \
-&& cardano-cli address key-hash \
-  --payment-verification-key-file /var/cardano/local/keys/testnet/acc2/payment.vkey \
-  --out-file /var/cardano/local/scratch/wallet2-pubkey.hash \
-&& cardano-cli address key-hash \
-  --payment-verification-key-file /var/cardano/local/keys/testnet/acc3/payment.vkey \
-  --out-file /var/cardano/local/scratch/wallet3-pubkey.hash \
-&& WALLET_HASH1="$(cat ~/cardano/scratch/wallet1-pubkey.hash)" \
-&& WALLET_HASH2="$(cat ~/cardano/scratch/wallet2-pubkey.hash)" \
-&& WALLET_HASH3="$(cat ~/cardano/scratch/wallet3-pubkey.hash)" \
+WALLET_HASH1="$(cat ~/cardano/keys/testnet/acc1/payment.pkh)" \
+&& WALLET_HASH2="$(cat ~/cardano/keys/testnet/acc2/payment.pkh)" \
+&& WALLET_HASH3="$(cat ~/cardano/keys/testnet/acc3/payment.pkh)" \
 && echo "WALLET_HASH1=$WALLET_HASH1" \
 && echo "WALLET_HASH2=$WALLET_HASH2" \
 && echo "WALLET_HASH3=$WALLET_HASH3"

@@ -18,88 +18,12 @@ In the fifth set of exercises, we will make sure that you can:
 Create a set of private/public signing keys, _shelley_, and two _payment addresses, mary_ and _percy_. Fund the addresses with some test Ada.
 
 ```
-cardano-cli address key-gen \
-  --verification-key-file /var/cardano/local/keys/alonzo/wallets/shelley.vkey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
-&& cardano-cli address build \
-  --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/shelley.vkey \
-  --out-file /var/cardano/local/keys/alonzo/wallets/shelley.addr \
-  --testnet-magic 8 \
-&& cardano-cli address key-gen \
-  --verification-key-file /var/cardano/local/keys/alonzo/wallets/mary.vkey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/mary.skey \
-&& cardano-cli address build \
-  --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/mary.vkey \
-  --out-file /var/cardano/local/keys/alonzo/wallets/mary.addr \
-  --testnet-magic 8 \
-&& cardano-cli address key-gen \
-  --verification-key-file /var/cardano/local/keys/alonzo/wallets/percy.vkey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/percy.skey \
-&& cardano-cli address build \
-  --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/percy.vkey \
-  --out-file /var/cardano/local/keys/alonzo/wallets/percy.addr \
-  --testnet-magic 8
-&& cardano-cli address key-gen \
-  --verification-key-file /var/cardano/local/keys/alonzo/wallets/trash.vkey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/trash.skey \
-&& cardano-cli address build \
-  --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/trash.vkey \
-  --out-file /var/cardano/local/keys/alonzo/wallets/trash.addr \
-  --testnet-magic 8
+SHELLEY_ADDR=$(cat ~/cardano/keys/testnet/acc1/payment.addr) \
+&& MARY_ADDR=$(cat ~/cardano/keys/testnet/acc2/payment.addr) \
+&& PERCY_ADDR=$(cat ~/cardano/keys/testnet/acc3/payment.addr)
 ```
 
 Transfer some ada to each of these addresses, and check that they have been funded.
-
-```
-PAYMENT_ADDR0=$(cat ~/cardano/keys/alonzo/acc0/payment.addr)
-WALLET_SHELLEY_ADDR=$(cat ~/cardano/keys/alonzo/wallets/shelley.addr)
-WALLET_MARY_ADDR=$(cat ~/cardano/keys/alonzo/wallets/mary.addr)
-WALLET_PERCY_ADDR=$(cat ~/cardano/keys/alonzo/wallets/percy.addr)
-
-# Query UTxO
-cardano-cli query utxo \
-  --address $PAYMENT_ADDR0 \
-  --testnet-magic 8
-
-TX_IN1="d604bf2e1da2fb1b69db58be9e0e92c5ff8fb7d32133ab65f901d4fd350a00fc#0"
-
-SEND_LVC=2000000000
-
-# Build, sign and submit the transaction
-cardano-cli transaction build \
-  --alonzo-era \
-  --testnet-magic 8 \
-  --tx-in $TX_IN1 \
-  --tx-out $WALLET_SHELLEY_ADDR+$SEND_LVC \
-  --tx-out $WALLET_SHELLEY_ADDR+$SEND_LVC \
-  --tx-out $WALLET_SHELLEY_ADDR+$SEND_LVC \
-  --tx-out $WALLET_MARY_ADDR+$SEND_LVC \
-  --tx-out $WALLET_MARY_ADDR+$SEND_LVC \
-  --tx-out $WALLET_MARY_ADDR+$SEND_LVC \
-  --tx-out $WALLET_PERCY_ADDR+$SEND_LVC \
-  --tx-out $WALLET_PERCY_ADDR+$SEND_LVC \
-  --tx-out $WALLET_PERCY_ADDR+$SEND_LVC \
-  --change-address $PAYMENT_ADDR0 \
-  --out-file /var/cardano/local/scratch/tx.raw \
-&& cardano-cli transaction sign \
-  --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/acc0/payment.skey \
-  --out-file /var/cardano/local/scratch/tx.signed \
-&& cardano-cli transaction submit \
-  --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
-
-# Query wallet UTxOs
-cardano-cli query utxo \
-  --address $WALLET_SHELLEY_ADDR \
-  --testnet-magic 8 \
-&& cardano-cli query utxo \
-  --address $WALLET_MARY_ADDR \
-  --testnet-magic 8 \
-&& cardano-cli query utxo \
-  --address $WALLET_PERCY_ADDR \
-  --testnet-magic 8
-```
 
 ### 5.2. Define a Mary-era minting script
 
@@ -110,14 +34,14 @@ https://github.com/input-output-hk/cardano-node/blob/master/doc/reference/multi-
 
 ```
 cardano-cli address key-gen \
-  --verification-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.vkey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.skey
+  --verification-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy1.vkey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy1.skey
 
-POLICY_ONE_PKH=$(cardano-cli address key-hash --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.vkey) \
+POLICY_ONE_PKH=$(cardano-cli address key-hash --payment-verification-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy1.vkey) \
   && POLICY_ONE_PKH=${POLICY_ONE_PKH:0:56} \
   && echo "POLICY_ONE_PKH=\"$POLICY_ONE_PKH\""
 
-cat << EOF > ~/cardano/keys/alonzo/wallets/shelley-policy1.script
+cat << EOF > ~/cardano/keys/testnet/acc1/shelley-policy1.script
 {
   "type": "all",
   "scripts":
@@ -131,12 +55,12 @@ cat << EOF > ~/cardano/keys/alonzo/wallets/shelley-policy1.script
 EOF
 
 # Create Policy Id
-POLICY_ID=$(cardano-cli transaction policyid \
-  --script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script) \
-  && POLICY_ID=${POLICY_ID:0:56} \
-  && echo "POLICY_ID=\"$POLICY_ID\""
+POLICY_ID1=$(cardano-cli transaction policyid \
+  --script-file /var/cardano/local/keys/testnet/acc1/shelley-policy1.script) \
+  && POLICY_ID1=${POLICY_ID1:0:56} \
+  && echo "POLICY_ID1=\"$POLICY_ID1\""
 
-POLICY_ID="86cd90d1ebe6bb35931f4a8f9a69714721fad0bbfe01ebdf70816cd1"
+POLICY_ID1="06dc75fd11b2587b53b3012238a95aaf6bdab4f0eb38530fb3fa8cba"
 ```
 
 ### 5.3. Mint 1000 new Ozymandian in the percy address
@@ -145,10 +69,10 @@ Mint 1000 new **Ozymandian** in the _percy_ address by building and submitting a
 
 ```
 cardano-cli query utxo \
-  --address $WALLET_SHELLEY_ADDR \
-  --testnet-magic 8
+  --address $SHELLEY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="8265b186c9013bb092d7c05b354dc538e095d9c072389e20e386661b6b2f8b3f#1"
+TX_IN1="e24826aa9927e856bbf8de5b24785d84164c4af1100f71c0a17212422e0ed962#0"
 
 SEND_AMOUNT=1500000
 
@@ -158,23 +82,23 @@ ASSET_AMOUNT=1000
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
-  --testnet-magic 8 \
+  --testnet-magic $TESTNET_MAGIC \
   --tx-in $TX_IN1 \
-  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script \
+  --tx-out "$PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID1.$ASSET_NAME" \
+  --mint "$ASSET_AMOUNT $POLICY_ID1.$ASSET_NAME" \
+  --mint-script-file /var/cardano/local/keys/testnet/acc1/shelley-policy1.script \
   --witness-override 2 \
-  --change-address $WALLET_SHELLEY_ADDR \
+  --change-address $SHELLEY_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.skey \
-  --testnet-magic 8 \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy1.skey \
+  --testnet-magic $TESTNET_MAGIC \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ### 5.4 Define a second minting script
@@ -183,14 +107,14 @@ Define a second _minting script_ that allows _shelley_ to create new **SkyLark**
 
 ```
 cardano-cli address key-gen \
-  --verification-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.vkey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.skey
+  --verification-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.vkey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.skey
 
-POLICY_TWO_PKH=$(cardano-cli address key-hash --payment-verification-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.vkey) \
+POLICY_TWO_PKH=$(cardano-cli address key-hash --payment-verification-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.vkey) \
   && POLICY_TWO_PKH=${POLICY_TWO_PKH:0:56} \
   && echo "POLICY_TWO_PKH=\"$POLICY_TWO_PKH\""
 
-cat << EOF > ~/cardano/keys/alonzo/wallets/shelley-policy2.script
+cat << EOF > ~/cardano/keys/testnet/acc1/shelley-policy2.script
 {
   "type": "all",
   "scripts":
@@ -204,22 +128,22 @@ cat << EOF > ~/cardano/keys/alonzo/wallets/shelley-policy2.script
 EOF
 
 # Create Policy Id
-POLICY_ID=$(cardano-cli transaction policyid \
-  --script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.script) \
-  && POLICY_ID=${POLICY_ID:0:56} \
-  && echo "POLICY_ID=\"$POLICY_ID\""
+POLICY_ID2=$(cardano-cli transaction policyid \
+  --script-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.script) \
+  && POLICY_ID2=${POLICY_ID2:0:56} \
+  && echo "POLICY_ID2=\"$POLICY_ID2\""
 
-POLICY_ID="7a4c4257082168b746c10fc355850d8b4442321afd34af864c1b9984"
+POLICY_ID2="6a5996174da3738d61e27edf7c01b0efb1186794c9c5d9270a3d70a1"
 ```
 
 Mint 100 **SkyLark** tokens and send them to _percy_
 
 ```
 cardano-cli query utxo \
-  --address $WALLET_SHELLEY_ADDR \
-  --testnet-magic 8
+  --address $SHELLEY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="132b80875f6da8a004c7fbf465a96afe7a7b9fdcf234b64de87eabbc383db11c#0"
+TX_IN1="18fc0c2fb7fd88d8719e606da7426b523cdadf52c5f56561f393605d209b86df#0"
 
 SEND_AMOUNT=1500000
 
@@ -229,23 +153,23 @@ ASSET_AMOUNT=100
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
-  --testnet-magic 8 \
+  --testnet-magic $TESTNET_MAGIC \
   --tx-in $TX_IN1 \
-  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.script \
+  --tx-out "$PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID2.$ASSET_NAME" \
+  --mint "$ASSET_AMOUNT $POLICY_ID2.$ASSET_NAME" \
+  --mint-script-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.script \
   --witness-override 2 \
-  --change-address $WALLET_SHELLEY_ADDR \
+  --change-address $SHELLEY_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy2.skey \
-  --testnet-magic 8 \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.skey \
+  --testnet-magic $TESTNET_MAGIC \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 send 75 **SkyLark** tokens from _percy_ to _mary_
@@ -253,14 +177,14 @@ send 75 **SkyLark** tokens from _percy_ to _mary_
 ```
 # Query wallet UTxOs
 cardano-cli query utxo \
-  --address $WALLET_PERCY_ADDR \
-  --testnet-magic 8 \
+  --address $PERCY_ADDR \
+  --testnet-magic $TESTNET_MAGIC \
 && cardano-cli query utxo \
-    --address $WALLET_MARY_ADDR \
-    --testnet-magic 8
+  --address $MARY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="b8d559d66b0bfed2f8efcf228fbbb7aaef597cf50b63d751adb70524fad9bfe4#1"
-TX_IN2="bc8f72d1c323fbf24a846767ee4007b007e62f3ec7eb5a2b3a8e1d5faf324def#2"
+TX_IN1="0741a09c5da17fc60f4e59c42a9d10f63d9d9a263be3e84266282615e83b60af#1"
+TX_IN2="076f062a8d038709ff78943339b03196636366c45439b89135949163a9138232#1"
 
 SEND_AMOUNT=1500000
 
@@ -271,21 +195,21 @@ TOKEN_REFUND=$((100 - $ASSET_AMOUNT))
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
-  --testnet-magic 8 \
+  --testnet-magic $TESTNET_MAGIC \
   --tx-in $TX_IN1 \
   --tx-in $TX_IN2 \
-  --tx-out "$WALLET_MARY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$TOKEN_REFUND $POLICY_ID.$ASSET_NAME" \
-  --change-address $WALLET_PERCY_ADDR \
+  --tx-out "$MARY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID2.$ASSET_NAME" \
+  --tx-out "$PERCY_ADDR+$SEND_AMOUNT+$TOKEN_REFUND $POLICY_ID2.$ASSET_NAME" \
+  --change-address $PERCY_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/percy.skey \
-  --testnet-magic 8 \
+  --signing-key-file /var/cardano/local/keys/testnet/acc3/payment.skey \
+  --testnet-magic $TESTNET_MAGIC \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ### 5.5 What is the least amount that you need to keep
@@ -301,12 +225,10 @@ You want to _burn_ some of your **Ozymandian** in the _percy_ address. How do yo
 
 ```
 cardano-cli query utxo \
-  --address $WALLET_PERCY_ADDR \
-  --testnet-magic 8
+  --address $PERCY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="12bde5addc76127ea4f1531a18bf8b8c58af007fb68124c441f9b9eb339b814b#1"
-
-SEND_AMOUNT=1500000
+TX_IN1="18fc0c2fb7fd88d8719e606da7426b523cdadf52c5f56561f393605d209b86df#1"
 
 ASSET_NAME=Ozymandian
 ASSET_AMOUNT=1000
@@ -314,23 +236,83 @@ ASSET_AMOUNT=1000
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
-  --testnet-magic 8 \
+  --testnet-magic $TESTNET_MAGIC \
   --tx-in $TX_IN1 \
-  --tx-in "0ba918fa679af33237aa18415f82142a641395f43fb4a3087b9c75845a54708c#0" \
-  --mint "-$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --mint-script-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.script \
+  --mint "-$ASSET_AMOUNT $POLICY_ID1.$ASSET_NAME" \
+  --mint-script-file /var/cardano/local/keys/testnet/acc1/shelley-policy1.script \
   --witness-override 2 \
-  --change-address $WALLET_PERCY_ADDR \
+  --change-address $PERCY_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/percy.skey \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley-policy1.skey \
-  --testnet-magic 8 \
+  --signing-key-file /var/cardano/local/keys/testnet/acc3/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy1.skey \
+  --testnet-magic $TESTNET_MAGIC \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
+```
+
+Burn all **SkyLark** tokens
+
+```
+cardano-cli query utxo \
+  --address $MARY_ADDR \
+  --testnet-magic $TESTNET_MAGIC \
+&& cardano-cli query utxo \
+  --address $PERCY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
+
+TX_IN1="8684ed93bd55966181b239766c50337c1dc9e61b617488cbb1f3c0b6d54dccd3#1"
+TX_IN2="a8ef2224643bff5e258de476f33899baaba66fe92f63deb78ff83f63fc4314fd#0"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic $TESTNET_MAGIC \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_IN2 \
+  --mint "-75 $POLICY_ID2.SkyLark" \
+  --mint-script-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.script \
+  --witness-override 2 \
+  --change-address $MARY_ADDR \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/testnet/acc2/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.skey \
+  --testnet-magic $TESTNET_MAGIC \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic $TESTNET_MAGIC
+
+TX_IN1="539123f8eda1ffc0a4a9744406a32ab59000453c6685ea1c002126bfd3324102#0"
+TX_IN2="8684ed93bd55966181b239766c50337c1dc9e61b617488cbb1f3c0b6d54dccd3#0"
+TX_IN3="8684ed93bd55966181b239766c50337c1dc9e61b617488cbb1f3c0b6d54dccd3#2"
+
+# Build, sign and submit the transaction
+cardano-cli transaction build \
+  --alonzo-era \
+  --testnet-magic $TESTNET_MAGIC \
+  --tx-in $TX_IN1 \
+  --tx-in $TX_IN2 \
+  --tx-in $TX_IN3 \
+  --mint "-25 $POLICY_ID2.SkyLark" \
+  --mint-script-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.script \
+  --witness-override 2 \
+  --change-address $PERCY_ADDR \
+  --out-file /var/cardano/local/scratch/tx.raw \
+&& cardano-cli transaction sign \
+  --tx-body-file /var/cardano/local/scratch/tx.raw \
+  --signing-key-file /var/cardano/local/keys/testnet/acc3/payment.skey \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/shelley-policy2.skey \
+  --testnet-magic $TESTNET_MAGIC \
+  --out-file /var/cardano/local/scratch/tx.signed \
+&& cardano-cli transaction submit \
+  --tx-file /var/cardano/local/scratch/tx.signed \
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ### 5.7 Define a Plutus minting script
@@ -342,24 +324,25 @@ cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-tokens \
   && cabal run plutus-tokens minttokens.plutus \
   && cp minttokens.plutus ../../plutus-scripts \
   && mv minttokens.plutus ~/cardano/scripts \
-  && POLICY_ID=$(cardano-cli transaction policyid \
+  && POLICY_ID3=$(cardano-cli transaction policyid \
     --script-file /var/cardano/local/scripts/minttokens.plutus) \
-  && POLICY_ID=${POLICY_ID:0:56} \
-  && echo "POLICY_ID=\"$POLICY_ID\""
+  && POLICY_ID3=${POLICY_ID3:0:56} \
+  && echo "POLICY_ID3=\"$POLICY_ID3\""
 
-POLICY_ID="117342b10b569bb674190a12690052c2a6825d059a372a97f95aff8c"
+ExBudget {exBudgetCPU = ExCPU 8842681, exBudgetMemory = ExMemory 29800}
+POLICY_ID3="7d270d409c16a3177be53acaa9cb48800daff8194ce1f9d6350492ba"
 ```
 
 Mint a variable number of **Ozymandian** and **SkyLark** tokens
 
 ```
 cardano-cli query utxo \
-  --address $WALLET_SHELLEY_ADDR \
-  --testnet-magic 8
+  --address $SHELLEY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="af0ab6dded5a084595501d2d20d3e5b236d738de4105b0f67796a61ac24c2777#0"
+TX_IN1="0741a09c5da17fc60f4e59c42a9d10f63d9d9a263be3e84266282615e83b60af#0"
 
-TX_COL="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#3"
+TX_COL="689abea1c788f21f191aa2f05cf8367687d0dff3f514cc41a3af8e9f2a0d5d8b#4"
 
 SEND_AMOUNT=1500000
 
@@ -369,60 +352,59 @@ ASSET_AMOUNT=1000
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
-  --testnet-magic 8 \
+  --testnet-magic $TESTNET_MAGIC \
   --tx-in $TX_IN1 \
   --tx-in-collateral $TX_COL \
-  --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint "$ASSET_AMOUNT $POLICY_ID3.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/scripts/minttokens.plutus \
   --mint-redeemer-value $ASSET_AMOUNT \
-  --tx-out "$WALLET_SHELLEY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --change-address $WALLET_SHELLEY_ADDR \
+  --tx-out "$SHELLEY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID3.$ASSET_NAME" \
+  --change-address $SHELLEY_ADDR \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
-  --testnet-magic 8 \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
+  --testnet-magic $TESTNET_MAGIC \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 Burn those tokens again
 
 ```
 cardano-cli query utxo \
-  --address $WALLET_SHELLEY_ADDR \
-  --testnet-magic 8
+  --address $SHELLEY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="7bf03ece785bf7e1e70f79d7e113f88595ac9fc44bce8b4fe9541973a36e5162#1"
+TX_IN1="22beacdcd22da34341b64d722c559e9a789a143c1f4dfd67b22cf16c64a90a5e#0"
+TX_IN2="22beacdcd22da34341b64d722c559e9a789a143c1f4dfd67b22cf16c64a90a5e#1"
 
-TX_PAY="7bf03ece785bf7e1e70f79d7e113f88595ac9fc44bce8b4fe9541973a36e5162#0"
-
-TX_COL="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#3"
+TX_COL="689abea1c788f21f191aa2f05cf8367687d0dff3f514cc41a3af8e9f2a0d5d8b#4"
 
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
-  --testnet-magic 8 \
+  --testnet-magic $TESTNET_MAGIC \
   --tx-in $TX_IN1 \
-  --tx-in $TX_PAY \
+  --tx-in $TX_IN2 \
   --tx-in-collateral $TX_COL \
-  --mint "-$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint "-$ASSET_AMOUNT $POLICY_ID3.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/scripts/minttokens.plutus \
   --mint-redeemer-value -$ASSET_AMOUNT \
-  --change-address $WALLET_SHELLEY_ADDR \
+  --change-address $SHELLEY_ADDR \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
-  --testnet-magic 8 \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
+  --testnet-magic $TESTNET_MAGIC \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 ### 5.8. Define a script that allows you to mint an NFT
@@ -434,12 +416,13 @@ cd ~/git/nessus-cardano/plutus/alonzo/plutus-sources/plutus-tokens \
   && cabal run plutus-nft mintnft.plutus \
   && cp mintnft.plutus ../../plutus-scripts \
   && mv mintnft.plutus ~/cardano/scripts \
-  && POLICY_ID=$(cardano-cli transaction policyid \
+  && POLICY_ID4=$(cardano-cli transaction policyid \
     --script-file /var/cardano/local/scripts/mintnft.plutus) \
-  && POLICY_ID=${POLICY_ID:0:56} \
-  && echo "POLICY_ID=\"$POLICY_ID\""
+  && POLICY_ID4=${POLICY_ID4:0:56} \
+  && echo "POLICY_ID4=\"$POLICY_ID4\""
 
-POLICY_ID="c2a6ea770995d6c91248f1b30d1be965201720c02e154882ce42b749"
+ExBudget {exBudgetCPU = ExCPU 8396086, exBudgetMemory = ExMemory 28300}
+POLICY_ID4="a7cba91b4e33bd0425e93ad82cefac605109e7a10bf4e5a54eac5f8a"
 ```
 
 Mint a single instance of a non-fungible token
@@ -447,73 +430,81 @@ Your script should take a payment from a user-supplied address and pass this pay
 
 ```
 cardano-cli query utxo \
-  --address $WALLET_SHELLEY_ADDR \
-  --testnet-magic 8
+  --address $SHELLEY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="5754701732284813d8fd5f8fedb00bd510b7a1bfb83c573db29e29a83d4cdec5#0"
+TX_IN1="f0263ee376730150b5b964f59a7ec93b1cccd0aafdaa12b4bcd47bff65c68645#0"
 
-TX_COL="ed176363ec67f8cc0bedf3e7cfeee8db528c5ff412e42fdbe0237f9173a7dc55#3"
+TX_COL="689abea1c788f21f191aa2f05cf8367687d0dff3f514cc41a3af8e9f2a0d5d8b#4"
 
 SEND_AMOUNT=1500000
 
 ASSET_NAME=SkyLark
 ASSET_AMOUNT=1
 
-TO_ADDR=$WALLET_PERCY_ADDR
-
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
-  --testnet-magic 8 \
+  --testnet-magic $TESTNET_MAGIC \
   --tx-in $TX_IN1 \
   --tx-in-collateral $TX_COL \
-  --mint "$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
+  --mint "$ASSET_AMOUNT $POLICY_ID4.$ASSET_NAME" \
   --mint-script-file /var/cardano/local/scripts/mintnft.plutus \
   --mint-redeemer-value $ASSET_AMOUNT \
-  --tx-out "$WALLET_PERCY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --change-address $WALLET_SHELLEY_ADDR \
+  --tx-out "$SHELLEY_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID4.$ASSET_NAME" \
+  --change-address $SHELLEY_ADDR \
   --protocol-params-file /var/cardano/local/scratch/protocol.json \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/shelley.skey \
-  --testnet-magic 8 \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
+  --testnet-magic $TESTNET_MAGIC \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
-Send that NFT to the trash bin
+Send that NFT to a trash can
 
 ```
+# Create a trash can
+cardano-cli address key-gen \
+  --verification-key-file /var/cardano/local/scratch/trash.vkey \
+  --signing-key-file /var/cardano/local/scratch/trash.skey \
+&& cardano-cli address build \
+  --payment-verification-key-file /var/cardano/local/scratch/trash.vkey \
+  --out-file /var/cardano/local/scratch/trash.addr \
+  --testnet-magic $TESTNET_MAGIC \
+&& TRASH_ADDR=$(cat ~/cardano/scratch/trash.addr) \
+&& echo "TRASH_ADDR=$TRASH_ADDR"
+
 cardano-cli query utxo \
-  --address $WALLET_PERCY_ADDR \
-  --testnet-magic 8
+  --address $SHELLEY_ADDR \
+  --testnet-magic $TESTNET_MAGIC
 
-TX_IN1="4582a84d11769b3db1db3b231a6bf54eb210b3437c7f88dd5f5d4825545d3708#1"
+TX_IN1="78de187290c8703d14e0179daea824adce3dc4c32b0c21b69ef5c6b000914da3#0"
+TX_IN2="78de187290c8703d14e0179daea824adce3dc4c32b0c21b69ef5c6b000914da3#1"
 
-TX_PAY="261e71fa198fbc5368dbde6a3de5e9a1a4604682b689f97ae33a871bccb4b45b#0"
-
-TRASH_ADDR=$(cat ~/cardano/keys/alonzo/wallets/trash.addr)
+TX_COL="689abea1c788f21f191aa2f05cf8367687d0dff3f514cc41a3af8e9f2a0d5d8b#4"
 
 # Build, sign and submit the transaction
 cardano-cli transaction build \
   --alonzo-era \
-  --testnet-magic 8 \
+  --testnet-magic $TESTNET_MAGIC \
   --tx-in $TX_IN1 \
-  --tx-in $TX_PAY \
-  --tx-out "$TRASH_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID.$ASSET_NAME" \
-  --change-address $WALLET_PERCY_ADDR \
+  --tx-in $TX_IN2 \
+  --tx-out "$TRASH_ADDR+$SEND_AMOUNT+$ASSET_AMOUNT $POLICY_ID4.$ASSET_NAME" \
+  --change-address $SHELLEY_ADDR \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/alonzo/wallets/percy.skey \
-  --testnet-magic 8 \
+  --signing-key-file /var/cardano/local/keys/testnet/acc1/payment.skey \
+  --testnet-magic $TESTNET_MAGIC \
   --out-file /var/cardano/local/scratch/tx.signed \
 && cardano-cli transaction submit \
   --tx-file /var/cardano/local/scratch/tx.signed \
-  --testnet-magic 8
+  --testnet-magic $TESTNET_MAGIC
 ```
 
 9. Adapt your solution from Exercise 8 so that you conduct a Dutch auction on your _non-fungible token._ For example, start the bidding at 1000 Ada and reduce the price by 1 Ada every second. Sell the non-fungible token to the first client that offers to pay at least the current price. When the price falls below your hidden _reserve_, reject all future bids.

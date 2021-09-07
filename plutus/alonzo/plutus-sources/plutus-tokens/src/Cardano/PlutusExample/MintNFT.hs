@@ -32,12 +32,12 @@ module Cardano.PlutusExample.MintNFT where
       info = scriptContextTxInfo ctx
 
       checkMintedSymbol :: Bool
-      checkMintedSymbol = case flattenValue (txInfoForge info) of
+      checkMintedSymbol = case flattenValue (txInfoMint info) of
           [(cs', _, _)] -> cs' == ownCurrencySymbol ctx
           _             -> False
 
       checkMintedAmount :: Bool
-      checkMintedAmount = case flattenValue (txInfoForge info) of
+      checkMintedAmount = case flattenValue (txInfoMint info) of
           [(_, _, amt')] -> amt' == amt && amt == 1
           _              -> False
 

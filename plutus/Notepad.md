@@ -163,7 +163,7 @@ cardano-cli query protocol-parameters \
 https://github.com/input-output-hk/cardano-node/blob/master/doc/stake-pool-operations/keys_and_addresses.md
 
 ```
-OWNER="acc1"
+OWNER="acc0"
 
 # Owner payment keys
 mkdir -p ~/cardano/keys/testnet/${OWNER} \
@@ -181,7 +181,11 @@ mkdir -p ~/cardano/keys/testnet/${OWNER} \
 && cardano-cli stake-address build \
   --stake-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
   --out-file /var/cardano/local/keys/testnet/${OWNER}/stake.addr \
-  --testnet-magic $TESTNET_MAGIC
+  --testnet-magic $TESTNET_MAGIC \
+&& cardano-cli address key-hash \
+  --payment-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.vkey \
+  --out-file /var/cardano/local/keys/testnet/${OWNER}/payment.pkh
+&& echo "${OWNER}=$(cat ~/cardano/keys/testnet/${OWNER}/payment.addr)"
 
 # User payment keys
 for i in 1 2 3; do
@@ -194,7 +198,10 @@ for i in 1 2 3; do
     --payment-verification-key-file /var/cardano/local/keys/testnet/${USER}/payment.vkey \
     --out-file /var/cardano/local/keys/testnet/${USER}/payment.addr \
     --testnet-magic $TESTNET_MAGIC \
-  && echo "$USER=$(cat ~/cardano/keys/testnet/${USER}/payment.addr)"
+  && cardano-cli address key-hash \
+    --payment-verification-key-file /var/cardano/local/keys/testnet/${USER}/payment.vkey \
+    --out-file /var/cardano/local/keys/testnet/${USER}/payment.pkh \
+  && echo "${USER}=$(cat ~/cardano/keys/testnet/${USER}/payment.addr)"
 done
 
 # Zip the keys for secure storage
@@ -400,7 +407,7 @@ cardano-cli query stake-address-info \
 ## Run the Relay Node
 
 ```
-RELAY_IP="relay02.astorpool.net"
+RELAY_IP="testrl01.astorpool.net"
 BPROD_IP="xxx.domain.net"
 
 # Setup the Producer topology
