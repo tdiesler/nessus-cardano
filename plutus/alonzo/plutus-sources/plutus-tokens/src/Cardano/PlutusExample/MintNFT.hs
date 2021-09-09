@@ -25,8 +25,8 @@ module Cardano.PlutusExample.MintNFT where
   {-# INLINABLE mintTokens #-}
   mintTokens :: Integer -> ScriptContext -> Bool
   mintTokens amt ctx =
-      traceIfFalse "wrong currency symbol" checkMintedSymbol &&
-      traceIfFalse "wrong amount minted" checkMintedAmount
+      traceIfFalse "wrong currency symbol" checkMintedSymbol
+      && traceIfFalse "wrong amount minted" checkMintedAmount
     where
       info :: TxInfo
       info = scriptContextTxInfo ctx
@@ -38,7 +38,7 @@ module Cardano.PlutusExample.MintNFT where
 
       checkMintedAmount :: Bool
       checkMintedAmount = case flattenValue (txInfoMint info) of
-          [(_, _, amt')] -> amt' == amt && amt == 1
+          [(_, _, amt')] -> amt' == amt && (amt == 1 || amt == (-1))
           _              -> False
 
   mintingPolicy :: Scripts.MintingPolicy
