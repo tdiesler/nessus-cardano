@@ -1,14 +1,8 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
 
 -- TODO: Ledger currently always supplies a redeemer while the plutus-repo's
 -- minting validator does not expect a redeemer. This needs to be rectified
@@ -62,3 +56,4 @@ apiExamplePlutusMintingScript = PlutusScriptSerialised . SBS.toShort $ LB.toStri
 
 mintingScriptShortBs :: SBS.ShortByteString
 mintingScriptShortBs = SBS.toShort . LB.toStrict $ scriptAsCbor
+
