@@ -1,15 +1,33 @@
-
-version: "3.9"
-
-# Services ############################################################################################################
+version: "3.5"
 
 services:
-
-  # Relay -------------------------------------------------------------------------------------------------------------
+  postgres:
+    image: postgres:11.5-alpine
+    container_name: cardano-postgres
+    restart: "no"
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    environment:
+      - POSTGRES_LOGGING=true
+      - POSTGRES_DB_FILE=/run/secrets/postgres_db
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      - POSTGRES_USER_FILE=/run/secrets/postgres_user
+    secrets:
+      - postgres_password
+      - postgres_user
+      - postgres_db
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
   cardano-node:
-    image: nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest}
-    restart: on-failure
+    image: nessusio/cardano-node:1.29.0
+    container_name: cardano-node
+    restart: "no"
     ports:
       - ${NODE_PORT:-3001}:3001
     command: "run"
@@ -22,57 +40,31 @@ services:
         max-size: "200k"
         max-file: "10"
 
-  # Postgres ----------------------------------------------------------------------------------------------------------
-
-  postgres:
-    image: postgres:${POSTGRES_VERSION:-13.2}
-    restart: on-failure
+  cardano-db-sync:
+    image: inputoutput/cardano-db-sync:11.0.0
+    container_name: cardano-db-sync
+    restart: "no"
     environment:
-      POSTGRES_DB_FILE: "/run/secrets/postgres_db"
-      POSTGRES_PASSWORD_FILE: "/run/secrets/postgres_password"
-      POSTGRES_USER_FILE: "/run/secrets/postgres_user"
-      POSTGRES_LOGGING: "true"
-    ports:
-      - ${POSTGRES_PORT:-5432}:5432
-    volumes:
-      - postgres:/var/lib/postgresql/data
+      - NETWORK=${NETWORK:-mainnet}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
+      - RESTORE_RECREATE_DB=N
     secrets:
       - postgres_password
       - postgres_user
       - postgres_db
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
-
-  # Cardano DB Sync ---------------------------------------------------------------------------------------------------
-
-  cardano-db-sync:
-    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-8.0.0}
-    restart: on-failure
-    environment:
-      NETWORK: "${NETWORK:-mainnet}"
-      POSTGRES_HOST: "postgres"
-      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-      EXTENDED: "true"
     volumes:
       - db-sync-data:/var/lib/cdbsync
       - node-ipc:/node-ipc
-    secrets:
-      - postgres_password
-      - postgres_user
-      - postgres_db
     depends_on:
-      - postgres
       - cardano-node
+      - postgres
     logging:
       driver: "json-file"
       options:
         max-size: "200k"
         max-file: "10"
-
-# Secrets #############################################################################################################
 
 secrets:
   postgres_db:
@@ -82,12 +74,10 @@ secrets:
   postgres_user:
     file: ~/cardano/secrets/postgres_user
 
-# Volumes #############################################################################################################
-
 volumes:
   db-sync-data:
   postgres:
-  node-ipc:
   node-data:
     external: true
-    name: node-data
+  node-ipc:
+    external: true
