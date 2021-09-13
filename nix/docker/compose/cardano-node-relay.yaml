@@ -33,17 +33,30 @@ services:
               "valency": 1
             },
             {
-              "addr": "xxx.xxx.xxx.xxx",
+              "addr": "${CARDANO_BPROD_IP}",
               "port": 3001,
               "valency": 1
             }
           ]
         }'
-      CARDANO_CUSTOM_PEERS: "xxx.xxx.xxx.xxx:3001"
+      CARDANO_CUSTOM_PEERS: "${CARDANO_BPROD_IP}:3001"
       CARDANO_UPDATE_TOPOLOGY: "true"
     command: "run"
     volumes:
       - node-data:/opt/cardano/data
+
+  # Monit -------------------------------------------------------------------------------------------------------------
+
+  monit:
+    image: nessusio/monit
+    container_name: monit
+    restart: unless-stopped
+    hostname: monit
+    networks:
+      cardano:
+    command: ["-Iv"]
+    volumes:
+      - monit-config:/etc/monit.d
 
   # NGINX -------------------------------------------------------------------------------------------------------------
 
@@ -63,6 +76,8 @@ services:
 
 volumes:
   node-data:
+    external: true
+  monit-config:
     external: true
   nginx-config:
     external: true
