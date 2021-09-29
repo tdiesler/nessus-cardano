@@ -34,6 +34,7 @@ docker run --detach \
     -p 3001:3001 \
     -e CARDANO_NETWORK=testnet \
     -v test-data:/opt/cardano/data \
+    -v node-ipc:/opt/cardano/ipc \
     nessusio/cardano-node run
 
 docker logs -f testrl
