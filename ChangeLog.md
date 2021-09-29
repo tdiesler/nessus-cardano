@@ -1,3 +1,23 @@
+# v1.30.1-rev1
+
+Released: 29-Sep-2021
+
+This is a major feature update and bug fix release.
+
+* Upgrade to cardano-node-1.30.1 ([#78][78])
+* Upgrade to cardano-db-sync-11.0.0 ([#75][75])
+* Upgrade to gLiveView-1.22.3 ([#80][80])
+* Upgrade to cncli-4.0.1 ([#79][79])
+* Attach the arm64 binaries to the release ([#81][81])
+
+[75]: https://github.com/tdiesler/nessus-cardano/issues/75
+[78]: https://github.com/tdiesler/nessus-cardano/issues/78
+[79]: https://github.com/tdiesler/nessus-cardano/issues/79
+[80]: https://github.com/tdiesler/nessus-cardano/issues/80
+[81]: https://github.com/tdiesler/nessus-cardano/issues/81
+
+For details see [v1.30.1-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.30.1-rev1)
+
 # v1.29.0-rev1
 
 Released: 31-Aug-2021
