@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Also change HaskellNix in nix/sources.json
-CARDANO_VER="1.29.0"
+CARDANO_VER="1.30.1"
 CARDANO_REV="-dev"
 
 # https://mmonit.com/monit/#download
@@ -17,10 +17,10 @@ DEBIAN_VER="10"
 LNAV_VER="0.9.0"
 
 # https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L57
-GLVIEW_VER="1.20.10"
+GLVIEW_VER="1.22.3"
 
 # https://github.com/AndrewWestberg/cncli
-CNCLI_VER="3.1.4"
+CNCLI_VER="4.0.1"
 
 CABAL_VER="3.2.0.0"
 GHC_VER="8.10.4"
