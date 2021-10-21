@@ -136,8 +136,8 @@ pushNodeInfo () {
 
       fetchBlockNumber
 
-      echo "curl -s -f https://api.clio.one/htopology/v1/?port=${CNODE_PORT}&blockNo=${blockNo}&valency=${CNODE_VALENCY}&magic=${NWMAGIC}${T_HOSTNAME}"
-      curl -s -f "https://api.clio.one/htopology/v1/?port=${CNODE_PORT}&blockNo=${blockNo}&valency=${CNODE_VALENCY}&magic=${NWMAGIC}${T_HOSTNAME}" | \
+      echo "curl -s -f https://api.clio.one/htopology/v1/?port=${CARDANO_PUBLIC_PORT}&blockNo=${blockNo}&valency=${CNODE_VALENCY}&magic=${NWMAGIC}${T_HOSTNAME}"
+      curl -s -f "https://api.clio.one/htopology/v1/?port=${CARDANO_PUBLIC_PORT}&blockNo=${blockNo}&valency=${CNODE_VALENCY}&magic=${NWMAGIC}${T_HOSTNAME}" | \
         tee -a ${LOG_DIR}/topologyUpdateResult
   else
 

@@ -44,7 +44,7 @@ services:
             }
           ]
         }'
-      CARDANO_RTS_OPTS: "${CARDANO_RTS_OPTS:--N -A64m -c}"
+      CARDANO_RTS_OPTS: "${CARDANO_RTS_OPTS:--N -A64m -c -s}"
       CARDANO_BLOCK_PRODUCER: "true"
     command: "run"
     volumes:
