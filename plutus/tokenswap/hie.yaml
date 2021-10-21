@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:tokenswap"
+
+    - path: "app/mint-tokens.hs"
+      component: "tokenswap:exe:mint-tokens"
+
+    - path: "app/swap-tokens.hs"
+      component: "tokenswap:exe:swap-tokens"

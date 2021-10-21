@@ -166,46 +166,46 @@ https://github.com/input-output-hk/cardano-node/blob/master/doc/stake-pool-opera
 OWNER="acc0"
 
 # Owner payment keys
-mkdir -p ~/cardano/keys/testnet/${OWNER} \
+mkdir -p ~/cardano/testnet/keys/${OWNER} \
 && cardano-cli address key-gen \
-  --verification-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.vkey \
-  --signing-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.skey \
+  --verification-key-file /var/cardano/local/testnet/keys/${OWNER}/payment.vkey \
+  --signing-key-file /var/cardano/local/testnet/keys/${OWNER}/payment.skey \
 && cardano-cli stake-address key-gen \
-  --verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
-  --signing-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.skey \
+  --verification-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.vkey \
+  --signing-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.skey \
 && cardano-cli address build \
-  --payment-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.vkey \
-  --stake-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
-  --out-file /var/cardano/local/keys/testnet/${OWNER}/payment.addr \
+  --payment-verification-key-file /var/cardano/local/testnet/keys/${OWNER}/payment.vkey \
+  --stake-verification-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.vkey \
+  --out-file /var/cardano/local/testnet/keys/${OWNER}/payment.addr \
   --testnet-magic $TESTNET_MAGIC \
 && cardano-cli stake-address build \
-  --stake-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
-  --out-file /var/cardano/local/keys/testnet/${OWNER}/stake.addr \
+  --stake-verification-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.vkey \
+  --out-file /var/cardano/local/testnet/keys/${OWNER}/stake.addr \
   --testnet-magic $TESTNET_MAGIC \
 && cardano-cli address key-hash \
-  --payment-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.vkey \
-  --out-file /var/cardano/local/keys/testnet/${OWNER}/payment.pkh
-&& echo "${OWNER}=$(cat ~/cardano/keys/testnet/${OWNER}/payment.addr)"
+  --payment-verification-key-file /var/cardano/local/testnet/keys/${OWNER}/payment.vkey \
+  --out-file /var/cardano/local/testnet/keys/${OWNER}/payment.pkh
+&& echo "${OWNER}=$(cat ~/cardano/testnet/keys/${OWNER}/payment.addr)"
 
 # User payment keys
 for i in 1 2 3; do
   USER="acc$i"
-  mkdir -p ~/cardano/keys/testnet/${USER} \
+  mkdir -p ~/cardano/testnet/keys/${USER} \
   && cardano-cli address key-gen \
-    --verification-key-file /var/cardano/local/keys/testnet/${USER}/payment.vkey \
-    --signing-key-file /var/cardano/local/keys/testnet/${USER}/payment.skey \
+    --verification-key-file /var/cardano/local/testnet/keys/${USER}/payment.vkey \
+    --signing-key-file /var/cardano/local/testnet/keys/${USER}/payment.skey \
   && cardano-cli address build \
-    --payment-verification-key-file /var/cardano/local/keys/testnet/${USER}/payment.vkey \
-    --out-file /var/cardano/local/keys/testnet/${USER}/payment.addr \
+    --payment-verification-key-file /var/cardano/local/testnet/keys/${USER}/payment.vkey \
+    --out-file /var/cardano/local/testnet/keys/${USER}/payment.addr \
     --testnet-magic $TESTNET_MAGIC \
   && cardano-cli address key-hash \
-    --payment-verification-key-file /var/cardano/local/keys/testnet/${USER}/payment.vkey \
-    --out-file /var/cardano/local/keys/testnet/${USER}/payment.pkh \
-  && echo "${USER}=$(cat ~/cardano/keys/testnet/${USER}/payment.addr)"
+    --payment-verification-key-file /var/cardano/local/testnet/keys/${USER}/payment.vkey \
+    --out-file /var/cardano/local/testnet/keys/${USER}/payment.pkh \
+  && echo "${USER}=$(cat ~/cardano/testnet/keys/${USER}/payment.addr)"
 done
 
 # Zip the keys for secure storage
-zip -re cardano-testnet-keys.zip ~/cardano/keys/testnet
+zip -re cardano-testnet-keys.zip ~/cardano/testnet/keys
 ```
 
 ## Get funds from the Faucet
@@ -213,14 +213,14 @@ zip -re cardano-testnet-keys.zip ~/cardano/keys/testnet
 https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
 
 ```
-PAYMENT_ADDR=$(cat ~/cardano/keys/testnet/${OWNER}/payment.addr) \
+PAYMENT_ADDR=$(cat ~/cardano/testnet/keys/${OWNER}/payment.addr) \
   && echo $PAYMENT_ADDR
 ```
 
 ## Register stake address on the blockchain
 
 ```
-PAYMENT_ADDR=`cat ~/cardano/keys/testnet/${OWNER}/payment.addr`
+PAYMENT_ADDR=`cat ~/cardano/testnet/keys/${OWNER}/payment.addr`
 echo "${OWNER}: $PAYMENT_ADDR"
 
 # Query UTOX
@@ -229,7 +229,7 @@ cardano-cli query utxo \
   --testnet-magic $TESTNET_MAGIC
 
 cardano-cli stake-address registration-certificate \
-  --stake-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
+  --stake-verification-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.vkey \
   --out-file /var/cardano/local/scratch/stake.cert
 
 cat ~/cardano/scratch/protocol.json | grep stakeAddressDeposit
@@ -248,8 +248,8 @@ cardano-cli transaction build-raw \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.skey \
-  --signing-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.skey \
+  --signing-key-file /var/cardano/local/testnet/keys/${OWNER}/payment.skey \
+  --signing-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.skey \
   --out-file /var/cardano/local/scratch/tx.signed \
   --testnet-magic $TESTNET_MAGIC \
 && cardano-cli transaction submit \
@@ -261,15 +261,15 @@ cardano-cli transaction build-raw \
 
 ```
 cardano-cli node key-gen \
-  --cold-verification-key-file /var/cardano/local/keys/testnet/pool/cold.vkey \
-  --cold-signing-key-file /var/cardano/local/keys/testnet/pool/cold.skey \
-  --operational-certificate-issue-counter-file /var/cardano/local/keys/testnet/pool/cold.counter \
+  --cold-verification-key-file /var/cardano/local/testnet/keys/pool/cold.vkey \
+  --cold-signing-key-file /var/cardano/local/testnet/keys/pool/cold.skey \
+  --operational-certificate-issue-counter-file /var/cardano/local/testnet/keys/pool/cold.counter \
 && cardano-cli node key-gen-VRF \
-  --verification-key-file /var/cardano/local/keys/testnet/pool/vrf.vkey \
-  --signing-key-file /var/cardano/local/keys/testnet/pool/vrf.skey \
+  --verification-key-file /var/cardano/local/testnet/keys/pool/vrf.vkey \
+  --signing-key-file /var/cardano/local/testnet/keys/pool/vrf.skey \
 && cardano-cli node key-gen-KES \
-  --verification-key-file /var/cardano/local/keys/testnet/pool/kes.vkey \
-  --signing-key-file /var/cardano/local/keys/testnet/pool/kes.skey
+  --verification-key-file /var/cardano/local/testnet/keys/pool/kes.vkey \
+  --signing-key-file /var/cardano/local/testnet/keys/pool/kes.skey
 ```
 
 ## Calculate KES period
@@ -284,11 +284,11 @@ slotsPerKESPeriod=$(cat ~/cardano/scratch/testnet-shelley-genesis.json | jq ".sl
 && echo "$slotNumber / $slotsPerKESPeriod => $kesPeriod"
 
 cardano-cli node issue-op-cert \
-  --kes-verification-key-file /var/cardano/local/keys/testnet/pool/kes.vkey \
-  --cold-signing-key-file /var/cardano/local/keys/testnet/pool/cold.skey \
-  --operational-certificate-issue-counter /var/cardano/local/keys/testnet/pool/cold.counter \
+  --kes-verification-key-file /var/cardano/local/testnet/keys/pool/kes.vkey \
+  --cold-signing-key-file /var/cardano/local/testnet/keys/pool/cold.skey \
+  --operational-certificate-issue-counter /var/cardano/local/testnet/keys/pool/cold.counter \
   --kes-period $kesPeriod \
-  --out-file /var/cardano/local/keys/testnet/pool/node.cert
+  --out-file /var/cardano/local/testnet/keys/pool/node.cert
 ```
 
 ## Create delegation certificate
@@ -297,9 +297,9 @@ To honor your pledge, create a delegation certificate:
 
 ```
 cardano-cli stake-address delegation-certificate \
-  --stake-pool-verification-key-file /var/cardano/local/keys/testnet/pool/cold.vkey \
-  --staking-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
-  --out-file /var/cardano/local/keys/testnet/${OWNER}/delegation.cert
+  --stake-pool-verification-key-file /var/cardano/local/testnet/keys/pool/cold.vkey \
+  --staking-verification-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.vkey \
+  --out-file /var/cardano/local/testnet/keys/${OWNER}/delegation.cert
 ```
 
 ## Generate Stake Pool Registration Certificate
@@ -314,13 +314,13 @@ cardano-cli stake-pool metadata-hash \
   --pool-metadata-file /var/cardano/local/scratch/astorpool.json
 
 cardano-cli stake-pool registration-certificate \
-  --cold-verification-key-file /var/cardano/local/keys/testnet/pool/cold.vkey \
-  --vrf-verification-key-file /var/cardano/local/keys/testnet/pool/vrf.vkey \
+  --cold-verification-key-file /var/cardano/local/testnet/keys/pool/cold.vkey \
+  --vrf-verification-key-file /var/cardano/local/testnet/keys/pool/vrf.vkey \
   --pool-pledge 100000000 \
   --pool-cost 340000000 \
   --pool-margin 0 \
-  --pool-reward-account-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
-  --pool-owner-stake-verification-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.vkey \
+  --pool-reward-account-verification-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.vkey \
+  --pool-owner-stake-verification-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.vkey \
   --single-host-pool-relay relay02.astorpool.net \
   --pool-relay-port 3001 \
   --metadata-url https://astorpool.net/astorpool.json \
@@ -334,7 +334,7 @@ cat ~/cardano/scratch/pool-registration.cert
 ## Create the pool registration Tx
 
 ```
-PAYMENT_ADDR=`cat ~/cardano/keys/testnet/${OWNER}/payment.addr`
+PAYMENT_ADDR=`cat ~/cardano/testnet/keys/${OWNER}/payment.addr`
 echo "${OWNER}: $PAYMENT_ADDR"
 
 # Query UTOX
@@ -355,13 +355,13 @@ cardano-cli transaction build-raw \
   --tx-out $PAYMENT_ADDR+$REFUND_LVC \
   --fee $FEES_LVC \
   --certificate-file /var/cardano/local/scratch/pool-registration.cert \
-  --certificate-file /var/cardano/local/keys/testnet/${OWNER}/delegation.cert \
+  --certificate-file /var/cardano/local/testnet/keys/${OWNER}/delegation.cert \
   --out-file /var/cardano/local/scratch/tx.raw \
 && cardano-cli transaction sign \
   --tx-body-file /var/cardano/local/scratch/tx.raw \
-  --signing-key-file /var/cardano/local/keys/testnet/${OWNER}/payment.skey \
-  --signing-key-file /var/cardano/local/keys/testnet/${OWNER}/stake.skey \
-  --signing-key-file /var/cardano/local/keys/testnet/pool/cold.skey \
+  --signing-key-file /var/cardano/local/testnet/keys/${OWNER}/payment.skey \
+  --signing-key-file /var/cardano/local/testnet/keys/${OWNER}/stake.skey \
+  --signing-key-file /var/cardano/local/testnet/keys/pool/cold.skey \
   --out-file /var/cardano/local/scratch/tx.signed \
   --testnet-magic $TESTNET_MAGIC \
 && cardano-cli transaction submit \
@@ -378,15 +378,15 @@ cardano-cli query utxo \
   --testnet-magic $TESTNET_MAGIC
 
 POOLID=$(cardano-cli stake-pool id \
-  --cold-verification-key-file /var/cardano/local/keys/testnet/pool/cold.vkey) \
+  --cold-verification-key-file /var/cardano/local/testnet/keys/pool/cold.vkey) \
 && echo "POOLID=${POOLID}"
 ```
 
 ## Query owner account
 
 ```
-PAYMENT_ADDR0=$(cat ~/cardano/keys/testnet/acc0/payment.addr)
-STAKE_ADDR0=$(cat ~/cardano/keys/testnet/acc0/stake.addr)
+PAYMENT_ADDR0=$(cat ~/cardano/testnet/keys/acc0/payment.addr)
+STAKE_ADDR0=$(cat ~/cardano/testnet/keys/acc0/stake.addr)
 echo "${STAKE_ADDR0} => ${PAYMENT_ADDR0}"
 
 # Query UTxO
@@ -453,7 +453,7 @@ docker run --detach \
     -v testnet-relay-config:/var/cardano/config  \
     -v test-data:/opt/cardano/data \
     -v node-ipc:/opt/cardano/ipc \
-    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest} run
 
 docker logs -n=200 -f testrl
 
@@ -501,13 +501,13 @@ docker rm -f tmp
 
 # Setup Block Producer keys
 
-chmod 600 ~/cardano/keys/testnet/pool/*
+chmod 600 ~/cardano/testnet/keys/pool/*
 
 docker volume rm -f testnet-bprod-keys
 docker run --name=tmp -v testnet-bprod-keys:/var/cardano/config/keys centos
-docker cp ~/cardano/keys/testnet/pool/node.cert tmp:/var/cardano/config/keys
-docker cp ~/cardano/keys/testnet/pool/kes.skey tmp:/var/cardano/config/keys
-docker cp ~/cardano/keys/testnet/pool/vrf.skey tmp:/var/cardano/config/keys
+docker cp ~/cardano/testnet/keys/pool/node.cert tmp:/var/cardano/config/keys
+docker cp ~/cardano/testnet/keys/pool/kes.skey tmp:/var/cardano/config/keys
+docker cp ~/cardano/testnet/keys/pool/vrf.skey tmp:/var/cardano/config/keys
 docker rm -f tmp
 
 docker run -it --rm \
@@ -535,7 +535,7 @@ docker run --detach \
     -v testnet-bprod-config:/var/cardano/config  \
     -v /mnt/disks/data00/testdat:/opt/cardano/data \
     -v node-ipc:/opt/cardano/ipc \
-    nessusio/cardano-node:${CARDANO_NODE_VERSION:-dev} run
+    nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest} run
 
 docker logs -n=200 -f testbp
 
@@ -554,8 +554,8 @@ docker exec -it bprod curl 127.0.0.1:12798/metrics | sort
 ## Query account balances
 
 ```
-PAYMENT_ADDR=$(cat ~/cardano/keys/testnet/${OWNER}/payment.addr)
-STAKE_ADDR=$(cat ~/cardano/keys/testnet/${OWNER}/stake.addr)
+PAYMENT_ADDR=$(cat ~/cardano/testnet/keys/${OWNER}/payment.addr)
+STAKE_ADDR=$(cat ~/cardano/testnet/keys/${OWNER}/stake.addr)
 echo "${STAKE_ADDR} => ${PAYMENT_ADDR}"
 
 # Query UTxO
