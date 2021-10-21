@@ -52,7 +52,7 @@ fi
 #
 if [[ -z $CARDANO_RTS_OPTS ]]; then
   # CARDANO_RTS_OPTS="-N2 -A16m -qg -qb --disable-delayed-os-memory-return"
-  CARDANO_RTS_OPTS="-N4 -A64m -c"
+  CARDANO_RTS_OPTS="-N -A64m -c"
 fi
 
 if [[ -z $CARDANO_BLOCK_PRODUCER ]]; then

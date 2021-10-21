@@ -18,12 +18,12 @@ services:
   relay:
     image: nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest}
     container_name: relay
-    restart: unless-stopped
+    restart: ${CARDANO_RESTART_POLICY:-always}
     hostname: relay
     networks:
       cardano:
     ports:
-      - "3001:3001"
+      - "${CARDANO_RELAY_PORT:-3001}:3001"
     environment:
       CARDANO_TOPOLOGY: '{
           "Producers": [
@@ -33,17 +33,19 @@ services:
               "valency": 1
             },
             {
-              "addr": "${CARDANO_BPROD_IP}",
+              "addr": "${CARDANO_NODE_IP_BPROD}",
               "port": 3001,
               "valency": 1
             }
           ]
         }'
-      CARDANO_CUSTOM_PEERS: "${CARDANO_BPROD_IP}:3001"
+      CARDANO_CUSTOM_PEERS: "${CARDANO_NODE_IP_BPROD}:3001"
+      CARDANO_RTS_OPTS: "${CARDANO_RTS_OPTS:--N -A64m -c}"
       CARDANO_UPDATE_TOPOLOGY: "true"
     command: "run"
     volumes:
-      - node-data:/opt/cardano/data
+      - ${CARDANO_NODE_DATA:-node-data}:/opt/cardano/data
+      - node-ipc:/opt/cardano/ipc
 
   # Monit -------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +53,7 @@ services:
     image: nessusio/monit
     container_name: monit
     restart: unless-stopped
-    hostname: monit
+    hostname: ${MONIT_HOSTNAME:-monit}
     networks:
       cardano:
     command: ["-Iv"]
@@ -76,6 +78,8 @@ services:
 
 volumes:
   node-data:
+    external: true
+  node-ipc:
     external: true
   monit-config:
     external: true

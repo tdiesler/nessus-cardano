@@ -18,7 +18,7 @@ services:
   bprod:
     image: nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest}
     container_name: bprod
-    restart: unless-stopped
+    restart: ${CARDANO_RESTART_POLICY:-always}
     hostname: bprod
     networks:
       cardano:
@@ -36,14 +36,21 @@ services:
               "addr": "relay02.astorpool.net",
               "port": 3001,
               "valency": 1
+            },
+            {
+              "addr": "relay03.astorpool.net",
+              "port": 6001,
+              "valency": 1
             }
           ]
         }'
+      CARDANO_RTS_OPTS: "${CARDANO_RTS_OPTS:--N -A64m -c}"
       CARDANO_BLOCK_PRODUCER: "true"
     command: "run"
     volumes:
       - mainnet-bprod-keys:/var/cardano/config/keys
-      - /mnt/disks/data01:/opt/cardano/data
+      - ${CARDANO_NODE_DATA:-node-data}:/opt/cardano/data
+      - node-ipc:/opt/cardano/ipc
 
   # Monit -------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +58,7 @@ services:
     image: nessusio/monit
     container_name: monit
     restart: unless-stopped
-    hostname: monit
+    hostname: ${MONIT_HOSTNAME:-monit}
     networks:
       cardano:
     command: ["-Iv"]
@@ -76,6 +83,10 @@ services:
 
 volumes:
   mainnet-bprod-keys:
+    external: true
+  node-data:
+    external: true
+  node-ipc:
     external: true
   monit-config:
     external: true

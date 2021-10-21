@@ -150,7 +150,7 @@ sudo apt-get install -y apt-transport-https ca-certificates gnupg-agent software
    stable"
 
 sudo apt-get update \
-  && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+  && sudo apt-get install -y docker-ce docker-ce-cli containerd.io \
   && sudo systemctl status docker
 
 sudo usermod -aG docker $USER

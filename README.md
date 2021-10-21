@@ -269,7 +269,7 @@ $ cncli leaderlog \
   --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
   --shelley-genesis /opt/cardano/config/mainnet-shelley-genesis.json \
   --byron-genesis /opt/cardano/config/mainnet-byron-genesis.json \
-  --pool-vrf-skey /var/cardano/local/keys/mainnet/pool/vrf.skey \
+  --pool-vrf-skey /var/cardano/local/mainnet/keys/pool/vrf.skey \
   --db /var/cardano/cncli/cncli.db \
   --active-stake $ACTIVE_STAKE \
   --pool-stake $POOL_STAKE \

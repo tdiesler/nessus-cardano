@@ -19,7 +19,7 @@ Each image comes in multiple arch variant. Current we support `amd64` and `arm64
 
 ```
 MMONIT_PORT=8080
-MMONIT_ADDR=108.61.165.223
+MMONIT_ADDR=astorpool.net
 MMONIT_AUTH='username:changeit'
 
 MONIT_AUTH=$MMONIT_AUTH
