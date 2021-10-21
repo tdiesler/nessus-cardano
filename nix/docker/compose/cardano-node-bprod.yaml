@@ -29,17 +29,17 @@ services:
           "Producers": [
             {
               "addr": "relay01.astorpool.net",
-              "port": 3001,
+              "port": ${CARDANO_RELAY01_PORT:-3001},
               "valency": 1
             },
             {
               "addr": "relay02.astorpool.net",
-              "port": 3001,
+              "port": ${CARDANO_RELAY02_PORT:-3001},
               "valency": 1
             },
             {
               "addr": "relay03.astorpool.net",
-              "port": 6001,
+              "port": ${CARDANO_RELAY03_PORT:-3001},
               "valency": 1
             }
           ]
