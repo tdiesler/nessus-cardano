@@ -198,13 +198,13 @@ EOF
 # Relay specific
 cat << EOF >> ~/.monitrc
 check filesystem  system    path /dev/sda2
-check system      ada01rl
+check system      $(hostname)
 EOF
 
 # Block Producer specific
 cat << EOF >> ~/.monitrc
 check filesystem  node-data path /dev/sdb
-check system      ada01bp
+check system      $(hostname)
 EOF
 
 ```

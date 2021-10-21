@@ -25,14 +25,13 @@ MMONIT_AUTH='username:changeit'
 MONIT_AUTH=$MMONIT_AUTH
 
 mkdir -p monit
-
 cat << EOF > monit/monitrc-extras
 set eventqueue basedir /var/monit/ slots 1000
 set mmonit http://$MMONIT_AUTH@$MMONIT_ADDR:$MMONIT_PORT/collector
 set httpd port 2812 and
     use address 0.0.0.0    # bind to all interfaces (i.e. not just to localhost)
     allow $MMONIT_ADDR     # allow the M/Monit host to connect to the server
-    allow $MONIT_AUTH      # monit authorization
+    allow $MMONIT_AUTH     # monit authorization
 EOF
 
 docker rm -f monit
@@ -52,7 +51,7 @@ VERSION=5.28.0-rev2
 docker rm -f monit
 docker run --detach \
   --name=monit \
-  --hostname=ada01rl \
+  --hostname=$(hostname) \
   --network=cardano \
   -v monit-config:/etc/monit.d \
   nessusio/monit:${VERSION} -Iv
