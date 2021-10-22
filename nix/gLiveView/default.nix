@@ -19,13 +19,13 @@ pkgs.stdenv.mkDerivation {
   pname = "gLiveView";
   version = "alpha";
 
-  # gLiveView version to 1.22.3
-  # https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L57
+  # gLiveView version to 1.23.1
+  # https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L55
 
   src = builtins.fetchGit {
     name = "guild-operators";
     url = "https://github.com/cardano-community/guild-operators.git";
-    rev = "16fa2d719c3d512c1d9864366d20f90d315c475f";
+    rev = "3b37dd0f4057269ea2cf4fdc67a69909b6e6cf82";
   };
 
   builder = ./builder.sh;

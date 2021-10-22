@@ -16,8 +16,8 @@ MMONIT_REV="-rev4"
 DEBIAN_VER="10"
 LNAV_VER="0.9.0"
 
-# https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L57
-GLVIEW_VER="1.22.3"
+# https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L55
+GLVIEW_VER="1.23.1"
 
 # https://github.com/AndrewWestberg/cncli
 CNCLI_VER="4.0.1"
