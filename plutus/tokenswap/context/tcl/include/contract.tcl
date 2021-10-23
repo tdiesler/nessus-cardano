@@ -98,7 +98,11 @@ proc scriptBurnTokens {fromInfo tokenName} {
   cliTxSubmit $fromInfo $firstTxid
 }
 
-proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
+# Invoke the swap method on the smart contract
+#
+# astor --script swap --from Percy --to Shelley --value '10 Astor164'
+# --fee-policy [caller|proxy]
+proc scriptSwapTokens {fromInfo amount tokenName {feePolicy "caller"} {targetAddr ""}} {
   global POLICY_ID
   global SCRIPTS_DIR
   global MIN_SEND_AMOUNT
@@ -126,7 +130,8 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   foreach txid [dict keys $tokenUtxos] {
     set value [dict get $tokenUtxos $txid value]
     if {$amount == [dict get $value $assetClass]} {
-      set lvextra [dict get $value "lovelace"]
+      set lvamount [dict get $value "lovelace"]
+      set lvextra [expr {$feePolicy == "proxy" ? $lvamount : 0}]
       set selectedTokenTxinId $txid
       break
     }

@@ -81,11 +81,13 @@ proc astorRunTests {opts} {
 #
 # astor --script mint --from Owner --value '1000 Astor296'
 # astor --pay2script --from Owner --value '10 Ada' --epoch 296
-# astor --pay2pkh --from Owner --to Percy --value '10 Ada 10 Ada 10 Astor296'
-# astor --script swap --from Percy --to Owner --value '10 Astor296'
+# astor --pay2pkh --from Owner --to Percy --value '10 Ada 10 Ada'
+# astor --pay2pkh --from Owner --to addr1... --value '5 Astor296'
+# astor --script swap --from Percy --to Owner --value '5 Astor296'
 # astor --reset --epoch 296
+# astor --script burn --from Owner --value '1000 Astor296'
 
-# MintTokens:  422973
+# MintTokens: 1767771
 # PayScript:   173245
 # TokenSwap:  1161481
 # Withdraw:    543353

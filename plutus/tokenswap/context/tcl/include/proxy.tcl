@@ -50,21 +50,11 @@ proc getCallerAddress {txhash tokenName} {
   set json [fetchBlockfrostData "txs/$txhash/utxos"]
   set unit "$POLICY_ID[exec echo -n $tokenName | xxd -ps]"
   set jquery ".inputs\[] | select(.amount\[].unit == \"$unit\") | .address"
-  set result  [exec echo $json | jq -r $jquery]
+  set jqres [splitTrim [exec echo $json | jq -r $jquery] '\n']
+  if {[llength $jqres] < 1} { error "Unexpected address result: $jqres"}
+  set result [lindex $jqres 0]
   logInfo "CallerAddr: $txhash => $result"
   return $result
-}
-
-proc handleToPubKeyHash {fromInfo scriptInfo utxos txid assetClass} {
-  set fromName [dict get $fromInfo name]
-  set toName [dict get $scriptInfo name]
-  set tokenName [getTokenName $assetClass]
-  set epoch [getEpochFromTokenName $tokenName]
-  logInfo "$fromName $txid $tokenName => $toName"
-
-  set value [dict get $utxos $txid value]
-  set amounts [list [dict get $value $assetClass]]
-  sendTokensToPubKeyHash $fromInfo $scriptInfo $amounts $epoch
 }
 
 proc handleToScript {fromInfo scriptInfo utxos txid assetClass} {
@@ -81,7 +71,7 @@ proc handleToScript {fromInfo scriptInfo utxos txid assetClass} {
   set amount [dict get $value $assetClass]
 
   logInfo [getSectionHeader "Proxy swap $fromInfo $amount $tokenName"]
-  scriptSwapTokens $fromInfo $amount $tokenName $targetAddr
+  scriptSwapTokens $fromInfo $amount $tokenName "caller" $targetAddr
 }
 
 proc handleUtxos {fromInfo scriptInfo utxos} {

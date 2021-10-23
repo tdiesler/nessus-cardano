@@ -2,6 +2,10 @@
 # Define global constants ######################################################
 #
 
+set MIN_COLLATERAL [expr {10 * 1000000}]
+set MIN_SEND_AMOUNT 1689618
+set TOKEN_TTL_EPOCHS 18
+
 set LEVEL_DEBUG 1
 set LEVEL_INFO  2
 set LEVEL_WARN  3
@@ -40,10 +44,6 @@ if {$BLOCKFROST_API_KEY == ""} {
   logError "Cannot obtain BLOCKFROST_API_KEY"
   exit 2
 }
-
-set MIN_COLLATERAL [expr {10 * 1000000}]
-set MIN_SEND_AMOUNT 1700000
-set TOKEN_TTL_EPOCHS 18
 
 if {$DOCKER_RUNTIME} {
   puts "BLOCKFROST_NETWORK=$BLOCKFROST_NETWORK"

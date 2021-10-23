@@ -3,18 +3,18 @@ proc astorHelp {} {
   puts ""
   puts "Usage"
   puts "------------------------------------------------------------------------"
-  puts "astor --reset --epoch 163"
+  puts "astor --reset --epoch 164"
   puts "astor --pay2pkh --from Shelley --to Owner --value all"
-  puts "astor --pay2pkh --from Shelley --to Percy --value '10 Astor163'"
-  puts "astor --pay2pkh --from Owner --to Shelley --value '10 Ada 10 Ada 90 Astor163 10 Astor163'"
+  puts "astor --pay2pkh --from Shelley --to Percy --value '10 Astor164'"
+  puts "astor --pay2pkh --from Owner --to Shelley --value '10 Ada 10 Ada 90 Astor164 10 Astor164'"
   puts "astor --pay2pkh --from Owner --to Percy --value '10 Ada 10 Ada'"
   puts "astor --pay2pkh --from Owner --to Owner --value '30000 Ada'"
-  puts "astor --pay2script --from Owner --value '100 Ada' --epoch 163 --ttl e164"
-  puts "astor --script mint --from Owner --value '1000 Astor163'"
-  puts "astor --script burn --from Owner --value '1000 Astor163'"
-  puts "astor --script swap --from Percy --to Shelley --value '10 Astor163'"
-  puts "astor --script swap --from Shelley --value '10 Astor163'"
-  puts "astor --script withdraw --from Owner --epoch 163"
+  puts "astor --pay2script --from Owner --value '100 Ada' --epoch 164"
+  puts "astor --script mint --from Owner --value '1000 Astor164'"
+  puts "astor --script burn --from Owner --value '1000 Astor164'"
+  puts "astor --script swap --from Shelley --value '10 Astor164'"
+  puts "astor --script swap --from Percy --to Shelley --value '10 Astor164'"
+  puts "astor --script withdraw --from Owner --epoch 164"
   puts "astor --show all"
 }
 
@@ -41,8 +41,13 @@ proc astorPay2PKH {opts} {
   set args [argsInit $spec $opts]
   set fromName [argsValue $args "--from"]
   set fromInfo [getAddrInfoByName $fromName]
-  set toName [argsValue $args "--to"]
-  set toInfo [getAddrInfoByName $toName]
+  set toSpec [argsValue $args "--to"]
+  if {[string match "addr1*" $toSpec]} {
+    dict set toInfo name "PKHAddr"
+    dict set toInfo addr $toSpec
+  } else {
+    set toInfo [getAddrInfoByName $toSpec]
+  }
   set value [argsValue $args "--value"]
   if [string match -nocase "all" $value] {
     payAllToPubKeyHash $fromInfo $toInfo
