@@ -1,13 +1,13 @@
 
-proc scriptMintTokens {fromInfo amount tokenName} {
+proc scriptMintTokens {fromInfo mintAmount tokenName} {
   global POLICY_ID
   global SCRIPTS_DIR
-  global MIN_SEND_AMOUNT
+  global MIN_TOKEN_LOVELACE
   set assetClass "$POLICY_ID.$tokenName"
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
 
-  logInfo "Mint $amount $tokenName tokens for $fromName"
+  logInfo "Mint $mintAmount $tokenName tokens for $fromName"
 
   set fromUtxos [queryUtxos $fromInfo]
 
@@ -23,10 +23,10 @@ proc scriptMintTokens {fromInfo amount tokenName} {
   lappend args "--alonzo-era"
   lappend args "--tx-in" $txidFees
   lappend args "--tx-in-collateral" $txidCollateral
-  lappend args "--mint" "$amount $assetClass"
+  lappend args "--mint" "$mintAmount $assetClass"
   lappend args "--mint-script-file" "/var/cardano/local/$SCRIPTS_DIR/minttokens.plutus"
-  lappend args "--mint-redeemer-value" $amount
-  lappend args "--tx-out" "$fromAddr+$MIN_SEND_AMOUNT+$amount $assetClass"
+  lappend args "--mint-redeemer-value" $mintAmount
+  lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$mintAmount $assetClass"
   lappend args "--change-address" $fromAddr
   lappend args "--protocol-params-file" [getProtocolConfig]
   lappend args "--out-file" "/var/cardano/local/scratch/tx.raw"
@@ -39,32 +39,33 @@ proc scriptMintTokens {fromInfo amount tokenName} {
   cliTxSubmit $fromInfo $txidFees
 }
 
-proc scriptBurnTokens {fromInfo tokenName} {
+proc scriptBurnTokens {fromInfo burnAmount tokenName} {
   global POLICY_ID
   global SCRIPTS_DIR
   global MIN_COLLATERAL
+  global MIN_TOKEN_LOVELACE
   set assetClass "$POLICY_ID.$tokenName"
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
 
-  logInfo "Burn $tokenName tokens for $fromName"
+  logInfo "Burn $burnAmount $tokenName tokens for $fromName"
 
   set fromUtxos [queryUtxos $fromInfo]
 
   # Select utxos
-  set burnAmount 0
+  set tkinAmount 0
   set selectedIds [list]
   foreach txid [dict keys $fromUtxos] {
     set subdct [dict get $fromUtxos $txid value]
     set symbols [dict keys $subdct]
-    if {[lsearch $symbols $assetClass] > 0} {
+    if {$tkinAmount < $burnAmount && [lsearch $symbols $assetClass] > 0} {
       set amount [dict get $subdct $assetClass]
       lappend selectedIds $txid
-      incr burnAmount $amount
+      incr tkinAmount $amount
     }
   }
 
-  if { $burnAmount <= 0 } {
+  if { $tkinAmount <= 0 } {
     logWarn "Cannot find tokens to burn"
     return false
   }
@@ -80,6 +81,10 @@ proc scriptBurnTokens {fromInfo tokenName} {
   lappend args "--alonzo-era"
   foreach txid $selectedIds {
     lappend args "--tx-in" $txid
+  }
+  if {$burnAmount < $tkinAmount} {
+    set tkrefund [expr {$tkinAmount - $burnAmount}]
+    lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$tkrefund $assetClass"
   }
   lappend args "--tx-in-collateral" $txidCollateral
   lappend args "--mint" "-$burnAmount $assetClass"
@@ -100,12 +105,12 @@ proc scriptBurnTokens {fromInfo tokenName} {
 
 # Invoke the swap method on the smart contract
 #
-# astor --script swap --from Percy --to Shelley --value '10 Astor164'
-# --fee-policy [caller|proxy]
-proc scriptSwapTokens {fromInfo amount tokenName {feePolicy "caller"} {targetAddr ""}} {
+# astor --script swap --from Shelley --value '10 Astor164'
+proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   global POLICY_ID
   global SCRIPTS_DIR
-  global MIN_SEND_AMOUNT
+  global MIN_TOKEN_LOVELACE
+  global MIN_PLUTUS_FEES
   global DOCKER_RUNTIME
   global scriptInfo
   set epoch [getEpochFromTokenName $tokenName]
@@ -114,8 +119,8 @@ proc scriptSwapTokens {fromInfo amount tokenName {feePolicy "caller"} {targetAdd
   set fromAddr [dict get $fromInfo addr]
   set scriptAddr [dict get $scriptInfo addr]
 
-  logInfo "Swap $amount $tokenName from $fromName"
   if {$targetAddr == ""} { set targetAddr $fromAddr }
+  logInfo "Swap $amount $tokenName from $fromName to $targetAddr"
 
   # Filter caller utxos by asset class
   set fromUtxos [queryUtxos $fromInfo]
@@ -126,17 +131,17 @@ proc scriptSwapTokens {fromInfo amount tokenName {feePolicy "caller"} {targetAdd
   logInfo "Collateral: $txidCollateral [dict get $fromUtxos $txidCollateral value]"
 
   # Select the caller's token UTxO
-  set selectedTokenTxinId ""
+  set lvtokens 0
+  set tokenTxinId ""
   foreach txid [dict keys $tokenUtxos] {
     set value [dict get $tokenUtxos $txid value]
     if {$amount == [dict get $value $assetClass]} {
-      set lvamount [dict get $value "lovelace"]
-      set lvextra [expr {$feePolicy == "proxy" ? $lvamount : 0}]
-      set selectedTokenTxinId $txid
+      set lvtokens [dict get $value "lovelace"]
+      set tokenTxinId $txid
       break
     }
   }
-  if {$selectedTokenTxinId == ""} {
+  if {$tokenTxinId == ""} {
     error "Cannot find caller UTxO"
   }
 
@@ -146,21 +151,21 @@ proc scriptSwapTokens {fromInfo amount tokenName {feePolicy "caller"} {targetAdd
   set scriptUtxos [filterUtxosByDatum $scriptUtxos $datumHash]
 
   # Select the script UTxO
-  set selectedScriptTxinId ""
+  set scriptTxinId ""
   set lvamount [toLovelace $amount]
   foreach txid [dict keys $scriptUtxos] {
     set value [dict get $scriptUtxos $txid value]
     if {$lvamount <= [dict get $value "lovelace"]} {
-      set selectedScriptTxinId $txid
+      set scriptTxinId $txid
       break
     }
   }
-  if {$selectedScriptTxinId == ""} {
+  if {$scriptTxinId == ""} {
     error "Cannot find script UTxO"
   }
 
   # Calculate the script refund
-  set scriptValue [dict get $scriptUtxos $selectedScriptTxinId value]
+  set scriptValue [dict get $scriptUtxos $scriptTxinId value]
   set scriptInputLovelace [dict get $scriptValue "lovelace"]
   if {[dict exists $scriptValue $assetClass]} {
     set scriptInputTokens [dict get $scriptValue $assetClass]
@@ -169,7 +174,8 @@ proc scriptSwapTokens {fromInfo amount tokenName {feePolicy "caller"} {targetAdd
   }
   set scriptRefundTokens [expr {$scriptInputTokens + $amount}]
   set scriptRefundLovelace [expr {$scriptInputLovelace - $lvamount}]
-  set scriptRefundLovelace [expr max($scriptRefundLovelace, $MIN_SEND_AMOUNT)]
+  set scriptRefundLovelace [expr max($scriptRefundLovelace, $MIN_TOKEN_LOVELACE)]
+  set scriptRefundSpec "$scriptAddr+$scriptRefundLovelace+$scriptRefundTokens $assetClass"
 
   # Calculate the invalid after slot
   set slotDelta 300
@@ -198,17 +204,17 @@ proc scriptSwapTokens {fromInfo amount tokenName {feePolicy "caller"} {targetAdd
   set args [networkAwareCmd [list "transaction" "build"]]
   lappend args "--alonzo-era"
   lappend args "--tx-in" $txidFees
-  lappend args "--tx-in" $selectedTokenTxinId
-  lappend args "--tx-in" $selectedScriptTxinId
+  lappend args "--tx-in" $tokenTxinId
+  lappend args "--tx-in" $scriptTxinId
   lappend args "--tx-in-script-file" "/var/cardano/local/$SCRIPTS_DIR/swaptokens.plutus"
   lappend args "--tx-in-datum-file" "/var/cardano/local/scratch/script-datum$epoch.json"
   lappend args "--tx-in-redeemer-value" 0
   lappend args "--tx-in-collateral" $txidCollateral
-  lappend args "--tx-out" "$scriptAddr+$scriptRefundLovelace+$scriptRefundTokens $assetClass"
+  lappend args "--tx-out" $scriptRefundSpec
   lappend args "--tx-out-datum-hash" $datumHash
-  lappend args "--tx-out" "$targetAddr+[expr {$lvamount + $lvextra}]"
-  lappend args "--invalid-hereafter" $targetSlot
+  lappend args "--tx-out" "$targetAddr+[expr {$lvamount + $lvtokens - $MIN_PLUTUS_FEES}]"
   lappend args "--change-address" $fromAddr
+  lappend args "--invalid-hereafter" $targetSlot
   lappend args "--protocol-params-file" [getProtocolConfig]
   lappend args "--out-file" "/var/cardano/local/scratch/tx.raw"
   cardano-cli $args
@@ -222,7 +228,7 @@ proc scriptSwapTokens {fromInfo amount tokenName {feePolicy "caller"} {targetAdd
 
 proc scriptWithdraw {fromInfo epoch} {
   global SCRIPTS_DIR
-  global MIN_SEND_AMOUNT
+  global MIN_TOKEN_LOVELACE
   global scriptInfo
   set tokenName "Astor$epoch"
   set fromName [dict get $fromInfo name]
@@ -266,7 +272,7 @@ proc scriptWithdraw {fromInfo epoch} {
     } else {
       set assetClass [lindex $symbols 1]
       set amount [dict get $value $assetClass]
-      lappend args "--tx-out" "$fromAddr+$MIN_SEND_AMOUNT+$amount $assetClass"
+      lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$amount $assetClass"
     }
   }
   lappend args "--tx-in-collateral" $txidCollateral

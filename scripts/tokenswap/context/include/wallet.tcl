@@ -70,7 +70,7 @@ proc payAllToPubKeyHash {fromInfo toInfo} {
 #
 proc payToPubKeyHash {fromInfo txoutSpecs {changeInfo 0}} {
   global MAX_INTEGER
-  global MIN_SEND_AMOUNT
+  global MIN_TOKEN_LOVELACE
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
 
@@ -111,7 +111,7 @@ proc payToPubKeyHash {fromInfo txoutSpecs {changeInfo 0}} {
       if {0 < $refundAmount} {
         set key "[getTokenName $symbol].Refund"
         dict set txoutSpecs $key txoutAddress $fromInfo
-        dict set txoutSpecs $key txoutValue "lovelace" $MIN_SEND_AMOUNT
+        dict set txoutSpecs $key txoutValue "lovelace" $MIN_TOKEN_LOVELACE
         dict set txoutSpecs $key txoutValue $symbol $refundAmount
       }
     }
@@ -135,7 +135,7 @@ proc payToPubKeyHash {fromInfo txoutSpecs {changeInfo 0}} {
     if {$hasTokens} {
       set assetClass [lindex $symbols [expr {$slength - 1}]]
       set tokenAmount [dict get $txoutValue $symbol]
-      lappend args "--tx-out" "$txoutSpec+$MIN_SEND_AMOUNT+$tokenAmount $assetClass"
+      lappend args "--tx-out" "$txoutSpec+$MIN_TOKEN_LOVELACE+$tokenAmount $assetClass"
     } else { if {!$payAllLovelace} {
       set lvamount [dict get $txoutValue "lovelace"]
       lappend args "--tx-out" "$txoutSpec+$lvamount"
@@ -203,7 +203,7 @@ proc payToScript {fromInfo lvamount tokenName ttl} {
       if {0 < $refundAmount} {
         set key "[getTokenName $symbol].Refund"
         dict set txoutSpecs $key txoutAddress $fromInfo
-        dict set txoutSpecs $key txoutValue "lovelace" $MIN_SEND_AMOUNT
+        dict set txoutSpecs $key txoutValue "lovelace" $MIN_TOKEN_LOVELACE
         dict set txoutSpecs $key txoutValue $symbol $refundAmount
       }
     }
@@ -322,7 +322,7 @@ proc queryUtxos {fromInfo {show true}} {
 
 proc sendTokensToPubKeyHash {fromInfo toInfo tokenAmounts epoch} {
   global POLICY_ID
-  global MIN_SEND_AMOUNT
+  global MIN_TOKEN_LOVELACE
   set tokenName "Astor$epoch"
   set assetClass "$POLICY_ID.$tokenName"
   set toName [dict get $toInfo name]
@@ -332,7 +332,7 @@ proc sendTokensToPubKeyHash {fromInfo toInfo tokenAmounts epoch} {
   for {set i 0} {$i < [llength $tokenAmounts]} {incr i} {
     set amount [lindex $tokenAmounts $i]
     dict set txoutSpecs $i txoutAddress $toInfo
-    dict set txoutSpecs $i txoutValue "lovelace" $MIN_SEND_AMOUNT
+    dict set txoutSpecs $i txoutValue "lovelace" $MIN_TOKEN_LOVELACE
     dict set txoutSpecs $i txoutValue $assetClass $amount
   }
   payToPubKeyHash $fromInfo $txoutSpecs

@@ -1,4 +1,29 @@
 
+
+proc astorRunTests {opts} {
+
+  logInfo [getSectionHeader "astor $opts"]
+
+  dict set spec "--epoch" [dict create required false]
+  set args [argsInit $spec $opts]
+  set epoch [argsValue $args "--epoch" [getCurrentEpoch]]
+
+  set values "2 Ada 2 Ada 10 Astor$epoch"
+
+  astor [list --reset --epoch $epoch]
+  astor [list --pay2pkh --from Owner --to Shelley --value $values]
+  astor [list --pay2script --from Owner --epoch $epoch --value "100 Ada"]
+  astor [list --show all]
+
+  testUnauthorizedWithdraw $epoch
+
+  testInvalidTokenSwaps 10 "Astor$epoch"
+
+  testValidTokenSwap 10 "Astor$epoch"
+
+  astor [list --show all]
+}
+
 # Provoke invalid token swaps
 #
 # dict set failure condition "no-token-txin"
@@ -7,7 +32,8 @@
 proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
   global POLICY_ID
   global SCRIPTS_DIR
-  global MIN_SEND_AMOUNT
+  global MIN_TOKEN_LOVELACE
+  global MIN_PLUTUS_FEES
   global DOCKER_RUNTIME
   global scriptInfo
   set epoch [getEpochFromTokenName $tokenName]
@@ -28,16 +54,17 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
   logInfo "Collateral: $txidCollateral [dict get $fromUtxos $txidCollateral value]"
 
   # Select the caller's token UTxO
-  set selectedTokenTxinId ""
+  set lvtokens 0
+  set tokenTxinId ""
   foreach txid [dict keys $tokenUtxos] {
     set value [dict get $tokenUtxos $txid value]
     if {$amount == [dict get $value $assetClass]} {
-      set lvextra [dict get $value "lovelace"]
-      set selectedTokenTxinId $txid
+      set lvtokens [dict get $value "lovelace"]
+      set tokenTxinId $txid
       break
     }
   }
-  if {$selectedTokenTxinId == ""} {
+  if {$tokenTxinId == ""} {
     error "Cannot find caller UTxO"
   }
 
@@ -47,21 +74,21 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
   set scriptUtxos [filterUtxosByDatum $scriptUtxos $datumHash]
 
   # Select the script UTxO
-  set selectedScriptTxinId ""
+  set scriptTxinId ""
   set lvamount [toLovelace $amount]
   foreach txid [dict keys $scriptUtxos] {
     set value [dict get $scriptUtxos $txid value]
     if {$lvamount <= [dict get $value "lovelace"]} {
-      set selectedScriptTxinId $txid
+      set scriptTxinId $txid
       break
     }
   }
-  if {$selectedScriptTxinId == ""} {
+  if {$scriptTxinId == ""} {
     error "Cannot find script UTxO"
   }
 
   # Calculate the script refund
-  set scriptValue [dict get $scriptUtxos $selectedScriptTxinId value]
+  set scriptValue [dict get $scriptUtxos $scriptTxinId value]
   set scriptInputLovelace [dict get $scriptValue "lovelace"]
   if {[dict exists $scriptValue $assetClass]} {
     set scriptInputTokens [dict get $scriptValue $assetClass]
@@ -70,11 +97,11 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
   }
   set scriptRefundTokens [expr {$scriptInputTokens + $amount}]
   set scriptRefundLovelace [expr {$scriptInputLovelace - $lvamount}]
-  set scriptRefundLovelace [expr max($scriptRefundLovelace, $MIN_SEND_AMOUNT)]
+  set scriptRefundLovelace [expr max($scriptRefundLovelace, $MIN_TOKEN_LOVELACE)]
 
   set scriptRefundSpec "$scriptAddr+$scriptRefundLovelace"
   if {[dict get $failure condition] == "refund-not-paid-to-script"} {
-    set scriptRefundSpec "$scriptAddr+$MIN_SEND_AMOUNT"
+    set scriptRefundSpec "$scriptAddr+$MIN_TOKEN_LOVELACE"
   }
   if {[dict get $failure condition] == "too-little-refund-paid-to-script"} {
     set scriptRefundSpec "$scriptAddr+[expr {$scriptRefundLovelace - 1}]"
@@ -91,12 +118,11 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
     set datumHash [getDatumHash "Astor[expr {$epoch + 1}]"]
   }
 
+  # Calculate the invalid after slot
   set slotDelta 300
   if {[dict get $failure condition] == "invalid-hereafter"} {
     incr slotDelta 1000
   }
-
-  # Calculate the invalid after slot
   set bounds [getEpochBoundaries]
   set currentSlot [dict get $bounds currentSlot]
   set currentTime [dict get $bounds currentTime]
@@ -123,18 +149,18 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
   lappend args "--alonzo-era"
   lappend args "--tx-in" $txidFees
   if {[dict get $failure condition] != "no-token-txin"} {
-    lappend args "--tx-in" $selectedTokenTxinId
+    lappend args "--tx-in" $tokenTxinId
   }
-  lappend args "--tx-in" $selectedScriptTxinId
+  lappend args "--tx-in" $scriptTxinId
   lappend args "--tx-in-script-file" "/var/cardano/local/$SCRIPTS_DIR/swaptokens.plutus"
   lappend args "--tx-in-datum-file" "/var/cardano/local/scratch/script-datum$epoch.json"
   lappend args "--tx-in-redeemer-value" 0
   lappend args "--tx-in-collateral" $txidCollateral
   lappend args "--tx-out" $scriptRefundSpec
   lappend args "--tx-out-datum-hash" $datumHash
-  lappend args "--tx-out" "$targetAddr+[expr {$lvamount + $lvextra}]"
-  lappend args "--invalid-hereafter" $targetSlot
+  lappend args "--tx-out" "$targetAddr+[expr {$lvamount + $lvtokens - $MIN_PLUTUS_FEES}]"
   lappend args "--change-address" $fromAddr
+  lappend args "--invalid-hereafter" $targetSlot
   lappend args "--protocol-params-file" [getProtocolConfig]
   lappend args "--out-file" "/var/cardano/local/scratch/tx.raw"
   puts [cardano-cli $args]
@@ -209,7 +235,10 @@ proc testInvalidTokenSwaps {amount tokenName} {
     testTokenSwap $fromInfo $amount $tokenName $failure
     error $msg
   }
+}
 
+proc testValidTokenSwap {amount tokenName} {
+  set fromInfo [getAddrInfo 1]
   set msg "Valid token swap"
   puts [getSectionHeader $msg]
   dict set failure condition "valid-token-swap"

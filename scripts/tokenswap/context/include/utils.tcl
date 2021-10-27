@@ -1,34 +1,14 @@
 
-proc astorHelp {} {
-  puts ""
-  puts "Usage"
-  puts "------------------------------------------------------------------------"
-  puts "astor --reset --epoch 164"
-  puts "astor --pay2pkh --from Shelley --to Owner --value all"
-  puts "astor --pay2pkh --from Shelley --to Percy --value '10 Astor164'"
-  puts "astor --pay2pkh --from Owner --to Shelley --value '10 Ada 10 Ada 90 Astor164 10 Astor164'"
-  puts "astor --pay2pkh --from Owner --to Percy --value '10 Ada 10 Ada'"
-  puts "astor --pay2pkh --from Owner --to Owner --value '30000 Ada'"
-  puts "astor --pay2script --from Owner --value '100 Ada' --epoch 164"
-  puts "astor --script mint --from Owner --value '1000 Astor164'"
-  puts "astor --script burn --from Owner --value '1000 Astor164'"
-  puts "astor --script swap --from Shelley --value '10 Astor164'"
-  puts "astor --script swap --from Percy --to Shelley --value '10 Astor164'"
-  puts "astor --script withdraw --from Owner --epoch 164"
-  puts "astor --show all"
-}
-
 proc astor {opts} {
   if {[llength $opts] == 0} { astorHelp; return }
   if {true} { logInfo [getSectionHeader "astor $opts"] }
   set cmd [lindex $opts 0]
   switch $cmd {
-    --help        { astorHelp }
+    --reset       { astorReset $opts }
     --pay2pkh     { astorPay2PKH $opts }
     --pay2script  { astorPay2Script $opts }
     --script      { astorScript $opts }
     --show        { astorShow $opts }
-    --reset       { astorReset $opts }
     default       { logError "Invalid command: $cmd"; astorHelp }
   }
 }
@@ -72,6 +52,7 @@ proc astorPay2PKH {opts} {
 }
 
 proc astorPay2Script {opts} {
+  global MIN_TOKEN_LOVELACE
   dict set spec "--epoch" [dict create required false]
   dict set spec "--from" [dict create required true]
   dict set spec "--value" [dict create required true]
@@ -92,21 +73,8 @@ proc astorPay2Script {opts} {
     set symbol "lovelace"
   }
   if {![string match -nocase "lovelace" $symbol]} { error "Invalid value spec: $value" }
-  payToScript $fromInfo $amount $tokenName $ttl
-}
-
-proc astorReset {opts} {
-  dict set spec "--epoch" [dict create required false]
-  dict set spec "--burn" [dict create required false]
-  set args [argsInit $spec $opts]
-  set burnValue [argsValue $args "--burn" ""]
-  set epoch [argsValue $args "--epoch" [getCurrentEpoch]]
-  astor [list --pay2pkh --from Percy --to Owner --value all]
-  astor [list --pay2pkh --from Mary --to Owner --value all]
-  astor [list --pay2pkh --from Shelley --to Owner --value all]
-  astor [list --script withdraw --from Owner --epoch $epoch]
-  if {$burnValue != ""} { astor [list --script burn --from Owner --value $burnValue] }
-  astor [list --show all]
+  set lvamount [expr {$amount + $MIN_TOKEN_LOVELACE}]
+  payToScript $fromInfo $lvamount $tokenName $ttl
 }
 
 proc astorScript {opts} {
@@ -118,10 +86,11 @@ proc astorScript {opts} {
       dict set spec "--from" [dict create required false]
       set args [argsInit $spec $opts]
       set value [splitTrim [argsValue $args "--value"]]
+      set amount [lindex $value 0]
       set tokenName [lindex $value 1]
       set fromName [argsValue $args "--from" Owner]
       set fromInfo [getAddrInfoByName $fromName]
-      scriptBurnTokens $fromInfo $tokenName
+      scriptBurnTokens $fromInfo $amount $tokenName
     }
     "mint" {
       dict set spec "--value" [dict create required true]
@@ -170,7 +139,15 @@ proc astorShow {opts} {
   foreach name [lrange $opts 1 end] {
     switch -nocase $name {
       "all"   { showAllWallets }
-      default { showWallet [getAddrInfoByName $name] }
+      default {
+        if {[string match "addr1*" $name]} {
+          dict set addrInfo name "PKHAddr"
+          dict set addrInfo addr $name
+        } else {
+          set addrInfo [getAddrInfoByName $name]
+        }
+        showWallet $addrInfo
+      }
     }
   }
 }
@@ -264,19 +241,6 @@ proc fetchBlockfrostData {path {params ""}} {
     }
   }
   return $json
-}
-
-proc fileRead {fpath} {
-  set infile [open $fpath "r"]
-  set result [read $infile]
-  close $infile
-  return $result
-}
-
-proc fileWrite {fpath content} {
-  set outfile [open $fpath "w"]
-  puts $outfile $content
-  close $outfile
 }
 
 proc filterUtxosBySymbol {utxos symbol} {
@@ -503,7 +467,8 @@ proc getTokenName {assetClass} {
 }
 
 proc getTxinSpecs {fromInfo utxos txoutSpecs} {
-  global MIN_SEND_AMOUNT
+  global MIN_PLUTUS_FEES
+  global MIN_TOKEN_LOVELACE
   set fromName [dict get $fromInfo name]
 
   logDebug "Get TxinSpecs from TxoutSpecs $fromName $txoutSpecs"
@@ -515,13 +480,14 @@ proc getTxinSpecs {fromInfo utxos txoutSpecs} {
   set txoutAmounts [getTxoutAmounts $fromInfo $txoutSpecs]
   set symbols [dict keys $txoutAmounts]
   set numTokenTxouts 0
-  foreach symbol $symbols {
-    if {$symbol != "lovelace"} {
+  foreach idx [dict keys $txoutSpecs] {
+    set value [dict get $txoutSpecs $idx txoutValue]
+    if {[lindex [split $value] 0] != "lovelace"} {
       incr numTokenTxouts
     }
   }
   set hasTokens [expr {$numTokenTxouts > 0}]
-  logDebug "Token Txouts: $numTokenTxouts"
+  logDebug "Num Token Txouts: $numTokenTxouts"
 
   if {$hasTokens} {
     if {[llength $symbols] != 2} { error "Unsupported number of symbols: $txoutAmounts" }
@@ -538,7 +504,8 @@ proc getTxinSpecs {fromInfo utxos txoutSpecs} {
     set targetAmount [dict get $txoutAmounts $symbol]
     logDebug "Target amount: $targetAmount $symbol"
     if {$symbol == "lovelace" && $hasTokens} {
-      incr targetAmount [expr {$numTokenTxouts * $MIN_SEND_AMOUNT}]
+      set tkoutLovelace [expr {$MIN_TOKEN_LOVELACE + $MIN_PLUTUS_FEES}]
+      incr targetAmount [expr {($numTokenTxouts) * $tkoutLovelace}]
       logDebug "Adjusted target amount: $targetAmount $symbol"
     }
 
@@ -551,7 +518,7 @@ proc getTxinSpecs {fromInfo utxos txoutSpecs} {
       set amount [dict get $subdct $symbol]
       if {[lsearch $txids $txid] < 0} {
         if {$symbol == "lovelace"} {
-          if {$auxamt <= [expr {$targetAmount + $MIN_SEND_AMOUNT}]} {
+          if {$auxamt <= [expr {$targetAmount + $MIN_TOKEN_LOVELACE}]} {
             dict set txinSpecs $symbol txids [lappend txids $txid]
             dict set txinSpecs $symbol amount [expr {$auxamt + $amount}]
             logDebug "Added to $symbol: [dict get $txinSpecs $symbol]"
@@ -620,18 +587,6 @@ proc networkAwareCmd {opts} {
   } else { if {$BLOCKFROST_NETWORK == "mainnet"} {
     lappend opts --mainnet
   }}
-}
-
-# Split and trim
-proc splitTrim {instr {ch " "}} {
-  set result [list]
-  foreach tok [split $instr $ch] {
-    set tok [string trim $tok]
-    if {$tok != ""} {
-      lappend result $tok
-    }
-  }
-  return $result
 }
 
 proc toAssetClass {policyId tokenName} {

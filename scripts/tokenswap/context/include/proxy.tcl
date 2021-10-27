@@ -1,11 +1,23 @@
 
+proc astorProxy {opts} {
+  dict set spec "--proxy" [dict create required true]
+  set args [argsInit $spec $opts]
+  set cmd [argsValue $args "--proxy"]
+  switch $cmd {
+    run     { astorProxyRun $opts }
+    test    { astorProxyTest $opts }
+    default { logError "Invalid command: $cmd"; astorHelp }
+  }
+}
+
 proc astorProxyRun {opts} {
   global percyInfo
   global scriptInfo
 
   dict set spec "--endless" [dict create required false]
   set args [argsInit $spec $opts]
-  set endless [argsValue $args "--endless" false]
+  set intrv [argsValue $args "--intrv" 600]
+  set endless [argsValue $args "--endless" true]
 
   set PROXY_FROM_NAME [envvar "PROXY_FROM_NAME" [dict get $percyInfo name]]
   set PROXY_FROM_ADDR [envvar "PROXY_FROM_ADDR" [dict get $percyInfo addr]]
@@ -15,9 +27,7 @@ proc astorProxyRun {opts} {
   dict set fromInfo addr $PROXY_FROM_ADDR
   dict set fromInfo skey $PROXY_FROM_SKEY
 
-  astor [list --show $PROXY_FROM_NAME "Script"]
-
-  runProxyLoop $fromInfo $scriptInfo $endless
+  runProxyLoop $fromInfo $scriptInfo $intrv $endless
 }
 
 proc astorProxyTest {opts} {
@@ -62,7 +72,6 @@ proc handleToScript {fromInfo scriptInfo utxos txid assetClass} {
   set scriptAddr [dict get $scriptInfo addr]
   set tokenName [getTokenName $assetClass]
   set epoch [getEpochFromTokenName $tokenName]
-  logInfo "$fromName $txid $tokenName => $scriptAddr"
 
   set txhash [lindex [split $txid '#'] 0]
   set targetAddr [getCallerAddress $txhash $tokenName]
@@ -70,8 +79,8 @@ proc handleToScript {fromInfo scriptInfo utxos txid assetClass} {
   set value [dict get $utxos $txid value]
   set amount [dict get $value $assetClass]
 
-  logInfo [getSectionHeader "Proxy swap $fromInfo $amount $tokenName"]
-  scriptSwapTokens $fromInfo $amount $tokenName "caller" $targetAddr
+  logInfo [getSectionHeader "Proxy Swap $amount $tokenName from $fromName to $targetAddr"]
+  scriptSwapTokens $fromInfo $amount $tokenName $targetAddr
 }
 
 proc handleUtxos {fromInfo scriptInfo utxos} {
@@ -80,15 +89,16 @@ proc handleUtxos {fromInfo scriptInfo utxos} {
     set assetClasses [dict keys $value]
     foreach assetClass [ldelete $assetClasses 0] {
       set tokenName [getTokenName $assetClass]
-      if {[string first "Astor" $tokenName] == 0} {
+      if {[string match "Astor*" $tokenName]} {
         handleToScript $fromInfo $scriptInfo $utxos $txid $assetClass
+        queryUtxos $fromInfo
+        queryUtxos $scriptInfo
       }
     }
   }
-  queryUtxos $scriptInfo
 }
 
-proc runProxyLoop {fromInfo scriptInfo {endless true}} {
+proc runProxyLoop {fromInfo scriptInfo intrv endless} {
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
   set scriptAddr [dict get $scriptInfo addr]
@@ -97,12 +107,14 @@ proc runProxyLoop {fromInfo scriptInfo {endless true}} {
   logInfo " --from $fromName $fromAddr"
   logInfo " --script $scriptAddr"
   set i 0
+  set wait 5
+  if {[expr {$intrv % $wait != 0}]} { error "Interval not divisible by: $wait"}
   while {$i == 0 || $endless} {
-    if {$i % 10 == 0} {
-      set utxos [queryUtxos $fromInfo]
-      handleUtxos $fromInfo $scriptInfo $utxos
-    }
-    after 500
-    incr i
+    set logQuery [expr {$i % $intrv == 0}]
+    set utxos [queryUtxos $fromInfo $logQuery]
+    handleUtxos $fromInfo $scriptInfo $utxos
+    if {$logQuery} { queryUtxos $scriptInfo $logQuery }
+    after [expr {$wait * 1000}]
+    incr i $wait
   }
 }

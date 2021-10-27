@@ -58,9 +58,11 @@ docker run --name=tmp -v tokenswap:/var/cardano/local centos \
 
 ```
 NETWORK="${BLOCKFROST_NETWORK:-testnet}" \
-&& docker build -t nessusio/tokenswap ./context \
+&& rm -rf ./scripts/tokenswap/context/common \
+&& cp -r ./scripts/common ./scripts/tokenswap/context \
+&& docker build -t nessusio/tokenswap ./scripts/tokenswap/context \
 && docker rm -f tokenswap \
-&& docker run --detach \
+&& docker run --detach  \
   --name tokenswap \
   --restart=always \
   -e BLOCKFROST_NETWORK="${NETWORK}" \
@@ -70,7 +72,7 @@ NETWORK="${BLOCKFROST_NETWORK:-testnet}" \
   -e PROXY_FROM_SKEY="${NETWORK}/keys/acc3/payment.skey" \
   -v tokenswap:/var/cardano/local \
   -v node-ipc:/opt/cardano/ipc \
-  nessusio/tokenswap --proxy-run --endless true
+  nessusio/tokenswap --proxy run --intrv 600 --endless true
 
 docker logs -f tokenswap
 ```

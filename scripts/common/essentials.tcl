@@ -2,6 +2,11 @@
 # Essential utility procs ######################################################
 #
 
+set LEVEL_DEBUG 1
+set LEVEL_INFO  2
+set LEVEL_WARN  3
+set LEVEL_ERROR 4
+
 proc argsInit {spec argv} {
   if {[llength $argv] == 0} { error "Must provide required args: $spec"}
   for {set i 0} {$i < [llength $argv]} {incr i} {
@@ -26,11 +31,12 @@ proc argsInit {spec argv} {
 }
 
 proc argsValue {args key {default ""}} {
+  set result $default
   if [dict exists $args $key value] {
-    return [dict get $args $key value]
-  } else {
-    return $default
+    set result [dict get $args $key value]
+    if {$result == ""} { set result $default }
   }
+  return $result
 }
 
 proc argsValueExists {args key} {
@@ -41,6 +47,27 @@ proc envvar {vname {default ""}} {
   set result $default
   catch { set result "$::env($vname)" }
   return $result
+}
+
+proc fileRead {fpath} {
+  set infile [open $fpath "r"]
+  set result [read $infile]
+  close $infile
+  return $result
+}
+
+proc fileWrite {fpath content} {
+  set outfile [open $fpath "w"]
+  puts $outfile $content
+  close $outfile
+}
+
+proc getSectionHeader {title} {
+  set padding ""
+  while {[string length "$title $padding"] < 120} {
+    set padding "$padding="
+  }
+  return "$title $padding"
 }
 
 proc isNetwork {network} {
@@ -81,4 +108,16 @@ proc logMessage {level message} {
     set tstamp [clock format $now -format {%d-%m-%Y %H:%M:%S}]
     puts "\[$tstamp\] $lname $message"
   }
+}
+
+# Split and trim
+proc splitTrim {instr {ch " "}} {
+  set result [list]
+  foreach tok [split $instr $ch] {
+    set tok [string trim $tok]
+    if {$tok != ""} {
+      lappend result $tok
+    }
+  }
+  return $result
 }
