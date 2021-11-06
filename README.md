@@ -123,7 +123,7 @@ docker run --detach \
     -e CARDANO_SHELLEY_VRF_KEY="/var/cardano/config/keys/pool/vrf.skey" \
     -e CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/pool/node.cert" \
     -v cardano-prod-config:/var/cardano/config  \
-    -v /mnt/disks/data01:/opt/cardano/data \
+    -v /mnt/disks/data01:/opt/cardano/data \ 
     nessusio/cardano-node run
 
 docker logs -f bprod
@@ -203,85 +203,98 @@ For details you may want to have a look at [nix/docker/k8s/cardano-nodes.yaml](h
 
 For a Stake Pool Operator it is important to know when the node is scheduled to produce the next block. We definitely want to be online at that important moment and fullfil our block producing duties. There are better times to do node maintenance.
 
-This important functionality has also been built into the [nessusio/cardano-tools](https://hub.docker.com/r/nessusio/cardano-tools) image.
+This important functionality has also been built into the [jterrier84/cncli](https://hub.docker.com/repository/docker/jterrier84/cncli/general) image.
 
-First, lets define an alias and ping the node that we want to work with.
-
-Details about this API are [here](https://github.com/AndrewWestberg/cncli/blob/develop/USAGE.md).
+First, lets create a docker volume in which to share the node.socket of the node container with the cncli container.
 
 ```
-$ alias cncli="docker run -it --rm \
-  -v ~/cardano:/var/cardano/local \
-  -v cncli:/var/cardano/cncli \
-  nessusio/cardano-tools cncli"
-
-NODE_IP=192.168.0.30
-
-cncli ping --host $NODE_IP
-{
-  "status": "ok",
-  "host": "10.128.0.31",
-  "port": 3001,
-  "connectDurationMs": 0,
-  "durationMs": 53
-}
-```
-
-### Syncing the database
-
-This command connects to a remote node and synchronizes blocks to a local sqlite database.
+docker volume create --name nodesocket
 
 ```
-$ cncli sync --host $NODE_IP \
-  --db /var/cardano/cncli/cncli.db \
-  --no-service
 
-...
-2021-03-04T10:23:19.719Z INFO  cardano_ouroboros_network::protocols::chainsync   > block 5417518 of 5417518, 100.00% synced
-2021-03-04T10:23:23.459Z INFO  cncli::nodeclient::sync                           > Exiting...
+Make sure running the block producer node with the following parameters (we add a docker volume and bind it with the node.socket folder in the node container)
+
+```
+docker run --detach \
+    --name=bprod \
+    -p 3001:3001 \
+    -e CARDANO_BLOCK_PRODUCER=true \
+    -e CARDANO_TOPOLOGY="/var/cardano/config/mainnet-topology.json" \
+    -e CARDANO_SHELLEY_KES_KEY="/var/cardano/config/keys/pool/kes.skey" \
+    -e CARDANO_SHELLEY_VRF_KEY="/var/cardano/config/keys/pool/vrf.skey" \
+    -e CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/pool/node.cert" \
+    -v cardano-prod-config:/var/cardano/config  \
+    -v /mnt/disks/data01:/opt/cardano/data \
+    -v nodesocket:/opt/cardano/ipc \
+    nessusio/cardano-node run
+
+```
+
+Wait for the block producer node to sync and start. Now let's start the cncli docker container.
+
+```
+docker run -it -d \
+    --name=cncli \
+    --volumes-from bprod \
+    -v /mnt/disks/data02:/home/ubuntu/db \
+    -v cardano-prod-config:/home/ubuntu/config \
+    -e CARDANO_NODE_SOCKET_PATH=/opt/cardano/ipc/node.socket \
+    jterrier84/cncli:latest bash
+
 ```
 
 ### Slot Leader Schedule
 
-We can now obtain the leader schedule for our pool.
+We can now obtain the leader schedule for our pool for the current, next or previous epoch. If executed the first time, the cncli database will be synced. This process might take some time (just be patient).
+
+
+## Current
 
 ```
-STAKE_SNAPSHOT=$HOME/cardano/scratch/stake-snapshot.json
-cardano-cli query stake-snapshot --stake-pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 --mainnet | \
-  tee $STAKE_SNAPSHOT
+docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-current.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
 
-# Prev
-LEDGER_SET=prev
-POOL_STAKE=$(cat $STAKE_SNAPSHOT | jq .poolStakeGo)
-ACTIVE_STAKE=$(cat $STAKE_SNAPSHOT | jq .activeStakeGo)
+```
 
-# Current
-LEDGER_SET=current
-POOL_STAKE=$(cat $STAKE_SNAPSHOT | jq .poolStakeSet)
-ACTIVE_STAKE=$(cat $STAKE_SNAPSHOT | jq .activeStakeSet)
+## Next
 
-# Next
-LEDGER_SET=next
-POOL_STAKE=$(cat $STAKE_SNAPSHOT | jq .poolStakeMark)
-ACTIVE_STAKE=$(cat $STAKE_SNAPSHOT | jq .activeStakeMark)
+```
+docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-next.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
 
-$ cncli leaderlog \
-  --pool-id 9e8009b249142d80144dfb681984e08d96d51c2085e8bb6d9d1831d2 \
-  --shelley-genesis /opt/cardano/config/mainnet-shelley-genesis.json \
-  --byron-genesis /opt/cardano/config/mainnet-byron-genesis.json \
-  --pool-vrf-skey /var/cardano/local/mainnet/keys/pool/vrf.skey \
-  --db /var/cardano/cncli/cncli.db \
-  --active-stake $ACTIVE_STAKE \
-  --pool-stake $POOL_STAKE \
-  --tz Europe/Berlin \
-  --ledger-set $LEDGER_SET | tee leaderlog.json
+```
 
-cat leaderlog.json | jq -c ".assignedSlots[] | {no: .no, slot: .slotInEpoch, at: .at}"
+## Previous   
 
-{"no":1,"slot":165351,"at":"2021-02-26T20:40:42+01:00"}
-{"no":2,"slot":312656,"at":"2021-02-28T13:35:47+01:00"}
-{"no":3,"slot":330588,"at":"2021-02-28T18:34:39+01:00"}
-{"no":4,"slot":401912,"at":"2021-03-01T14:23:23+01:00"}
+```
+docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-previous.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
+
+```
+
+The output will show something like this.
+
+```
+2021-11-06T19:51:27.909Z WARN  cardano_ouroboros_network::protocols::chainsync > rollback to slot: 44660189
+ 2021-11-06T19:51:27.915Z INFO  cardano_ouroboros_network::protocols::chainsync > block 6467803 of 6467912, 100.00% synced
+ 2021-11-06T19:51:28.649Z INFO  cardano_ouroboros_network::protocols::chainsync > block 6467912 of 6467912, 100.00% synced
+ 2021-11-06T19:51:32.788Z INFO  cncli::nodeclient::sync                         > Exiting...
+BCSH
+{
+  "status": "ok",
+  "epoch": 301,
+  "epochNonce": "c0e8aa015de7703c6fbec6c85a0aafb0974082e1eb4808061ad2e5ef23a2fd62",
+  "epochSlots": 0,
+  "epochSlotsIdeal": 0.09,
+  "maxPerformance": 0,
+  "poolId": "c3e7025ebae638e994c149e5703e82619b31897c9e1d64fc684f81c2",
+  "sigma": 4.090600418054005e-06,
+  "activeStake": 97591519270,
+  "totalActiveStake": 23857504839454980,
+  "d": 0,
+  "f": 0.05,
+  "assignedSlots": []
+}
+`Epoch 301` 🧙🔮:
+`BCSH  - 0 `🎰`,  0% `🍀max, `0.09` 🧱ideal
+
 ```
 
 # Build the Images
