@@ -230,7 +230,8 @@ docker run --detach \
 
 ```
 
-Wait for the block producer node to sync and start. Now let's start the cncli docker container.
+Wait for the block producer node to sync and start. Now let's start the cncli docker container. 
+Note: If running on an amd64 architecture, replace "cncli_arm64" with "cncli_amd64".
 
 ```
 docker run -it -d \
@@ -239,7 +240,7 @@ docker run -it -d \
     -v /mnt/disks/data02:/home/ubuntu/db \
     -v cardano-prod-config:/home/ubuntu/config \
     -e CARDANO_NODE_SOCKET_PATH=/opt/cardano/ipc/node.socket \
-    jterrier84/cncli:latest bash
+    jterrier84/cncli_arm64:4.0.1
 
 ```
 
@@ -248,21 +249,21 @@ docker run -it -d \
 We can now obtain the leader schedule for our pool for the current, next or previous epoch. If executed the first time, the cncli database will be synced. This process might take some time (just be patient).
 
 
-## Current
+###### Current
 
 ```
 docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-current.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
 
 ```
 
-## Next
+###### Next
 
 ```
 docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-next.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
 
 ```
 
-## Previous   
+###### Previous   
 
 ```
 docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-previous.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
@@ -294,6 +295,13 @@ BCSH
 }
 `Epoch 301` 🧙🔮:
 `BCSH  - 0 `🎰`,  0% `🍀max, `0.09` 🧱ideal
+
+```
+
+If desired, the cncli container can now be stopped. 
+
+```
+docker stop cncli
 
 ```
 
