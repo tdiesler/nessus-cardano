@@ -209,7 +209,6 @@ First, lets create a docker volume in which to share the node.socket of the node
 
 ```
 docker volume create --name nodesocket
-
 ```
 
 Make sure running the block producer node with the following parameters (we add a docker volume and bind it with the node.socket folder in the node container)
@@ -227,7 +226,6 @@ docker run --detach \
     -v /mnt/disks/data01:/opt/cardano/data \
     -v nodesocket:/opt/cardano/ipc \
     nessusio/cardano-node run
-
 ```
 
 Wait for the block producer node to sync and start. Now let's start the cncli docker container. 
@@ -241,7 +239,6 @@ docker run -it -d \
     -v cardano-prod-config:/home/ubuntu/config \
     -e CARDANO_NODE_SOCKET_PATH=/opt/cardano/ipc/node.socket \
     jterrier84/cncli_arm64:4.0.1
-
 ```
 
 ### Slot Leader Schedule
@@ -253,21 +250,18 @@ We can now obtain the leader schedule for our pool for the current, next or prev
 
 ```
 docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-current.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
-
 ```
 
 ###### Next
 
 ```
 docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-next.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
-
 ```
 
 ###### Previous   
 
 ```
 docker exec -it cncli /home/ubuntu/cncli/scripts/cncli-leaderlog-previous.sh [IP_RELAY] [PORT_RELAY] [POOL_ID]
-
 ```
 
 The output will show something like this.
@@ -295,14 +289,12 @@ BCSH
 }
 `Epoch 301` 🧙🔮:
 `BCSH  - 0 `🎰`,  0% `🍀max, `0.09` 🧱ideal
-
 ```
 
 If desired, the cncli container can now be stopped. 
 
 ```
 docker stop cncli
-
 ```
 
 # Build the Images
