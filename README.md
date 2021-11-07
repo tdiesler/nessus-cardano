@@ -203,7 +203,7 @@ For details you may want to have a look at [nix/docker/k8s/cardano-nodes.yaml](h
 
 For a Stake Pool Operator it is important to know when the node is scheduled to produce the next block. We definitely want to be online at that important moment and fullfil our block producing duties. There are better times to do node maintenance.
 
-This important functionality has also been built into the [jterrier84/cncli](https://hub.docker.com/repository/docker/jterrier84/cncli/general) image.
+This important functionality has also been built into the [jterrier84/cncli_arm64](https://hub.docker.com/repository/docker/jterrier84/cncli_arm64) image.
 
 First, lets create a docker volume in which to share the node.socket of the node container with the cncli container.
 
