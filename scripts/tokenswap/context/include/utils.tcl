@@ -22,7 +22,7 @@ proc astorPay2PKH {opts} {
   set fromName [argsValue $args "--from"]
   set fromInfo [getAddrInfoByName $fromName]
   set toSpec [argsValue $args "--to"]
-  if {[string match "addr1*" $toSpec]} {
+  if {[string match "addr*" $toSpec]} {
     dict set toInfo name "PKHAddr"
     dict set toInfo addr $toSpec
   } else {
@@ -140,7 +140,7 @@ proc astorShow {opts} {
     switch -nocase $name {
       "all"   { showAllWallets }
       default {
-        if {[string match "addr1*" $name]} {
+        if {[string match "addr*" $name]} {
           dict set addrInfo name "PKHAddr"
           dict set addrInfo addr $name
         } else {

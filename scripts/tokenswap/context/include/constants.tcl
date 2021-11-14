@@ -15,9 +15,9 @@ if {$DOCKER_RUNTIME} {
   set CARDANO_DIR "/var/cardano/local"
 }
 
-set BLOCKFROST_NETWORK [envvar "BLOCKFROST_NETWORK" "testnet"]
-set BLOCKFROST_API_URL [envvar "BLOCKFROST_API_URL" "https://cardano-$BLOCKFROST_NETWORK.blockfrost.io/api/v0"]
 set BLOCKFROST_API_KEY [envvar "BLOCKFROST_API_KEY" ""]
+set BLOCKFROST_NETWORK [getNetwork $BLOCKFROST_API_KEY]
+set BLOCKFROST_API_URL [envvar "BLOCKFROST_API_URL" "https://cardano-$BLOCKFROST_NETWORK.blockfrost.io/api/v0"]
 
 set SCRATCH_DIR "$CARDANO_DIR/scratch"
 set NETWORK_DIR "$CARDANO_DIR/$BLOCKFROST_NETWORK"

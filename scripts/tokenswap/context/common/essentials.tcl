@@ -62,6 +62,11 @@ proc fileWrite {fpath content} {
   close $outfile
 }
 
+proc getNetwork {apiKey} {
+  if [string match "mainnet*" $apiKey] { return "mainnet"
+  } else { return "testnet" }
+}
+
 proc getSectionHeader {title} {
   set padding ""
   while {[string length "$title $padding"] < 180} {
