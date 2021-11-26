@@ -45,7 +45,7 @@ services:
           ]
         }'
       CARDANO_RTS_OPTS: "${CARDANO_RTS_OPTS:--N -A64m -c -s}"
-      CARDANO_BLOCK_PRODUCER: "true"
+      CARDANO_BLOCK_PRODUCER: "${CARDANO_BLOCK_PRODUCER:-true}"
     command: "run"
     volumes:
       - mainnet-bprod-keys:/var/cardano/config/keys
