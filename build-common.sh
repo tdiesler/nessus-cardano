@@ -21,7 +21,7 @@ LNAV_VER="0.9.0"
 GLVIEW_VER="1.24.0"
 
 # https://github.com/AndrewWestberg/cncli
-CNCLI_VER="4.0.1"
+CNCLI_VER="4.0.3"
 
 CABAL_VER="3.2.0.0"
 GHC_VER="8.10.4"
