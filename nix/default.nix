@@ -17,6 +17,7 @@
   cncliVersion,
   cabalVersion,
   ghcVersion,
+  glvVersion,
 
   # Required image short name
   shortName
@@ -29,7 +30,7 @@ let
     else if builtins.currentSystem == "aarch64-linux" then "arm64"
     else builtins.abort "[ERROR] Unsupported platform architecture: ${builtins.currentSystem}";
 
-  nodeImage = import ./docker/node { inherit cardanoVersion cardanoRev cabalVersion ghcVersion imageArch; };
+  nodeImage = import ./docker/node { inherit cardanoVersion cardanoRev cabalVersion ghcVersion glvVersion imageArch; };
   toolsImage = import ./docker/tools { inherit cardanoVersion cardanoRev cabalVersion ghcVersion cncliVersion imageArch; };
 
 in

@@ -20,13 +20,14 @@
   debianVersion,
   cabalVersion,
   ghcVersion,
+  glvVersion,
 
   # https://hydra.iohk.io/build/7654130/download/1/index.html
   hydraBuild ? "7654130",
 
   baseImage ? import ../baseImage { inherit debianVersion; },
   cardano ? import ../../cardano { inherit cardanoVersion cardanoRev cabalVersion ghcVersion; },
-  gLiveView ? import ../../gLiveView {},
+  gLiveView ? import ../../gLiveView { inherit glvVersion; },
   libsodium ? import ../../libsodium {},
 }:
 

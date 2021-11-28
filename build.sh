@@ -146,6 +146,7 @@ function buildImage () {
       --argstr debianVersion "${DEBIAN_VER}" \
       --argstr cabalVersion "${CABAL_VER}" \
       --argstr ghcVersion "${GHC_VER}" \
+      --argstr glvVersion "${GLVIEW_VER}" \
       --argstr imageArch "${ARCH_SUFFIX}"`
 
   elif [[ $shortName == "cardano-tools" ]]; then
