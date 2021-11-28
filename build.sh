@@ -2,7 +2,7 @@
 
 source ./build-common.sh
 
-# Extracting cardano-node binaries from arm64 Docker image =====================
+# Extracting binaries from arm64 Docker images =================================
 #
 # Note, we currently cannot build the cardano derivation for arm64
 # https://github.com/input-output-hk/haskell.nix/issues/1027
@@ -40,6 +40,41 @@ function buildCardanoNodeArm64 () {
     docker run --name tmp ${AUX_IMAGE_NAME} &> /dev/null
     docker cp tmp:/usr/local/bin/cardano-node ${dockerBuildOut}/bin/cardano-node
     docker cp tmp:/usr/local/bin/cardano-cli ${dockerBuildOut}/bin/cardano-cli
+    docker rm -f tmp &> /dev/null
+
+  else
+
+    echo "Using ${dockerBuildOut} ..."
+  fi
+}
+
+function buildCncliArm64 () {
+
+  AUX_IMAGE_VERSION="${CNCLI_VER}-${ARCH_SUFFIX}"
+
+  dockerBuildOut="./nix/cncli/target/cncli-${AUX_IMAGE_VERSION}"
+
+  if [[ ! -d ${dockerBuildOut} ]]; then
+
+    AUX_IMAGE_NAME="nessusio/cncli-aux:${AUX_IMAGE_VERSION}"
+
+    docker build \
+      --build-arg CNCLI_VER="${CNCLI_VER}" \
+      --build-arg ARCH="${ARCH}" \
+      --tag "${AUX_IMAGE_NAME}" \
+      ./nix/cncli
+
+    if [ $? -ne 0 ]; then
+      echo "[ERROR] Unable to build image '${AUX_IMAGE_NAME}'"
+      exit 1
+    fi
+
+    echo "Copy binaries to ${dockerBuildOut} ..."
+    mkdir -p ${dockerBuildOut}/bin
+
+    docker rm -f tmp &> /dev/null
+    docker run --name tmp ${AUX_IMAGE_NAME} &> /dev/null
+    docker cp tmp:/usr/local/bin/cncli ${dockerBuildOut}/bin/cncli
     docker rm -f tmp &> /dev/null
 
   else
@@ -138,6 +173,7 @@ function buildImage () {
     # Build the Cardano binaries for arm64
     if [[ ${ARCH_SUFFIX} == "arm64" ]]; then
       buildCardanoNodeArm64
+      buildCncliArm64
     fi
 
     IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/node \
