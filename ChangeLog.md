@@ -1,3 +1,34 @@
+
+# v1.31.0-rev1
+
+Released: 28-Nov-2021
+
+This is a major feature update and bug fix release.
+
+* Upgrade to cardano-node-1.31.0 task ([#96][96])
+* Upgrade to gLiveView-1.24.0 task ([#97][97])
+* Upgrade to cncli-4.0.3 task ([#98][98])
+* Add support for leaderlog on arm64 ([#82][82])
+* Add script to restart the node at defined times feature ([#89][89])
+* Add CARDANO_MAX_PEERS to the configuration feature ([#90][90])
+* Make CARDANO_BLOCK_PRODUCER configurable externally feature ([#95][95])
+* Cannot use testnet addresses with astorPay2PKH bug ([#94][94])
+* Add plutus tokenswap smart contract feature ([#85][85])
+* Monitor pool tickers for unreasonable updates feature ([#84][84])
+
+[82]: https://github.com/tdiesler/nessus-cardano/issues/82
+[84]: https://github.com/tdiesler/nessus-cardano/issues/84
+[85]: https://github.com/tdiesler/nessus-cardano/issues/85
+[89]: https://github.com/tdiesler/nessus-cardano/issues/89
+[90]: https://github.com/tdiesler/nessus-cardano/issues/90
+[94]: https://github.com/tdiesler/nessus-cardano/issues/94
+[95]: https://github.com/tdiesler/nessus-cardano/issues/95
+[96]: https://github.com/tdiesler/nessus-cardano/issues/96
+[97]: https://github.com/tdiesler/nessus-cardano/issues/97
+[98]: https://github.com/tdiesler/nessus-cardano/issues/98
+
+For details see [v1.31.0-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.31.0-rev1)
+
 # v1.30.1-rev1
 
 Released: 29-Sep-2021
