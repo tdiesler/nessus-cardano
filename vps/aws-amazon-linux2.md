@@ -9,7 +9,8 @@
 ```
 ssh ec2-user@vps
 
-sudo yum update -y
+sudo yum update -y \
+  && sudo yum install -y git
 
 # Time Service
 timedatectl
@@ -48,6 +49,13 @@ sudo yum install -y docker \
   && sudo usermod -aG docker $USER
 
 docker ps
+```
+
+### Pull nessus-cardano sources
+
+```
+mkdir -p ~/git; cd ~/git \
+  && git clone -b next https://github.com/tdiesler/nessus-cardano.git
 ```
 
 ### Mount Data Disks

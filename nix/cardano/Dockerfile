@@ -91,8 +91,15 @@ RUN cabal update \
 
 RUN echo "package cardano-crypto-praos" >> cabal.project.local
 RUN echo "  flags: -external-libsodium-vrf" >> cabal.project.local
+RUN echo "" >> cabal.project.local
 
-RUN cabal build all
+# Can no longer build cardano-node on arm64
+# https://github.com/input-output-hk/cardano-node/issues/3395
+RUN echo "package trace-dispatcher" >> cabal.project.local
+RUN echo "  ghc-options: -Wwarn" >> cabal.project.local
+RUN echo "" >> cabal.project.local
+
+RUN cat cabal.project.local && cabal build all
 
 RUN cp $(find ./dist-newstyle/build -type f -name "cardano-node") /usr/local/bin/
 RUN cp $(find ./dist-newstyle/build -type f -name "cardano-cli") /usr/local/bin/
