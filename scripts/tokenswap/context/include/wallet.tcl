@@ -69,6 +69,7 @@ proc payAllToPubKeyHash {fromInfo toInfo} {
 # dict set txoutSpecs idx txoutValue symbol amount
 #
 proc payToPubKeyHash {fromInfo txoutSpecs {changeInfo 0}} {
+  global TRY_RUN
   global MAX_INTEGER
   global MIN_TOKEN_LOVELACE
   set fromName [dict get $fromInfo name]
@@ -149,11 +150,14 @@ proc payToPubKeyHash {fromInfo txoutSpecs {changeInfo 0}} {
   cliTxSign $fromInfo
 
   # Submit the Tx
-  set firstTxid [lindex $selectedTxinIds 0]
-  return [cliTxSubmit $fromInfo $firstTxid]
+  if {!$TRY_RUN} {
+    set firstTxid [lindex $selectedTxinIds 0]
+    return [cliTxSubmit $fromInfo $firstTxid]
+  }
 }
 
 proc payToScript {fromInfo lvamount tokenName ttl} {
+  global TRY_RUN
   global SCRATCH_DIR
   global SCRIPT_ADDR
   global TOKEN_TTL_EPOCHS
@@ -230,8 +234,10 @@ proc payToScript {fromInfo lvamount tokenName ttl} {
   cliTxSign $fromInfo
 
   # Submit the Tx
-  set firstTxid [lindex $selectedTxinIds 0]
-  return [cliTxSubmit $fromInfo $firstTxid]
+  if {!$TRY_RUN} {
+    set firstTxid [lindex $selectedTxinIds 0]
+    return [cliTxSubmit $fromInfo $firstTxid]
+  }
 }
 
 # Find UTxOs for the given address
@@ -341,7 +347,9 @@ proc sendTokensToPubKeyHash {fromInfo toInfo tokenAmounts epoch} {
 proc showAllWallets {} {
   global addrMap
   foreach id [dict keys $addrMap] {
-    showWallet [dict get $addrMap $id]
+    if [dict exists $addrMap $id "addr"] {
+      showWallet [dict get $addrMap $id]
+    }
   }
 }
 
@@ -349,12 +357,6 @@ proc showUtxos {utxos} {
   foreach txid [dict keys $utxos] {
     set subdct [dict get $utxos $txid]
     puts "  $txid $subdct"
-  }
-}
-
-proc showWallets {addrInfos} {
-  foreach addrInfo $addrInfos {
-    showWallet $addrInfo
   }
 }
 

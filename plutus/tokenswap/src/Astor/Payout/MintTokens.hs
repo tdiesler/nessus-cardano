@@ -33,9 +33,9 @@ data MintingParams = MintingParams {
 mintingParams :: MintingParams
 mintingParams = MintingParams {
   -- cat ~/cardano/testnet/keys/acc0/payment.pkh
-  prmsPubKeyHash = "b16634c241055f4a8cd95e0fe903b015eed641d0590aedaf780eb6c9"
+  --prmsPubKeyHash = "b16634c241055f4a8cd95e0fe903b015eed641d0590aedaf780eb6c9"
   -- cat ~/cardano/mainnet/keys/acc0/payment.pkh
-  --prmsPubKeyHash = "4e38086416d9c5bc6ef667b36265ff7659f93b0e217ba456d1dbf5fe"
+  prmsPubKeyHash = "4e38086416d9c5bc6ef667b36265ff7659f93b0e217ba456d1dbf5fe"
 }
 
 PlutusTx.makeLift ''MintingParams

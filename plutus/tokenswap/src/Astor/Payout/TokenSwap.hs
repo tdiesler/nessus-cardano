@@ -40,11 +40,11 @@ PlutusTx.unstableMakeIsData ''ValidatorParams
 validatorParams :: ValidatorParams
 validatorParams = ValidatorParams {
   -- cat ~/cardano/testnet/keys/acc0/payment.pkh
-  prmsPubKeyHash = "b16634c241055f4a8cd95e0fe903b015eed641d0590aedaf780eb6c9",
-  prmsCurrencySymbol = mpsSymbol "891b79189cc2ad6175160655a0e6286036695af10d2511f77f966e5c"
+  --prmsPubKeyHash = "b16634c241055f4a8cd95e0fe903b015eed641d0590aedaf780eb6c9",
+  --prmsCurrencySymbol = mpsSymbol "891b79189cc2ad6175160655a0e6286036695af10d2511f77f966e5c"
   -- cat ~/cardano/mainnet/keys/acc0/payment.pkh
-  --prmsPubKeyHash = "4e38086416d9c5bc6ef667b36265ff7659f93b0e217ba456d1dbf5fe",
-  --prmsCurrencySymbol = mpsSymbol "3f997b68b1f491c7c2f10af4e2bf9566c5d25bd61df0343065d4fe1c"
+  prmsPubKeyHash = "4e38086416d9c5bc6ef667b36265ff7659f93b0e217ba456d1dbf5fe",
+  prmsCurrencySymbol = mpsSymbol "3f997b68b1f491c7c2f10af4e2bf9566c5d25bd61df0343065d4fe1c"
 }
 
 -- =============================================================================

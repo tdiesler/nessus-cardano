@@ -1,10 +1,9 @@
-## Build the TokenSwap image
+
+## Compile the tokenswap contract
 
 ```
-NETWORK=${BLOCKFROST_NETWORK:-testnet} \
+NETWORK=${BLOCKFROST_NETWORK:-mainnet} \
 && OWNER_ADDR=$(cat ~/cardano/$NETWORK/keys/acc0/payment.addr) \
-&& SHELLEY_ADDR=$(cat ~/cardano/$NETWORK/keys/acc1/payment.addr) \
-&& MARY_ADDR=$(cat ~/cardano/$NETWORK/keys/acc2/payment.addr) \
 && PERCY_ADDR=$(cat ~/cardano/$NETWORK/keys/acc3/payment.addr)
 
 if [ $NETWORK == "testnet" ]; then
@@ -25,13 +24,11 @@ cd ~/git/nessus-cardano/plutus/tokenswap \
   && SCRIPT_ADDR=$(cat ~/cardano/scratch/swaptokens.addr) \
   && echo "SCRIPT_ADDR=\"${SCRIPT_ADDR}\""
 
-ExBudget {exBudgetCPU = ExCPU 20870973, exBudgetMemory = ExMemory 70200}
-SCRIPT_ADDR="addr_test1wzzpdrzjpyeyra9h4ymtlx7znsnc9ada08kzwjqqu5dyxvqup7fma"
-
-docker build -t nessusio/tokenswap ./context
+ExBudget {exBudgetCPU = ExCPU 23014629, exBudgetMemory = ExMemory 77400}
+SCRIPT_ADDR="addr1w9adgfaux7vjj948u5vfmszx6v3ylc9typjjrkke4n6alhcwu2j5z"
 ```
 
-## Setup the config volume
+## Setup the tokenswap volume
 
 ```
 docker volume rm -f tokenswap \
@@ -54,17 +51,18 @@ docker run --name=tmp -v tokenswap:/var/cardano/local centos \
 && docker rm -f tmp
 ```
 
-## Run Percy to Script
+## Build & Run the tokenswap image
 
 ```
-NETWORK="${BLOCKFROST_NETWORK:-testnet}" \
+NETWORK="${BLOCKFROST_NETWORK:-mainnet}" \
+&& cd ~/git/nessus-cardano \
 && rm -rf ./scripts/tokenswap/context/common \
 && cp -r ./scripts/common ./scripts/tokenswap/context \
 && docker build -t nessusio/tokenswap ./scripts/tokenswap/context \
 && docker rm -f tokenswap \
 && docker run --detach  \
   --name tokenswap \
-  --restart=always \
+  --restart="unless-stopped" \
   -e BLOCKFROST_NETWORK="${NETWORK}" \
   -e BLOCKFROST_API_KEY="$BLOCKFROST_API_KEY" \
   -e PROXY_FROM_NAME="Percy" \
@@ -72,7 +70,7 @@ NETWORK="${BLOCKFROST_NETWORK:-testnet}" \
   -e PROXY_FROM_SKEY="${NETWORK}/keys/acc3/payment.skey" \
   -v tokenswap:/var/cardano/local \
   -v node-ipc:/opt/cardano/ipc \
-  nessusio/tokenswap --proxy run --intrv 600 --endless true
+  nessusio/tokenswap --proxy run --intrv 3600 --endless true
 
 docker logs -f tokenswap
 ```

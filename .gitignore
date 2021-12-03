@@ -1,5 +1,4 @@
 .project
-.pydevproject
 .DS_Store
 dist-newstyle
 target

@@ -1,7 +1,15 @@
 
 proc astor {opts} {
+  global TRY_RUN
+
   if {[llength $opts] == 0} { astorHelp; return }
-  if {true} { logInfo [getSectionHeader "astor $opts"] }
+  logInfo [getSectionHeader "astor $opts"]
+
+  # Set the global try run option
+  dict set spec "--try-run" [dict create required false]
+  set args [argsInit $spec $opts]
+  set TRY_RUN [argsValueExists $args "--try-run"]
+
   set cmd [lindex $opts 0]
   switch $cmd {
     --reset       { astorReset $opts }
@@ -138,7 +146,9 @@ proc astorScript {opts} {
 proc astorShow {opts} {
   foreach name [lrange $opts 1 end] {
     switch -nocase $name {
-      "all"   { showAllWallets }
+      "all"   {
+        showAllWallets
+      }
       default {
         if {[string match "addr*" $name]} {
           dict set addrInfo name "PKHAddr"

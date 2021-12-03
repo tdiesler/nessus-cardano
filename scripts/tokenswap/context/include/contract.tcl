@@ -1,5 +1,6 @@
 
 proc scriptMintTokens {fromInfo mintAmount tokenName} {
+  global TRY_RUN
   global POLICY_ID
   global SCRIPTS_DIR
   global MIN_TOKEN_LOVELACE
@@ -36,10 +37,13 @@ proc scriptMintTokens {fromInfo mintAmount tokenName} {
   cliTxSign $fromInfo
 
   # Submit the Tx
-  cliTxSubmit $fromInfo $txidFees
+  if {!$TRY_RUN} {
+    cliTxSubmit $fromInfo $txidFees
+  }
 }
 
 proc scriptBurnTokens {fromInfo burnAmount tokenName} {
+  global TRY_RUN
   global POLICY_ID
   global SCRIPTS_DIR
   global MIN_COLLATERAL
@@ -99,14 +103,17 @@ proc scriptBurnTokens {fromInfo burnAmount tokenName} {
   cliTxSign $fromInfo
 
   # Submit the Tx
-  set firstTxid [lindex $selectedIds 0]
-  cliTxSubmit $fromInfo $firstTxid
+  if {!$TRY_RUN} {
+    set firstTxid [lindex $selectedIds 0]
+    cliTxSubmit $fromInfo $firstTxid
+  }
 }
 
 # Invoke the swap method on the smart contract
 #
 # astor --script swap --from Shelley --value '10 Astor164'
 proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
+  global TRY_RUN
   global POLICY_ID
   global SCRIPTS_DIR
   global MIN_TOKEN_LOVELACE
@@ -223,10 +230,13 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   cliTxSign $fromInfo
 
   # Submit the Tx
-  cliTxSubmit $fromInfo $txidFees
+  if {!$TRY_RUN} {
+    cliTxSubmit $fromInfo $txidFees
+  }
 }
 
 proc scriptWithdraw {fromInfo epoch} {
+  global TRY_RUN
   global SCRIPTS_DIR
   global MIN_TOKEN_LOVELACE
   global scriptInfo
@@ -285,5 +295,7 @@ proc scriptWithdraw {fromInfo epoch} {
   cliTxSign $fromInfo
 
   # Submit the Tx
-  cliTxSubmit $fromInfo $txidFees
+  if {!$TRY_RUN} {
+    cliTxSubmit $fromInfo $txidFees
+  }
 }
