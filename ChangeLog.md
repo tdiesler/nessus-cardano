@@ -1,4 +1,22 @@
 
+# v1.32.1-rev1
+
+Released: 14-Dec-2021
+
+This is a major feature update and bug fix release.
+
+* Upgrade to cardano-node-1.32.1 task ([#100][100])
+* Upgrade to gLiveView-1.25.0 task ([#101][101])
+* Upgrade to cncli-4.0.4 task ([#102][102])
+* Add support for astor script --try-run ([#99][99])
+
+[99]: https://github.com/tdiesler/nessus-cardano/issues/99
+[100]: https://github.com/tdiesler/nessus-cardano/issues/100
+[101]: https://github.com/tdiesler/nessus-cardano/issues/101
+[102]: https://github.com/tdiesler/nessus-cardano/issues/102
+
+For details see [v1.32.1-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.32.1-rev1)
+
 # v1.31.0-rev1
 
 Released: 28-Nov-2021
