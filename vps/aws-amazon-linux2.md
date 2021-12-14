@@ -55,7 +55,8 @@ docker ps
 
 ```
 mkdir -p ~/git; cd ~/git \
-  && git clone -b next https://github.com/tdiesler/nessus-cardano.git
+  && git clone -b next https://github.com/tdiesler/nessus-cardano.git \
+  && cd nessus-cardano
 ```
 
 ### Mount Data Disks

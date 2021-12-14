@@ -18,7 +18,7 @@ LNAV_VER="0.9.0"
 
 # https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L59
 # Also change change in nix/gLiveView/default.nix
-GLVIEW_VER="1.24.0"
+GLVIEW_VER="1.25.0"
 
 # https://github.com/AndrewWestberg/cncli
 CNCLI_VER="4.0.3"
