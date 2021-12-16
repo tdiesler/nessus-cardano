@@ -17,9 +17,6 @@ function buildCardanoNodeArm64 () {
 
     AUX_IMAGE_NAME="nessusio/cardano-aux:${AUX_IMAGE_VERSION}"
 
-    # Override cabal version for arm64
-    CABAL_VER="3.4.0.0"
-
     docker build \
       --build-arg CARDANO_VER="${CARDANO_VER}" \
       --build-arg CABAL_VER="${CABAL_VER}" \

@@ -61,22 +61,26 @@ echo ""
 
 ## Buid + Install Cardano #######################################################################################################
 
-wrsrc="$TMPDIR/cardano-node"
+CARDANO_NODE_WORKSPACE="$TMPDIR/cardano-node"
 
-git clone -b ${cardanoVersion} https://github.com/input-output-hk/cardano-node.git $wrsrc
-cd $wrsrc
+git clone -b ${cardanoVersion} --depth 1 https://github.com/input-output-hk/cardano-node.git $CARDANO_NODE_WORKSPACE
+cd $CARDANO_NODE_WORKSPACE
 
-echo "Cabal update ..."
+CARDANO_NODE_GITREV=$(git rev-parse HEAD)
+echo "CARDANO_NODE_GITREV=${CARDANO_NODE_GITREV}"
+
+echo "Cabal update #############################################################"
 cabal update
 
-echo "Cabal configure ..."
+echo "Cabal configure ##########################################################"
 cabal configure
 
 echo "package cardano-crypto-praos" >> cabal.project.local
 echo "  flags: -external-libsodium-vrf" >> cabal.project.local
 
-echo "Cabal build all ..."
-cabal build all
+echo "Cabal build ##############################################################"
+git checkout -f ${CARDANO_NODE_GITREV}
+cabal build cardano-node cardano-cli
 
 echo "Copy configs ..."
 mkdir -p $out/config

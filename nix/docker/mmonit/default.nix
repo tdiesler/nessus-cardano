@@ -4,7 +4,7 @@
   # Pinned packages with Niv
   sources ? import ../../sources.nix,
   haskellNix ? import sources.haskellNix {},
-  nixpkgsSrc ? haskellNix.sources.nixpkgs-2009,
+  nixpkgsSrc ? haskellNix.sources.nixpkgs-2105,
   nixpkgsArgs ? haskellNix.nixpkgsArgs,
   pkgs ? import nixpkgsSrc nixpkgsArgs,
 
