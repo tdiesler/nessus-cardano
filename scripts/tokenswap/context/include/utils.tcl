@@ -162,6 +162,20 @@ proc astorShow {opts} {
   }
 }
 
+proc assetClassFromHex {assetClass} {
+  set toks [split $assetClass "."]
+  set currencySymbol [lindex $toks 0]
+  set tokenName [lindex $toks 1]
+  return "${currencySymbol}.[stringFromHEX $tokenName]"
+}
+
+proc assetClassToHex {assetClass} {
+  set toks [split $assetClass "."]
+  set currencySymbol [lindex $toks 0]
+  set tokenName [lindex $toks 1]
+  return "${currencySymbol}.[stringToHEX $tokenName]"
+}
+
 proc cardano-cli {arglst {show true}} {
   global CARDANO_DIR
   global SCRATCH_DIR
@@ -597,6 +611,18 @@ proc networkAwareCmd {opts} {
   } else { if {$BLOCKFROST_NETWORK == "mainnet"} {
     lappend opts --mainnet
   }}
+}
+
+# Tcl 8.6: binary decode hex 48656c6c6f2c20776f726c6421
+proc stringFromHEX {hex} {
+  binary format  H*  $hex
+}
+
+# Tcl 8.6: binary encode hex "Hello, world!"
+proc stringToHEX {str} {
+  set  ab  [binary format a* $str]
+  binary scan  $ab  H* str
+  return $str
 }
 
 proc toAssetClass {policyId tokenName} {

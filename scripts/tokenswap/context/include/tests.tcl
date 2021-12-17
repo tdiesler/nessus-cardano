@@ -1,29 +1,5 @@
 
 
-proc astorRunTests {opts} {
-
-  logInfo [getSectionHeader "astor $opts"]
-
-  dict set spec "--epoch" [dict create required false]
-  set args [argsInit $spec $opts]
-  set epoch [argsValue $args "--epoch" [getCurrentEpoch]]
-
-  set values "2 Ada 2 Ada 10 Astor$epoch"
-
-  astor [list --reset --epoch $epoch]
-  astor [list --pay2pkh --from Owner --to Shelley --value $values]
-  astor [list --pay2script --from Owner --epoch $epoch --value "100 Ada"]
-  astor [list --show all]
-
-  testUnauthorizedWithdraw $epoch
-
-  testInvalidTokenSwaps 10 "Astor$epoch"
-
-  testValidTokenSwap 10 "Astor$epoch"
-
-  astor [list --show all]
-}
-
 # Provoke invalid token swaps
 #
 # dict set failure condition "no-token-txin"
@@ -38,6 +14,7 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
   global scriptInfo
   set epoch [getEpochFromTokenName $tokenName]
   set assetClass "$POLICY_ID.$tokenName"
+  set assetClassHex [assetClassToHex $assetClass]
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
   set scriptAddr [dict get $scriptInfo addr]
@@ -107,11 +84,11 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
     set scriptRefundSpec "$scriptAddr+[expr {$scriptRefundLovelace - 1}]"
   }
   if {[dict get $failure condition] != "tokens-not-paid-to-script"} {
-    append scriptRefundSpec "+$scriptRefundTokens $assetClass"
+    append scriptRefundSpec "+$scriptRefundTokens $assetClassHex"
   }
   if {[dict get $failure condition] == "too-few-tokens-paid-to-script"} {
     set scriptRefundSpec "$scriptAddr+$scriptRefundLovelace"
-    append scriptRefundSpec "+[expr {$scriptRefundTokens - 1}] $assetClass"
+    append scriptRefundSpec "+[expr {$scriptRefundTokens - 1}] $assetClassHex"
   }
 
   if {[dict get $failure condition] == "wrong-refund-datum"} {

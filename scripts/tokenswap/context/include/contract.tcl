@@ -5,6 +5,7 @@ proc scriptMintTokens {fromInfo mintAmount tokenName} {
   global SCRIPTS_DIR
   global MIN_TOKEN_LOVELACE
   set assetClass "$POLICY_ID.$tokenName"
+  set assetClassHex [assetClassToHex $assetClass]
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
 
@@ -24,10 +25,10 @@ proc scriptMintTokens {fromInfo mintAmount tokenName} {
   lappend args "--alonzo-era"
   lappend args "--tx-in" $txidFees
   lappend args "--tx-in-collateral" $txidCollateral
-  lappend args "--mint" "$mintAmount $assetClass"
+  lappend args "--mint" "$mintAmount $assetClassHex"
   lappend args "--mint-script-file" "/var/cardano/local/$SCRIPTS_DIR/minttokens.plutus"
   lappend args "--mint-redeemer-value" $mintAmount
-  lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$mintAmount $assetClass"
+  lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$mintAmount $assetClassHex"
   lappend args "--change-address" $fromAddr
   lappend args "--protocol-params-file" [getProtocolConfig]
   lappend args "--out-file" "/var/cardano/local/scratch/tx.raw"
@@ -49,6 +50,7 @@ proc scriptBurnTokens {fromInfo burnAmount tokenName} {
   global MIN_COLLATERAL
   global MIN_TOKEN_LOVELACE
   set assetClass "$POLICY_ID.$tokenName"
+  set assetClassHex [assetClassToHex $assetClass]
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
 
@@ -88,10 +90,10 @@ proc scriptBurnTokens {fromInfo burnAmount tokenName} {
   }
   if {$burnAmount < $tkinAmount} {
     set tkrefund [expr {$tkinAmount - $burnAmount}]
-    lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$tkrefund $assetClass"
+    lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$tkrefund $assetClassHex"
   }
   lappend args "--tx-in-collateral" $txidCollateral
-  lappend args "--mint" "-$burnAmount $assetClass"
+  lappend args "--mint" "-$burnAmount $assetClassHex"
   lappend args "--mint-script-file" "/var/cardano/local/$SCRIPTS_DIR/minttokens.plutus"
   lappend args "--mint-redeemer-value" "-$burnAmount"
   lappend args "--change-address" $fromAddr
@@ -111,7 +113,7 @@ proc scriptBurnTokens {fromInfo burnAmount tokenName} {
 
 # Invoke the swap method on the smart contract
 #
-# astor --script swap --from Shelley --value '10 Astor164'
+# astor --script swap --from Shelley --value '10 Astor175'
 proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   global TRY_RUN
   global POLICY_ID
@@ -122,6 +124,7 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   global scriptInfo
   set epoch [getEpochFromTokenName $tokenName]
   set assetClass "$POLICY_ID.$tokenName"
+  set assetClassHex [assetClassToHex $assetClass]
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
   set scriptAddr [dict get $scriptInfo addr]
@@ -182,7 +185,7 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   set scriptRefundTokens [expr {$scriptInputTokens + $amount}]
   set scriptRefundLovelace [expr {$scriptInputLovelace - $lvamount}]
   set scriptRefundLovelace [expr max($scriptRefundLovelace, $MIN_TOKEN_LOVELACE)]
-  set scriptRefundSpec "$scriptAddr+$scriptRefundLovelace+$scriptRefundTokens $assetClass"
+  set scriptRefundSpec "$scriptAddr+$scriptRefundLovelace+$scriptRefundTokens $assetClassHex"
 
   # Calculate the invalid after slot
   set slotDelta 300
@@ -282,7 +285,8 @@ proc scriptWithdraw {fromInfo epoch} {
     } else {
       set assetClass [lindex $symbols 1]
       set amount [dict get $value $assetClass]
-      lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$amount $assetClass"
+      set assetClassHex [assetClassToHex $assetClass]
+      lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$amount $assetClassHex"
     }
   }
   lappend args "--tx-in-collateral" $txidCollateral

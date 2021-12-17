@@ -28,18 +28,18 @@ proc astorHelp {} {
   puts ""
   puts "Usage"
   puts "------------------------------------------------------------------------"
-  puts "astor --reset --epoch 164"
+  puts "astor --reset --epoch 175"
   puts "astor --pay2pkh --from Shelley --to Owner --value all"
-  puts "astor --pay2pkh --from Shelley --to Percy --value '10 Astor164'"
-  puts "astor --pay2pkh --from Owner --to Shelley --value '10 Ada 10 Ada 90 Astor164 10 Astor164'"
+  puts "astor --pay2pkh --from Shelley --to Percy --value '10 Astor175'"
+  puts "astor --pay2pkh --from Owner --to Shelley --value '10 Ada 10 Ada 90 Astor175 10 Astor175'"
   puts "astor --pay2pkh --from Owner --to Percy --value '10 Ada 10 Ada'"
   puts "astor --pay2pkh --from Owner --to Owner --value '30000 Ada'"
-  puts "astor --pay2script --from Owner --value '100 Ada' --epoch 164"
-  puts "astor --script mint --from Owner --value '1000 Astor164'"
-  puts "astor --script burn --from Owner --value '1000 Astor164'"
-  puts "astor --script swap --from Shelley --value '10 Astor164'"
-  puts "astor --script swap --from Percy --to Shelley --value '10 Astor164'"
-  puts "astor --script withdraw --from Owner --epoch 164"
+  puts "astor --pay2script --from Owner --value '100 Ada' --epoch 175"
+  puts "astor --script mint --from Owner --value '1000 Astor175'"
+  puts "astor --script burn --from Owner --value '1000 Astor175'"
+  puts "astor --script swap --from Shelley --value '10 Astor175'"
+  puts "astor --script swap --from Percy --to Shelley --value '10 Astor175'"
+  puts "astor --script withdraw --from Owner --epoch 175"
   puts "astor --show all"
 }
 
@@ -84,8 +84,32 @@ proc astorRun {opts} {
   switch $run {
     workflow  { astorRunWorkflow $opts }
     tests     { astorRunTests $opts }
-    default       { logError "Invalid command: $run"; astorHelp }
+    default   { logError "Invalid command: $run"; astorHelp }
   }
+}
+
+proc astorRunTests {opts} {
+
+  logInfo [getSectionHeader "astor $opts"]
+
+  dict set spec "--epoch" [dict create required false]
+  set args [argsInit $spec $opts]
+  set epoch [argsValue $args "--epoch" [getCurrentEpoch]]
+
+  set values "2 Ada 2 Ada 10 Astor$epoch"
+
+  astor [list --reset --epoch $epoch]
+  astor [list --pay2pkh --from Owner --to Shelley --value $values]
+  astor [list --pay2script --from Owner --epoch $epoch --value "100 Ada"]
+  astor [list --show all]
+
+  testUnauthorizedWithdraw $epoch
+
+  testInvalidTokenSwaps 10 "Astor$epoch"
+
+  testValidTokenSwap 10 "Astor$epoch"
+
+  astor [list --show all]
 }
 
 proc astorRunWorkflow {opts} {

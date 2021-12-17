@@ -1,4 +1,4 @@
-FROM nessusio/cardano-node:1.30.1
+FROM nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest}
 
 RUN apt-get install -y tcl xxd
 

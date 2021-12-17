@@ -135,8 +135,9 @@ proc payToPubKeyHash {fromInfo txoutSpecs {changeInfo 0}} {
     set hasTokens [expr {$slength > 1 || [lindex $symbols 0] != "lovelace"}]
     if {$hasTokens} {
       set assetClass [lindex $symbols [expr {$slength - 1}]]
+      set assetClassHex [assetClassToHex $assetClass]
       set tokenAmount [dict get $txoutValue $symbol]
-      lappend args "--tx-out" "$txoutSpec+$MIN_TOKEN_LOVELACE+$tokenAmount $assetClass"
+      lappend args "--tx-out" "$txoutSpec+$MIN_TOKEN_LOVELACE+$tokenAmount $assetClassHex"
     } else { if {!$payAllLovelace} {
       set lvamount [dict get $txoutValue "lovelace"]
       lappend args "--tx-out" "$txoutSpec+$lvamount"
@@ -279,7 +280,12 @@ proc queryUtxos {fromInfo {show true}} {
       set aux [split $val]
       set symbol [lindex $aux 1]
       set amount [lindex $aux 0]
-      dict set valdict $symbol $amount
+      if {$symbol == "lovelace"} {
+        dict set valdict $symbol $amount
+      } else {
+        set assetClass [assetClassFromHex $symbol]
+        dict set valdict $assetClass $amount
+      }
     }
     set lastidx [expr {$taillen - 1}]
     set datumWord [lindex $tail $lastidx]
