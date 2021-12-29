@@ -52,19 +52,6 @@ services:
       - ${CARDANO_NODE_DATA:-node-data}:/opt/cardano/data
       - node-ipc:/opt/cardano/ipc
 
-  # Monit -------------------------------------------------------------------------------------------------------------
-
-  monit:
-    image: nessusio/monit
-    container_name: monit
-    restart: unless-stopped
-    hostname: ${MONIT_HOSTNAME:-monit}
-    networks:
-      cardano:
-    command: ["-Iv"]
-    volumes:
-      - monit-config:/etc/monit.d
-
   # NGINX -------------------------------------------------------------------------------------------------------------
 
   nginx:
@@ -87,8 +74,6 @@ volumes:
   node-data:
     external: true
   node-ipc:
-    external: true
-  monit-config:
     external: true
   nginx-config:
     external: true

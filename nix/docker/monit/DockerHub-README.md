@@ -46,15 +46,13 @@ docker rm -f tmp
 ### Run the Image
 
 ```
-VERSION=5.28.0-rev2
-
 docker rm -f monit
 docker run --detach \
   --name=monit \
   --hostname=$(hostname) \
   --network=cardano \
   -v monit-config:/etc/monit.d \
-  nessusio/monit:${VERSION} -Iv
+  nessusio/monit:${MONIT_VERSION:-latest} -Iv
 
 docker logs -f monit
 ```

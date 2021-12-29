@@ -1,0 +1,75 @@
+
+# Networks ############################################################################################################
+
+networks:
+  cardano:
+    name: cardano
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+# Services ############################################################################################################
+
+services:
+
+  # Relay -------------------------------------------------------------------------------------------------------------
+
+  relay:
+    image: nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest}
+    container_name: relay
+    restart: ${CARDANO_RESTART_POLICY:-always}
+    hostname: relay
+    networks:
+      cardano:
+    ports:
+      - "${CARDANO_RELAY_PORT:-3001}:3001"
+    environment:
+      CARDANO_TOPOLOGY: '{
+          "Producers": [
+            {
+              "addr": "relays-new.cardano-mainnet.iohk.io",
+              "port": 3001,
+              "valency": 1
+            },
+            {
+              "addr": "${CARDANO_BPROD_IP}",
+              "port": ${CARDANO_BPROD_PORT:-3001},
+              "valency": 1
+            }
+          ]
+        }'
+      CARDANO_PUBLIC_IP: "${CARDANO_PUBLIC_IP:-}"
+      CARDANO_PUBLIC_PORT: "${CARDANO_PUBLIC_PORT:-3001}"
+      CARDANO_MAX_PEERS: "${CARDANO_MAX_PEERS:-8}"
+      CARDANO_CUSTOM_PEERS: "relays-new.cardano-mainnet.iohk.io,3001|${CARDANO_BPROD_IP},${CARDANO_BPROD_PORT:-3001}"
+      CARDANO_RTS_OPTS: "${CARDANO_RTS_OPTS:--N -A64m -c -s}"
+      CARDANO_UPDATE_TOPOLOGY: "true"
+    command: "run"
+    volumes:
+      - ${CARDANO_NODE_DATA:-node-data}:/opt/cardano/data
+      - node-ipc:/opt/cardano/ipc
+
+  # NGINX -------------------------------------------------------------------------------------------------------------
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: unless-stopped
+    hostname: nginx
+    networks:
+      cardano:
+    ports:
+      - "12798:80"
+    volumes:
+      - nginx-config:/etc/nginx:ro
+
+# Volumes #############################################################################################################
+
+volumes:
+  node-data:
+    external: true
+  node-ipc:
+    external: true
+  nginx-config:
+    external: true

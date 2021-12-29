@@ -100,7 +100,7 @@ chmod 666 /dev/kvm
 shutdown -r now
 ```
 
-### Swap setup
+### Setup a Swap Disk
 
 ```
 sudo dphys-swapfile swapoff
@@ -110,6 +110,23 @@ sudo cat /etc/dphys-swapfile | grep CONF
 sudo dphys-swapfile setup
 sudo dphys-swapfile swapon
 free -h
+```
+
+### Setup a ZRam
+
+https://ikarus.sg/using-zram-to-get-more-out-of-your-raspberry-pi/
+
+```
+git clone https://github.com/StuartIanNaylor/zram-swap-config ~/git/zram-swap-config \
+&& cd ~/git/zram-swap-config && git checkout 92be000 \
+&& sudo ./install.sh \
+&& cat /etc/zram-swap-config.conf
+
+MEM_FACTOR=60 \
+&& sudo sed -i "s/MEM_FACTOR=40/MEM_FACTOR=$MEM_FACTOR/" /etc/zram-swap-config.conf \
+&& cat /etc/zram-swap-config.conf | grep "MEM_FACTOR="
+
+systemctl status zram-swap-config
 ```
 
 ### Install Nix
@@ -161,6 +178,38 @@ docker ps
 # Install Docker Compose
 sudo apt install -y python3-pip libffi-dev \
   && sudo pip3 install docker-compose
+```
+
+### Install Monit
+
+```
+MONIT_VERSION=5.29.0
+
+wget -q "https://mmonit.com/monit/dist/binary/${MONIT_VERSION}/monit-${MONIT_VERSION}-linux-arm64.tar.gz" \
+  && tar -xzf monit-${MONIT_VERSION}-linux-arm64.tar.gz \
+  && sudo mv monit-${MONIT_VERSION} /usr/local/ \
+  && sudo ln -s /usr/local/monit-${MONIT_VERSION} /usr/local/monit \
+  && sudo ln -s /usr/local/monit/bin/monit /usr/local/bin/monit \
+  && sudo cp ~/git/nessus-cardano/nix/docker/monit/context/monitrc /etc/monitrc
+
+MMONIT_PORT=8080
+MMONIT_ADDR=astorpool.net
+MMONIT_AUTH='username:changeit'
+
+sudo mkdir -p /etc/monit.d \
+&& cat << EOF | sudo tee /etc/monit.d/monitrc-extras
+set eventqueue basedir /var/monit/ slots 1000
+set mmonit http://$MMONIT_AUTH@$MMONIT_ADDR:$MMONIT_PORT/collector
+# set httpd port 2812 and
+#    use address 0.0.0.0    # bind to all interfaces (i.e. not just to localhost)
+#    allow $MMONIT_ADDR     # allow the M/Monit host to connect to the server
+#    allow $MMONIT_AUTH     # monit authorization
+check filesystem node-data with path /dev/sdb
+    if space usage > 75% then alert
+EOF
+
+# Run the monit daemon
+sudo monit -v
 ```
 
 ### Meassure Temperature

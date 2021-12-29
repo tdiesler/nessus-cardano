@@ -17,8 +17,8 @@ services:
 
   relay:
     image: nessusio/cardano-node:${CARDANO_NODE_VERSION:-latest}
-    container_name: relay
     restart: ${CARDANO_RESTART_POLICY:-always}
+    container_name: relay
     hostname: relay
     networks:
       cardano:
@@ -50,41 +50,10 @@ services:
       - ${CARDANO_NODE_DATA:-node-data}:/opt/cardano/data
       - node-ipc:/opt/cardano/ipc
 
-  # Monit -------------------------------------------------------------------------------------------------------------
-
-  monit:
-    image: nessusio/monit
-    container_name: monit
-    restart: unless-stopped
-    hostname: ${MONIT_HOSTNAME:-monit}
-    networks:
-      cardano:
-    command: ["-Iv"]
-    volumes:
-      - monit-config:/etc/monit.d
-
-  # NGINX -------------------------------------------------------------------------------------------------------------
-
-  nginx:
-    image: nginx
-    container_name: nginx
-    restart: unless-stopped
-    hostname: nginx
-    networks:
-      cardano:
-    ports:
-      - "12798:80"
-    volumes:
-      - nginx-config:/etc/nginx:ro
-
 # Volumes #############################################################################################################
 
 volumes:
   node-data:
     external: true
   node-ipc:
-    external: true
-  monit-config:
-    external: true
-  nginx-config:
     external: true

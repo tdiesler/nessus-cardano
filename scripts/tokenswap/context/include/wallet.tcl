@@ -293,8 +293,11 @@ proc queryUtxos {fromInfo {show true}} {
     set datumlen [llength $datumToks]
     set datum [lindex $datumToks [expr {$datumlen - 1}]]
     set datum [string map {"\"" ""} $datum]
-    dict set unsortedUtxos $txid value $valdict
-    dict set unsortedUtxos $txid datum $datum
+    # Ignore script utxo with no datum
+    if {$fromName != "Script" || $datum != "TxOutDatumNone"} {
+      dict set unsortedUtxos $txid value $valdict
+      dict set unsortedUtxos $txid datum $datum
+    }
   }
 
   # Sort the utxos by lovelace value
