@@ -171,6 +171,7 @@ spec:
   - name: keys
     secret:
       secretName: nodekeys
+      defaultMode: 0400
 
 # Block Producer TCP Service
 ---
