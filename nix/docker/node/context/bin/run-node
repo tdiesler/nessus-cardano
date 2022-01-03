@@ -154,22 +154,6 @@ printRunEnv () {
       CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE="/var/cardano/config/keys/node.cert"
     fi
 
-    # Kubernetes maps sectrets to a read-only file system with public access
-    # VRF private key file at: /var/cardano/config/keys/vrf.skey has "other" file permissions.
-
-    copySecretFile() {
-      SOURCE_FILE=$1; TARGET_FILE=$2
-      if [[ ! -f $TARGET_FILE && -f $SOURCE_FILE ]]; then
-        mkdir -p `dirname $TARGET_FILE`
-        cp $SOURCE_FILE $TARGET_FILE
-      fi
-      chmod 600 $TARGET_FILE
-    }
-
-    copySecretFile /var/cardano/secret/keys/kes.skey $CARDANO_SHELLEY_KES_KEY
-    copySecretFile /var/cardano/secret/keys/vrf.skey $CARDANO_SHELLEY_VRF_KEY
-    copySecretFile /var/cardano/secret/keys/node.cert $CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE
-
     echo "CARDANO_SHELLEY_KES_KEY=$CARDANO_SHELLEY_KES_KEY"
     echo "CARDANO_SHELLEY_VRF_KEY=$CARDANO_SHELLEY_VRF_KEY"
     echo "CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE=$CARDANO_SHELLEY_OPERATIONAL_CERTIFICATE"
