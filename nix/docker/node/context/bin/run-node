@@ -334,6 +334,7 @@ printRunEnv
 writeRootEnv
 
 if [[ $CARDANO_UPDATE_TOPOLOGY == true ]]; then
+  topologyUpdate -p # Fetch topology nodes once before starting cardano
   topologyUpdate -l &
 fi
 
