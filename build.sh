@@ -127,13 +127,9 @@ function buildImage () {
     VERSION_MAJOR="${MMONIT_VER}"
     VERSION_REV="${MMONIT_REV}"
 
-  elif [[ $shortName == "monit" ]]; then
-    VERSION_MAJOR="${MONIT_VER}"
-    VERSION_REV="${MONIT_REV}"
-
   else
       echo "[Error] Illegal argument: $1"
-      echo "Usage: $0 [all|cardano-node|cardano-tools|mmonit|monit] [push]"
+      echo "Usage: $0 [all|cardano-node|cardano-tools|mmonit] [push]"
       exit 1
   fi
 
@@ -197,12 +193,6 @@ function buildImage () {
       --argstr mmonitVersion "${MMONIT_VER}" \
       --argstr mmonitRevision "${MMONIT_REV}" \
       --argstr imageArch "${ARCH_SUFFIX}"`
-
-  elif [[ $shortName == "monit" ]]; then
-    IMAGEPATH=`nix-build --option sandbox false --show-trace ./nix/docker/monit \
-      --argstr monitVersion "${MONIT_VER}" \
-      --argstr monitRevision "${MONIT_REV}" \
-      --argstr imageArch "${ARCH_SUFFIX}"`
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -263,7 +253,7 @@ function buildImage () {
 
 if (( $# < 1 )); then
     echo "[Error] Illegal number of arguments."
-    echo "Usage: $0 [all|cardano-node|cardano-tools|mmonit|monit] [push]"
+    echo "Usage: $0 [all|cardano-node|cardano-tools|mmonit] [push]"
     exit 1
 fi
 
@@ -274,7 +264,6 @@ if [[ $shortName == "all" ]]; then
   buildImage "cardano-node" $push
   buildImage "cardano-tools" $push
   buildImage "mmonit" $push
-  buildImage "monit" $push
 
 elif [[ $shortName == "cardano" ]]; then
   buildImage "cardano-node" $push

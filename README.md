@@ -162,13 +162,11 @@ Perhaps we'd like to use [Docker Compose](https://docs.docker.com/compose).
 $ docker-compose -f nix/docker/compose/cardano-node-relay.yaml up --detach
 
 Creating relay ... done
-Creating monit ... done
 Creating nginx ... done
 
 $ docker-compose -f nix/docker/compose/cardano-node-bprod.yaml up --detach
 
 Creating bprod ... done
-Creating monit ... done
 Creating nginx ... done
 ```
 
