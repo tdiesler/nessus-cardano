@@ -1,4 +1,20 @@
 
+# v1.33.0-rev1
+
+Released: 07-Jan-2021
+
+This is a major feature update and bug fix release.
+
+* Upgrade to cardano-node-1.33.0 task ([#108][108])
+* Upgrade to gLiveView-1.25.1 task ([#109][109])
+* Remove monit from docker-compose scripts ([#105][105])
+
+[105]: https://github.com/tdiesler/nessus-cardano/issues/105
+[108]: https://github.com/tdiesler/nessus-cardano/issues/108
+[109]: https://github.com/tdiesler/nessus-cardano/issues/109
+
+For details see [v1.33.0-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.33.0-rev1)
+
 # v1.32.1-rev1
 
 Released: 14-Dec-2021
