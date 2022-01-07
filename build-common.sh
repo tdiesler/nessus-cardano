@@ -10,11 +10,11 @@ MMONIT_REV="-rev4"
 
 # https://github.com/tstack/lnav
 DEBIAN_VER="10"
-LNAV_VER="0.9.0"
+LNAV_VER="0.10.1"
 
 # https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L59
 # Also change change in nix/gLiveView/default.nix
-GLVIEW_VER="1.25.0"
+GLVIEW_VER="1.25.1"
 
 # https://github.com/AndrewWestberg/cncli
 CNCLI_VER="4.0.4"
