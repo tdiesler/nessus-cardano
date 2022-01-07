@@ -3,7 +3,7 @@
 # Also change HaskellNix in nix/sources.json
 # and the Hydra build in nix/docker/node/default.nix
 CARDANO_VER="1.34.1"
-CARDANO_REV="-dev"
+CARDANO_REV="-rev1"
 
 # https://mmonit.com/download
 MMONIT_VER="3.7.7"

@@ -1,4 +1,24 @@
 
+# v1.34.1-rev1
+
+Released: 09-Mar-2022
+
+This is a major feature update and bug fix release.
+
+* Upgrade to cardano-node-1.34.1 ([#114][114])
+* Upgrade to gLiveView-1.26.3 ([#116][116])
+* Add support for cardano-submit-api ([#115][115])
+* Frequent Tx timeout in tokenswap proxy ([#112][112])
+* Multiply Astor token denomination with 100 ([#111][111])
+
+[111]: https://github.com/tdiesler/nessus-cardano/issues/111
+[112]: https://github.com/tdiesler/nessus-cardano/issues/112
+[114]: https://github.com/tdiesler/nessus-cardano/issues/114
+[115]: https://github.com/tdiesler/nessus-cardano/issues/115
+[116]: https://github.com/tdiesler/nessus-cardano/issues/116
+
+For details see [v1.34.1-rev1](https://github.com/tdiesler/nessus-cardano/issues?q=milestone%3Av1.34.1-rev1)
+
 # v1.33.0-rev1
 
 Released: 07-Jan-2021
