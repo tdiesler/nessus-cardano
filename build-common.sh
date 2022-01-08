@@ -2,7 +2,7 @@
 
 # Also change HaskellNix in nix/sources.json
 CARDANO_VER="1.33.0"
-CARDANO_REV="-rev1"
+CARDANO_REV="-dev"
 
 # https://mmonit.com/download
 MMONIT_VER="3.7.7"
