@@ -1,33 +1,4 @@
 
-## Compile the tokenswap contract
-
-```
-NETWORK=${BLOCKFROST_NETWORK:-mainnet} \
-&& OWNER_ADDR=$(cat ~/cardano/$NETWORK/keys/acc0/payment.addr) \
-&& PERCY_ADDR=$(cat ~/cardano/$NETWORK/keys/acc3/payment.addr)
-
-if [ $NETWORK == "testnet" ]; then
-  TESTNET_MAGIC=$(docker exec testrl cat /opt/cardano/data/protocolMagicId) \
-  && NETWORK_OPTION="--testnet-magic $TESTNET_MAGIC" \
-  && echo "NETWORK_OPTION=$NETWORK_OPTION"
-elif [ $NETWORK == "mainnet" ]; then
-  NETWORK_OPTION="--mainnet" \
-  && echo "NETWORK_OPTION=$NETWORK_OPTION"
-fi
-
-cd ~/git/nessus-cardano/plutus/tokenswap \
-  && cabal run swap-tokens swaptokens.plutus \
-  && mv *.plutus ~/cardano/$NETWORK/scripts \
-  && cardano-cli address build $NETWORK_OPTION \
-    --payment-script-file /var/cardano/local/$NETWORK/scripts/swaptokens.plutus \
-    --out-file /var/cardano/local/scratch/swaptokens.addr \
-  && SCRIPT_ADDR=$(cat ~/cardano/scratch/swaptokens.addr) \
-  && echo "SCRIPT_ADDR=\"${SCRIPT_ADDR}\""
-
-ExBudget {exBudgetCPU = ExCPU 23014629, exBudgetMemory = ExMemory 77400}
-SCRIPT_ADDR="addr1w9adgfaux7vjj948u5vfmszx6v3ylc9typjjrkke4n6alhcwu2j5z"
-```
-
 ## Setup the tokenswap volume
 
 ```

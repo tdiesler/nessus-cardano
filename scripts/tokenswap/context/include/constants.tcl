@@ -29,11 +29,13 @@ set KEYS_DIR "$NETWORK_DIR/keys"
 
 if [isNetwork "testnet"] {
   set POLICY_ID [envvar "POLICY_ID" "891b79189cc2ad6175160655a0e6286036695af10d2511f77f966e5c"]
-  set SCRIPT_ADDR [envvar "SCRIPT_ADDR" "addr_test1wzzwvjx9k5u7dyqmvze2ft77jjr797r279zyf6vq44zc65sndxe2y"]
+  set SCRIPT_ADDR_V1 [envvar "SCRIPT_ADDR_V1" "addr_test1wzzwvjx9k5u7dyqmvze2ft77jjr797r279zyf6vq44zc65sndxe2y"]
+  set SCRIPT_ADDR_V2 [envvar "SCRIPT_ADDR_V2" "addr_test1wpdke5ua4gq6y479nuzj693f6w8xjulcmt0uayzvta5p57q2zhkg9"]
   set TESTNET_MAGIC [envvar "TESTNET_MAGIC" "1097911063"]
 } else { if [isNetwork "mainnet"] {
   set POLICY_ID [envvar "POLICY_ID" "3f997b68b1f491c7c2f10af4e2bf9566c5d25bd61df0343065d4fe1c"]
-  set SCRIPT_ADDR [envvar "SCRIPT_ADDR" "addr1w9adgfaux7vjj948u5vfmszx6v3ylc9typjjrkke4n6alhcwu2j5z"]
+  set SCRIPT_ADDR_V1 [envvar "SCRIPT_ADDR_V1" "addr1w9adgfaux7vjj948u5vfmszx6v3ylc9typjjrkke4n6alhcwu2j5z"]
+  set SCRIPT_ADDR_V2 [envvar "SCRIPT_ADDR_V2" "addr1w8equ7wlrwq74frgz74ta9uzxvz26czekevxtqkvalzfklcl5pl33"]
 } else {
   logError "Unsupported BLOCKFROST_NETWORK: $BLOCKFROST_NETWORK"
   exit 2
@@ -43,6 +45,8 @@ if {$BLOCKFROST_API_KEY == ""} {
   logError "Cannot obtain BLOCKFROST_API_KEY"
   exit 2
 }
+
+set SCRIPT_ADDR $SCRIPT_ADDR_V2
 
 if {$DOCKER_RUNTIME} {
   puts "BLOCKFROST_NETWORK=$BLOCKFROST_NETWORK"

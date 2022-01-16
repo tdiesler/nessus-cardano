@@ -484,6 +484,36 @@ proc getSectionHeader {title} {
   return "$title $padding"
 }
 
+proc isSwapV1 {epoch} {
+  set mainnet [isNetwork "mainnet"]
+  set boundary [expr {$mainnet ? 314 : 180}]
+  expr $epoch < $boundary
+}
+
+proc getSwapAmount {epoch amount} {
+  set multiplier [expr {[isSwapV1 $epoch] ? 1000 : 10}]
+  expr {$amount * $multiplier * 1000}
+}
+
+proc getSwapScriptFile {epoch} {
+  global SCRIPTS_DIR
+  set suffix [expr {[isSwapV1 $epoch] ? "v1" : "v2"}]
+  return "/var/cardano/local/$SCRIPTS_DIR/astorswap$suffix.plutus"
+}
+
+proc getSwapScriptInfo {epoch} {
+  global SCRIPT_ADDR_V1
+  global SCRIPT_ADDR_V2
+  if {[isSwapV1 $epoch]} {
+    dict set scriptInfo name "ScriptV1"
+    dict set scriptInfo addr $SCRIPT_ADDR_V1
+  } else {
+    dict set scriptInfo name "ScriptV2"
+    dict set scriptInfo addr $SCRIPT_ADDR_V2
+  }
+  return $scriptInfo
+}
+
 proc getTokenName {assetClass} {
     set toks [split $assetClass "."]
     if {[llength $toks] != 2} { error "Invalid asset class: $assetClass"}

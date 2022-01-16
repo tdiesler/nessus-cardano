@@ -183,7 +183,7 @@ handleTokenSwap vprms dat ctx =
 
     -- Compute the minumum script output Lovelace
     minScriptOutputLovelace = let
-        tokenLovelace = tokenAmount * 1000000
+        tokenLovelace = tokenAmount * 10000
         scriptInputLovelace = case myOwnInput of
           Just txin -> txinAssetValueOf adaAssetClass txin
           _         -> 0

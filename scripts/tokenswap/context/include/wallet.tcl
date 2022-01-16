@@ -23,14 +23,20 @@ if {[file exists "$KEYS_DIR/acc3/payment.addr"]} {
   dict set addrMap 3 skey "$BLOCKFROST_NETWORK/keys/acc3/payment.skey"
 }
 
-dict set addrMap 4 name "Script"
-dict set addrMap 4 addr $SCRIPT_ADDR
+dict set addrMap 4 name "ScriptV1"
+dict set addrMap 4 addr $SCRIPT_ADDR_V1
+
+dict set addrMap 5 name "ScriptV2"
+dict set addrMap 5 addr $SCRIPT_ADDR_V2
 
 set ownerInfo   [getAddrInfo 0]
 set shelleyInfo [getAddrInfo 1]
 set maryInfo    [getAddrInfo 2]
 set percyInfo   [getAddrInfo 3]
-set scriptInfo  [getAddrInfo 4]
+set scriptInfo  [getAddrInfo 5]
+
+set scriptInfoV1 [getAddrInfo 4]
+set scriptInfoV2 [getAddrInfo 5]
 
 proc payAllToPubKeyHash {fromInfo toInfo} {
   set fromName [dict get $fromInfo name]
@@ -160,16 +166,17 @@ proc payToPubKeyHash {fromInfo txoutSpecs {changeInfo 0}} {
 proc payToScript {fromInfo lvamount tokenName ttl} {
   global TRY_RUN
   global SCRATCH_DIR
-  global SCRIPT_ADDR
   global TOKEN_TTL_EPOCHS
-  global scriptInfo
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
+  set epoch [getEpochFromTokenName $tokenName]
 
-  logInfo "Pay $lvamount lovelace from $fromName to Script"
+  set scriptInfo [getSwapScriptInfo $epoch]
+  set scriptName [dict get $scriptInfo name]
+  set scriptAddr [dict get $scriptInfo addr]
+  logInfo "Pay $lvamount lovelace from $fromName to $scriptName"
 
   if {$ttl == 0} {
-    set epoch [getEpochFromTokenName $tokenName]
     set ttl "e[expr {$epoch + $TOKEN_TTL_EPOCHS}]"
   }
 
@@ -224,7 +231,7 @@ proc payToScript {fromInfo lvamount tokenName ttl} {
   foreach txid $selectedTxinIds {
     lappend args "--tx-in" $txid
   }
-  lappend args "--tx-out" "$SCRIPT_ADDR+$lvamount"
+  lappend args "--tx-out" "$scriptAddr+$lvamount"
   lappend args "--tx-out-datum-hash" $datumHash
   lappend args "--change-address" $fromAddr
   lappend args "--protocol-params-file" [getProtocolConfig]
@@ -294,7 +301,7 @@ proc queryUtxos {fromInfo {show true}} {
     set datum [lindex $datumToks [expr {$datumlen - 1}]]
     set datum [string map {"\"" ""} $datum]
     # Ignore script utxo with no datum
-    if {$fromName != "Script" || $datum != "TxOutDatumNone"} {
+    if {![string match "Script*" $fromName] || $datum != "TxOutDatumNone"} {
       dict set unsortedUtxos $txid value $valdict
       dict set unsortedUtxos $txid datum $datum
     }

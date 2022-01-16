@@ -3,7 +3,7 @@
 ## Protocol parameters
 
 ```
-alias astor="~/git/nessus-cardano/plutus/tokenswap/context/tcl/astor.tcl"
+alias astor="~/git/nessus-cardano/scripts/tokenswap/context/astor.tcl"
 
 alias cardano-cli="docker run -it --rm \
   -v ~/cardano:/var/cardano/local \
@@ -43,26 +43,26 @@ Define a Plutus _minting script_ that allows us to mint a variable number of **A
 
 ```
 cd ~/git/nessus-cardano/plutus/tokenswap \
-  && cabal run mint-tokens minttokens.plutus \
+  && cabal run mint-tokens astormintv1.plutus \
   && mv *.plutus ~/cardano/$NETWORK/scripts \
   && POLICY_ID=$(cardano-cli transaction policyid \
-    --script-file /var/cardano/local/$NETWORK/scripts/minttokens.plutus) \
+    --script-file /var/cardano/local/$NETWORK/scripts/astormintv1.plutus) \
   && POLICY_ID=${POLICY_ID:0:56} \
   && echo "POLICY_ID=\"$POLICY_ID\""
 
 POLICY_ID="891b79189cc2ad6175160655a0e6286036695af10d2511f77f966e5c"
 
 cd ~/git/nessus-cardano/plutus/tokenswap \
-  && cabal run swap-tokens swaptokens.plutus \
+  && cabal run swap-tokens astorswapv2.plutus \
   && mv *.plutus ~/cardano/$NETWORK/scripts \
   && cardano-cli address build $NETWORK_OPTION \
-    --payment-script-file /var/cardano/local/$NETWORK/scripts/swaptokens.plutus \
-    --out-file /var/cardano/local/scratch/swaptokens.addr \
-  && SCRIPT_ADDR=$(cat ~/cardano/scratch/swaptokens.addr) \
+    --payment-script-file /var/cardano/local/$NETWORK/scripts/astorswapv2.plutus \
+    --out-file /var/cardano/local/scratch/astorswapv2.addr \
+  && SCRIPT_ADDR=$(cat ~/cardano/scratch/astorswapv2.addr) \
   && echo "SCRIPT_ADDR=\"${SCRIPT_ADDR}\""
 
 ExBudget {exBudgetCPU = ExCPU 23014629, exBudgetMemory = ExMemory 77400}
-SCRIPT_ADDR="addr_test1wzzwvjx9k5u7dyqmvze2ft77jjr797r279zyf6vq44zc65sndxe2y"
+SCRIPT_ADDR="addr_test1wpdke5ua4gq6y479nuzj693f6w8xjulcmt0uayzvta5p57q2zhkg9"
 
 # Query balances
 for addr in $OWNER_ADDR $SHELLEY_ADDR $MARY_ADDR $PERCY_ADDR $SCRIPT_ADDR; do

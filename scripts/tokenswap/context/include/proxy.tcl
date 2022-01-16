@@ -40,7 +40,7 @@ proc astorProxyTest {opts} {
   set swaps 4
   set values "10 Ada 10 Ada"
   for {set i 0} {$i < $swaps} {incr i} {
-    set values [concat $values "10 Astor$epoch"]
+    set values [concat $values "1000 Astor$epoch"]
   }
 
   astor [list --reset --epoch $epoch]
@@ -49,7 +49,7 @@ proc astorProxyTest {opts} {
   astor [list --pay2script --from Owner --epoch $epoch --value "100 Ada"]
 
   for {set i 0} {$i < $swaps} {incr i} {
-    astor [list --pay2pkh --from Shelley --to Percy --value "10 Astor$epoch"]
+    astor [list --pay2pkh --from Shelley --to Percy --value "1000 Astor$epoch"]
     after 30
   }
   astor [list --show all]
@@ -90,6 +90,8 @@ proc handleUtxos {fromInfo scriptInfo utxos} {
     foreach assetClass [ldelete $assetClasses 0] {
       set tokenName [getTokenName $assetClass]
       if {[string match "Astor*" $tokenName]} {
+        set epoch [getEpochFromTokenName $tokenName]
+        set scriptInfo [getSwapScriptInfo $epoch]
         handleToScript $fromInfo $scriptInfo $utxos $txid $assetClass
         queryUtxos $fromInfo
         queryUtxos $scriptInfo

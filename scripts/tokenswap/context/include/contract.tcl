@@ -26,7 +26,7 @@ proc scriptMintTokens {fromInfo mintAmount tokenName} {
   lappend args "--tx-in" $txidFees
   lappend args "--tx-in-collateral" $txidCollateral
   lappend args "--mint" "$mintAmount $assetClassHex"
-  lappend args "--mint-script-file" "/var/cardano/local/$SCRIPTS_DIR/minttokens.plutus"
+  lappend args "--mint-script-file" "/var/cardano/local/$SCRIPTS_DIR/astormintv1.plutus"
   lappend args "--mint-redeemer-value" $mintAmount
   lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$mintAmount $assetClassHex"
   lappend args "--change-address" $fromAddr
@@ -78,6 +78,7 @@ proc scriptBurnTokens {fromInfo burnAmount tokenName} {
 
   # Find fees and collateral
   set firstTxid [lindex $selectedIds 0]
+  set txidFees [findFeesId $fromUtxos [toLovelace 4]]
   set txidCollateral [findCollateralId $fromUtxos]
   logInfo "Collateral: $txidCollateral [dict get $fromUtxos $txidCollateral value]"
 
@@ -88,13 +89,14 @@ proc scriptBurnTokens {fromInfo burnAmount tokenName} {
   foreach txid $selectedIds {
     lappend args "--tx-in" $txid
   }
+  lappend args "--tx-in" $txidFees
+  lappend args "--tx-in-collateral" $txidCollateral
   if {$burnAmount < $tkinAmount} {
     set tkrefund [expr {$tkinAmount - $burnAmount}]
     lappend args "--tx-out" "$fromAddr+$MIN_TOKEN_LOVELACE+$tkrefund $assetClassHex"
   }
-  lappend args "--tx-in-collateral" $txidCollateral
   lappend args "--mint" "-$burnAmount $assetClassHex"
-  lappend args "--mint-script-file" "/var/cardano/local/$SCRIPTS_DIR/minttokens.plutus"
+  lappend args "--mint-script-file" "/var/cardano/local/$SCRIPTS_DIR/astormintv1.plutus"
   lappend args "--mint-redeemer-value" "-$burnAmount"
   lappend args "--change-address" $fromAddr
   lappend args "--protocol-params-file" [getProtocolConfig]
@@ -113,20 +115,19 @@ proc scriptBurnTokens {fromInfo burnAmount tokenName} {
 
 # Invoke the swap method on the smart contract
 #
-# astor --script swap --from Shelley --value '10 Astor175'
 proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   global TRY_RUN
   global POLICY_ID
-  global SCRIPTS_DIR
   global MIN_TOKEN_LOVELACE
   global MIN_PLUTUS_FEES
   global DOCKER_RUNTIME
-  global scriptInfo
   set epoch [getEpochFromTokenName $tokenName]
   set assetClass "$POLICY_ID.$tokenName"
   set assetClassHex [assetClassToHex $assetClass]
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
+
+  set scriptInfo [getSwapScriptInfo $epoch]
   set scriptAddr [dict get $scriptInfo addr]
 
   if {$targetAddr == ""} { set targetAddr $fromAddr }
@@ -162,7 +163,7 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
 
   # Select the script UTxO
   set scriptTxinId ""
-  set lvamount [toLovelace $amount]
+  set lvamount [getSwapAmount $epoch $amount]
   foreach txid [dict keys $scriptUtxos] {
     set value [dict get $scriptUtxos $txid value]
     if {$lvamount <= [dict get $value "lovelace"]} {
@@ -199,7 +200,7 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   logInfo "InvalidAfter: $targetSlot => $timestr"
 
   # Sanity check external files that must be available
-  set scriptFile "/var/cardano/local/$SCRIPTS_DIR/swaptokens.plutus"
+  set scriptFile [getSwapScriptFile $epoch]
   set datumFile "/var/cardano/local/scratch/script-datum$epoch.json"
   set protocolFile "/var/cardano/local/scratch/protocol.json"
 
@@ -216,8 +217,8 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   lappend args "--tx-in" $txidFees
   lappend args "--tx-in" $tokenTxinId
   lappend args "--tx-in" $scriptTxinId
-  lappend args "--tx-in-script-file" "/var/cardano/local/$SCRIPTS_DIR/swaptokens.plutus"
-  lappend args "--tx-in-datum-file" "/var/cardano/local/scratch/script-datum$epoch.json"
+  lappend args "--tx-in-script-file" $scriptFile
+  lappend args "--tx-in-datum-file" $datumFile
   lappend args "--tx-in-redeemer-value" 0
   lappend args "--tx-in-collateral" $txidCollateral
   lappend args "--tx-out" $scriptRefundSpec
@@ -240,14 +241,15 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
 
 proc scriptWithdraw {fromInfo epoch} {
   global TRY_RUN
-  global SCRIPTS_DIR
+  global DOCKER_RUNTIME
   global MIN_TOKEN_LOVELACE
-  global scriptInfo
   set tokenName "Astor$epoch"
   set fromName [dict get $fromInfo name]
   set fromAddr [dict get $fromInfo addr]
 
-  logInfo "Withdraw epoch $epoch from Script to $fromName"
+  set scriptInfo [getSwapScriptInfo $epoch]
+  set scriptName [dict get $scriptInfo name]
+  logInfo "Withdraw epoch $epoch from $scriptName to $fromName"
 
   # Filter script utxos by datum
   set datumHash [getDatumHash $tokenName]
@@ -266,6 +268,17 @@ proc scriptWithdraw {fromInfo epoch} {
   logInfo "Fees: $txidFees [dict get $fromUtxos $txidFees value]"
   logInfo "Collateral: $txidCollateral [dict get $fromUtxos $txidCollateral value]"
 
+  # Sanity check external files that must be available
+  set scriptFile [getSwapScriptFile $epoch]
+  set datumFile "/var/cardano/local/scratch/script-datum$epoch.json"
+  set protocolFile "/var/cardano/local/scratch/protocol.json"
+
+  if {$DOCKER_RUNTIME} {
+    if {![file exists $protocolFile]} { error "Protocol params file does not exist: $protocolFile"}
+    if {![file exists $scriptFile]} { error "Script file does not exist: $scriptFile"}
+    if {![file exists $datumFile]} { error "Datum file does not exist: $datumFile"}
+  }
+
   # Build the transaction
   logInfo "Build withdraw transaction"
   set args [networkAwareCmd [list "transaction" "build"]]
@@ -276,8 +289,8 @@ proc scriptWithdraw {fromInfo epoch} {
     set symbols [dict keys $value]
     set isAdaOnly [expr {[llength $symbols] == 1}]
     lappend args "--tx-in" $txid
-    lappend args "--tx-in-script-file" "/var/cardano/local/$SCRIPTS_DIR/swaptokens.plutus"
-    lappend args "--tx-in-datum-file" "/var/cardano/local/scratch/script-datum$epoch.json"
+    lappend args "--tx-in-script-file" $scriptFile
+    lappend args "--tx-in-datum-file" $datumFile
     lappend args "--tx-in-redeemer-value" 1
     if {$isAdaOnly} {
       set lvamount [dict get $value "lovelace"]

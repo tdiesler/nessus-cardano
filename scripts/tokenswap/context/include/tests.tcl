@@ -52,7 +52,7 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
 
   # Select the script UTxO
   set scriptTxinId ""
-  set lvamount [toLovelace $amount]
+  set lvamount [getSwapAmount $epoch $amount]
   foreach txid [dict keys $scriptUtxos] {
     set value [dict get $scriptUtxos $txid value]
     if {$lvamount <= [dict get $value "lovelace"]} {
@@ -110,7 +110,7 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
   logInfo "InvalidAfter: $targetSlot => $timestr"
 
   # Sanity check external files that must be available
-  set scriptFile "/var/cardano/local/$SCRIPTS_DIR/swaptokens.plutus"
+  set scriptFile [getSwapScriptFile $epoch]
   set datumFile "/var/cardano/local/scratch/script-datum$epoch.json"
   set protocolFile "/var/cardano/local/scratch/protocol.json"
 
@@ -129,8 +129,8 @@ proc testTokenSwap {fromInfo amount tokenName failure {targetAddr ""}} {
     lappend args "--tx-in" $tokenTxinId
   }
   lappend args "--tx-in" $scriptTxinId
-  lappend args "--tx-in-script-file" "/var/cardano/local/$SCRIPTS_DIR/swaptokens.plutus"
-  lappend args "--tx-in-datum-file" "/var/cardano/local/scratch/script-datum$epoch.json"
+  lappend args "--tx-in-script-file" $scriptFile
+  lappend args "--tx-in-datum-file" $datumFile
   lappend args "--tx-in-redeemer-value" 0
   lappend args "--tx-in-collateral" $txidCollateral
   lappend args "--tx-out" $scriptRefundSpec

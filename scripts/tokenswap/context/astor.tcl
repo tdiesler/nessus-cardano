@@ -22,24 +22,24 @@ source $tcldir/include/wallet.tcl
 # Astor Main Procs #############################################################
 #
 
-set swaps 4
+set swaps 2
 
 proc astorHelp {} {
   puts ""
   puts "Usage"
   puts "------------------------------------------------------------------------"
-  puts "astor --reset --epoch 175"
+  puts "astor --reset --epoch 181"
   puts "astor --pay2pkh --from Shelley --to Owner --value all"
-  puts "astor --pay2pkh --from Shelley --to Percy --value '10 Astor175'"
-  puts "astor --pay2pkh --from Owner --to Shelley --value '10 Ada 10 Ada 90 Astor175 10 Astor175'"
+  puts "astor --pay2pkh --from Shelley --to Percy --value '1000 Astor181'"
+  puts "astor --pay2pkh --from Owner --to Shelley --value '10 Ada 10 Ada 9000 Astor181 1000 Astor181'"
   puts "astor --pay2pkh --from Owner --to Percy --value '10 Ada 10 Ada'"
-  puts "astor --pay2pkh --from Owner --to Owner --value '30000 Ada'"
-  puts "astor --pay2script --from Owner --value '100 Ada' --epoch 175"
-  puts "astor --script mint --from Owner --value '1000 Astor175'"
-  puts "astor --script burn --from Owner --value '1000 Astor175'"
-  puts "astor --script swap --from Shelley --value '10 Astor175'"
-  puts "astor --script swap --from Percy --to Shelley --value '10 Astor175'"
-  puts "astor --script withdraw --from Owner --epoch 175"
+  puts "astor --pay2pkh --from Owner --to Owner --value '35000 Ada'"
+  puts "astor --pay2script --from Owner --value '100 Ada' --epoch 181"
+  puts "astor --script mint --from Owner --value '10000 Astor181'"
+  puts "astor --script burn --from Owner --value '10000 Astor181'"
+  puts "astor --script swap --from Shelley --value '1000 Astor181'"
+  puts "astor --script swap --from Percy --to Shelley --value '1000 Astor181'"
+  puts "astor --script withdraw --from Owner --epoch 181"
   puts "astor --show all"
 }
 
@@ -52,12 +52,13 @@ proc astorPrepare {opts} {
 
   set values "2 Ada 2 Ada"
   for {set i 0} {$i < $swaps} {incr i} {
-    set values [concat $values "10 Astor$epoch"]
+    set amount [expr {[isSwapV1 $epoch] ? 10 : 1000}]
+    set values [concat $values "$amount Astor$epoch"]
   }
   set scriptAmount [expr {$swaps * 10}]
 
   astor [list --reset --epoch $epoch]
-  astor [list --pay2pkh --from Owner --to Shelley --value $values]
+  astor [list --pay2pkh --from Owner --to Mary --value $values]
   astor [list --pay2pkh --from Owner --to Percy --value "2 Ada 2 Ada"]
   astor [list --pay2script --from Owner --epoch $epoch --value "$scriptAmount Ada"]
   astor [list --show all]
@@ -96,7 +97,7 @@ proc astorRunTests {opts} {
   set args [argsInit $spec $opts]
   set epoch [argsValue $args "--epoch" [getCurrentEpoch]]
 
-  set values "2 Ada 2 Ada 10 Astor$epoch"
+  set values "2 Ada 2 Ada 1000 Astor$epoch"
 
   astor [list --reset --epoch $epoch]
   astor [list --pay2pkh --from Owner --to Shelley --value $values]
@@ -105,9 +106,9 @@ proc astorRunTests {opts} {
 
   testUnauthorizedWithdraw $epoch
 
-  testInvalidTokenSwaps 10 "Astor$epoch"
+  testInvalidTokenSwaps 1000 "Astor$epoch"
 
-  testValidTokenSwap 10 "Astor$epoch"
+  testValidTokenSwap 1000 "Astor$epoch"
 
   astor [list --show all]
 }
@@ -120,8 +121,9 @@ proc astorRunWorkflow {opts} {
   set epoch [argsValue $args "--epoch" [getCurrentEpoch]]
 
   for {set i 0} {$i < $swaps} {incr i} {
-    astor [list --pay2pkh --from Shelley --to Percy --value "10 Astor$epoch"]
-    astor [list --script swap --from Percy --to Shelley --value "10 Astor$epoch"]
+    set amount [expr {[isSwapV1 $epoch] ? 10 : 1000}]
+    astor [list --pay2pkh --from Mary --to Percy --value "$amount Astor$epoch"]
+    astor [list --script swap --from Percy --to Mary --value "$amount Astor$epoch"]
   }
   astor [list --show all]
 }
@@ -129,15 +131,27 @@ proc astorRunWorkflow {opts} {
 # Astor Main Entry #############################################################
 #
 
-# Mainnet Workflow
+# Test Workflow V1
 #
-# astor --script mint --from Owner --value '1000 Astor296'
-# astor --pay2script --from Owner --value '10 Ada' --epoch 296
+# astor --script mint --from Owner --value '40 Astor176'
+# astor --pay2script --from Owner --value '10 Ada' --epoch 176
 # astor --pay2pkh --from Owner --to Percy --value '10 Ada 10 Ada'
-# astor --pay2pkh --from Owner --to addr1... --value '5 Astor296'
-# astor --script swap --from Percy --to Owner --value '5 Astor296'
-# astor --reset --epoch 296
-# astor --script burn --from Owner --value '1000 Astor296'
+# astor --pay2pkh --from Owner --to Mary --value '10 Ada 10 Astor176'
+# astor --pay2pkh --from Mary --to Percy --value '10 Astor176'
+# astor --script swap --from Percy --to Mary --value '10 Astor176'
+# astor --reset --epoch 176
+# astor --script burn --from Owner --value '40 Astor176'
+
+# Test Workflow V2
+#
+# astor --script mint --from Owner --value '4000 Astor180'
+# astor --pay2script --from Owner --value '10 Ada' --epoch 180
+# astor --pay2pkh --from Owner --to Percy --value '10 Ada 10 Ada'
+# astor --pay2pkh --from Owner --to Mary --value '10 Ada 1000 Astor180'
+# astor --pay2pkh --from Mary --to Percy --value '1000 Astor180'
+# astor --script swap --from Percy --to Mary --value '1000 Astor180'
+# astor --reset --epoch 180
+# astor --script burn --from Owner --value '4000 Astor180'
 
 # MintTokens: 1767771
 # PayScript:   173245
