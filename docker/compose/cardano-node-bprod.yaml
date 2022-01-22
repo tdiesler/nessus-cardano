@@ -36,11 +36,6 @@ services:
               "addr": "relay02.astorpool.net",
               "port": ${CARDANO_RELAY02_PORT:-3001},
               "valency": 1
-            },
-            {
-              "addr": "relay03.astorpool.net",
-              "port": ${CARDANO_RELAY03_PORT:-3001},
-              "valency": 1
             }
           ]
         }'
