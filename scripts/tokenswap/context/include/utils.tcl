@@ -228,24 +228,26 @@ proc cliTxSign {addrInfo} {
 
 # Sign the Tx
 proc cliTxSubmit {addrInfo txid} {
+  global TTL
   logInfo "Submit transaction "
   set args [networkAwareCmd [list "transaction" "submit"]]
   lappend args "--tx-file" "/var/cardano/local/scratch/tx.signed"
   cardano-cli $args false
 
   set count 0
+  set waitms 3000
   set txids [list $txid]
-  while {$count < 60 && [lsearch $txids $txid] >= 0} {
+  while {$count < [expr {1000 * $TTL / $waitms}] && [lsearch $txids $txid] >= 0} {
     puts -nonewline "."; flush stdout
     set utxos [queryUtxos $addrInfo false]
     set txids [dict keys $utxos]
-    after 3000
+    after $waitms
     incr count
   }
   puts ""
   set success [expr {[lsearch $txids $txid] < 0}]
   if {!$success} {
-    logError "Timeout, aborting Tx"
+    logError "Timeout, aborting Tx monitor"
   }
   return $success
 }
