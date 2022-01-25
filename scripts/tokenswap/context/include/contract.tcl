@@ -188,8 +188,8 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   set scriptRefundLovelace [expr max($scriptRefundLovelace, $MIN_TOKEN_LOVELACE)]
   set scriptRefundSpec "$scriptAddr+$scriptRefundLovelace+$scriptRefundTokens $assetClassHex"
 
-  # Calculate the invalid after slot
-  set slotDelta 300
+  # Calculate the invalid after slot (i.e. 8h)
+  set slotDelta [expr {8 * 3600}]
   set bounds [getEpochBoundaries]
   set currentSlot [dict get $bounds currentSlot]
   set currentTime [dict get $bounds currentTime]
