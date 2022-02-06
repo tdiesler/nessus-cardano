@@ -80,13 +80,15 @@ echo "  flags: -external-libsodium-vrf" >> cabal.project.local
 
 echo "Cabal build ##############################################################"
 git checkout -f ${CARDANO_NODE_GITREV}
-cabal build cardano-node cardano-cli
+cabal build cardano-node cardano-cli cardano-submit-api
 
 echo "Copy configs ..."
 mkdir -p $out/config
 cp $src/configuration/cardano/mainnet-* $out/config/
+cp $src/cardano-submit-api/config/tx-submit-mainnet-* $out/config/
 
 echo "Copy binaries ..."
 mkdir -p $out/bin
 cp $(find ./dist-newstyle/build -type f -name "cardano-node") $out/bin
 cp $(find ./dist-newstyle/build -type f -name "cardano-cli") $out/bin
+cp $(find ./dist-newstyle/build -type f -name "cardano-submit-api") $out/bin

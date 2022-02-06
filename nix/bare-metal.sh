@@ -179,6 +179,7 @@ if [[ "$PATH" != *"cardano-node-${cardanoVersion}"* ]]; then
     mkdir -p $outCardano/bin
     cp ./dist-newstyle/build/$ARCH-linux/ghc-${ghcVersion}/cardano-node-${cardanoVersion}/x/cardano-node/build/cardano-node/cardano-node $outCardano/bin
     cp ./dist-newstyle/build/$ARCH-linux/ghc-${ghcVersion}/cardano-cli-${cardanoVersion}/x/cardano-cli/build/cardano-cli/cardano-cli $outCardano/bin
+    cp ./dist-newstyle/build/$ARCH-linux/ghc-${ghcVersion}/cardano-submit-api-${cardanoVersion}/x/cardano-submit-api/build/cardano-submit-api/cardano-submit-api $outCardano/bin
   fi
 
   if [ ! -d $outCardano/bin ]; then

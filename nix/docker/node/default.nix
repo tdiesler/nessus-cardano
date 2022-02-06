@@ -131,6 +131,7 @@ in
       # Create links for executables
       ln -s ${cardano}/bin/cardano-cli usr/local/bin/cardano-cli
       ln -s ${cardano}/bin/cardano-node usr/local/bin/cardano-node
+      ln -s ${cardano}/bin/cardano-submit-api usr/local/bin/cardano-submit-api
     '';
 
     config = {
