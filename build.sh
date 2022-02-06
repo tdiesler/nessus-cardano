@@ -37,6 +37,7 @@ function buildCardanoNodeArm64 () {
     docker run --name tmp ${AUX_IMAGE_NAME} &> /dev/null
     docker cp tmp:/usr/local/bin/cardano-node ${dockerBuildOut}/bin/cardano-node
     docker cp tmp:/usr/local/bin/cardano-cli ${dockerBuildOut}/bin/cardano-cli
+    docker cp tmp:/usr/local/bin/cardano-submit-api ${dockerBuildOut}/bin/cardano-submit-api
     docker rm -f tmp &> /dev/null
 
   else
@@ -80,7 +81,7 @@ function buildCncliArm64 () {
   fi
 }
 
-# Bild Debian base image =======================================================
+# Build Debian base image =======================================================
 #
 # Note, we currently cannot build the lnav derivation for arm64
 # https://github.com/tstack/lnav/issues/882

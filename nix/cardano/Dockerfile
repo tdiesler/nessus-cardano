@@ -104,6 +104,7 @@ RUN cat cabal.project.local \
 
 RUN cp $(find ./dist-newstyle/build -type f -name "cardano-node") /usr/local/bin/
 RUN cp $(find ./dist-newstyle/build -type f -name "cardano-cli") /usr/local/bin/
+RUN cp $(find ./dist-newstyle/build -type f -name "cardano-submit-api") /usr/local/bin/
 
 WORKDIR /root
 
@@ -114,5 +115,6 @@ FROM builderA
 # Copy the executables from the previous build
 COPY --from=builderC /usr/local/bin/cardano-node /usr/local/bin/
 COPY --from=builderC /usr/local/bin/cardano-cli /usr/local/bin/
+COPY --from=builderC /usr/local/bin/cardano-submit-api /usr/local/bin/
 
 WORKDIR /
