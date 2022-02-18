@@ -116,6 +116,7 @@ proc scriptBurnTokens {fromInfo burnAmount tokenName} {
 # Invoke the swap method on the smart contract
 #
 proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
+  global TTL
   global TRY_RUN
   global POLICY_ID
   global MIN_TOKEN_LOVELACE
@@ -193,8 +194,8 @@ proc scriptSwapTokens {fromInfo amount tokenName {targetAddr ""}} {
   set bounds [getEpochBoundaries]
   set currentSlot [dict get $bounds currentSlot]
   set currentTime [dict get $bounds currentTime]
-  set targetSlot [expr {$currentSlot + $slotDelta}]
-  set targetTime [expr {$currentTime + $slotDelta}]
+  set targetSlot [expr {$currentSlot + $TTL}]
+  set targetTime [expr {$currentTime + $TTL}]
 
   set timestr [clock format $targetTime -format {%d-%m-%Y %H:%M:%S %Z}]
   logInfo "InvalidAfter: $targetSlot => $timestr"

@@ -7,6 +7,9 @@ set MIN_TOKEN_LOVELACE 1700000
 set MIN_PLUTUS_FEES 1200000
 set TOKEN_TTL_EPOCHS 18
 
+# Tx submit TTL (1h)
+set TTL 3600
+
 # Enable with --try-run
 set TRY_RUN false
 
