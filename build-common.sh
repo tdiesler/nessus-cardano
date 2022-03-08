@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Also change HaskellNix in nix/sources.json
-CARDANO_VER="1.33.0"
+# and the Hydra build in nix/docker/node/default.nix
+CARDANO_VER="1.34.1"
 CARDANO_REV="-dev"
 
 # https://mmonit.com/download
@@ -14,7 +15,7 @@ LNAV_VER="0.10.1"
 
 # https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/gLiveView.sh#L59
 # Also change change in nix/gLiveView/default.nix
-GLVIEW_VER="1.25.1"
+GLVIEW_VER="1.26.3"
 
 # https://github.com/AndrewWestberg/cncli
 CNCLI_VER="4.0.4"

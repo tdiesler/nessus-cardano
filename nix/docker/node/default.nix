@@ -22,8 +22,8 @@
   ghcVersion,
   glvVersion,
 
-  # https://hydra.iohk.io/build/7654130/download/1/index.html
-  hydraBuild ? "7654130",
+  # https://hydra.iohk.io/build/12179730/download/1/index.html
+  hydraBuild ? "12179730",
 
   baseImage ? import ../baseImage { inherit debianVersion; },
   cardano ? import ../../cardano { inherit cardanoVersion cardanoRev cabalVersion ghcVersion; },
