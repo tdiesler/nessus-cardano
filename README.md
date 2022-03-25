@@ -193,7 +193,7 @@ pod/bprod created
 service/bprod-clip created
 ```
 
-This is documented in detail [over here](https://app.gitbook.com/@tdiesler/s/cardano/k8s/cardano-k8s).
+This is documented in detail [over here](https://tdiesler.gitbook.io/cardano/k8s/cardano-k8s).
 
 For details you may want to have a look at [nix/docker/k8s/cardano-nodes.yaml](https://github.com/tdiesler/nessus-cardano/blob/master/nix/docker/k8s/cardano-nodes.yaml).
 
