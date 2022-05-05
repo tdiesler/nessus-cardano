@@ -306,7 +306,7 @@ if [[ -z $CARDANO_PUBLIC_IP && -n $KUBERNETES_SERVICE_HOST ]]; then
 
     AUTH_HEADER="Authorization: Bearer ${TOKEN}"
 
-    POD_API_PATH="${APISERVER}/api/v1/namespaces/cardano/pods/${HOSTNAME}"
+    POD_API_PATH="${APISERVER}/api/v1/namespaces/${NAMESPACE}/pods/${HOSTNAME}"
     NODE_NAME=$(curl -s --cacert ${CACERT} --header "${AUTH_HEADER}" -X GET ${POD_API_PATH} | jq -r ".spec.nodeName")
 
     if [[ -n ${NODE_NAME} ]]; then
