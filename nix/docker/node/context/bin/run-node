@@ -27,6 +27,8 @@ fi
 if [[ -z $CARDANO_SOCKET_PATH ]]; then
   CARDANO_SOCKET_PATH="/opt/cardano/ipc/node.socket"
 fi
+# always export CARDANO_NODE_SOCKET_PATH to make cardano-cli in local terminal working, even if a customized CARDANO_SOCKET_PATH was given:
+export CARDANO_NODE_SOCKET_PATH="$CARDANO_SOCKET_PATH"
 
 if [[ -z $CARDANO_LOG_DIR ]]; then
   CARDANO_LOG_DIR="/opt/cardano/logs"
