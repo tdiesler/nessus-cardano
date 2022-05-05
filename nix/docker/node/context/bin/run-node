@@ -288,8 +288,8 @@ mkdir -p `dirname $CARDANO_SOCKET_PATH`
 # Removing a potentialy existing lost+found directory
 rm -rf $CARDANO_DATABASE_PATH/lost+found
 
-# Find the public IP when we run on Kubernetes
-if [[ -z $CARDANO_PUBLIC_IP && -n $KUBERNETES_SERVICE_HOST ]]; then
+# Find the public IP when we run on Kubernetes and CARDANO_UPDATE_TOPOLOGY is true
+if [[ -z $CARDANO_PUBLIC_IP && -n $KUBERNETES_SERVICE_HOST && $CARDANO_UPDATE_TOPOLOGY == true ]]; then
 
   echo "Reading CARDANO_PUBLIC_IP from Kubernetes ..."
 
